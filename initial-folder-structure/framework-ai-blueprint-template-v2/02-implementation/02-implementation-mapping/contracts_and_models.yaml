@@ -1,0 +1,4 @@
+requirement_type: data_and_api_contracts
+default_implementation_ids:
+- '*'
+mappings: []

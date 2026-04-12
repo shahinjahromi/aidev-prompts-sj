@@ -1,0 +1,5 @@
+schema_version: 1
+type: tooling_manifest
+tooling_name: ai-development-tooling
+current_version: 1.0.0
+implemented_version: 1.0.0

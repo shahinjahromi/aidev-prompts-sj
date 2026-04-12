@@ -1,0 +1,4 @@
+requirement_type: functional_requirements
+default_implementation_ids:
+- '*'
+mappings: []

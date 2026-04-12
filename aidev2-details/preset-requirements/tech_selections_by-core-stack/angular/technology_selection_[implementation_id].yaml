@@ -1,0 +1,67 @@
+schema_version: 1
+type: technology_selection
+generated_at: '2026-04-07'
+entries:
+- id: TS-0000001-nodejs-runtime
+  category: runtime
+  capability: Provide the JavaScript runtime and package execution environment for
+    local development, build, test, and delivery workflows.
+  name: Node.js
+  version: 24.14.1 LTS
+  description: Use the latest stable LTS Node.js release line to maximize ecosystem
+    compatibility, predictable tooling behavior, and long-term maintainability for
+    the Angular frontend toolchain.
+  constraints:
+  - Align local development, CI, and deployment images to the same Node.js major version.
+  - Prefer the LTS line for production and team-wide standardization.
+  created_version: 1.0.1
+  updated_version: 1.0.5
+- id: TS-0000002-angular-framework
+  category: frontend_framework
+  capability: Build the web application with a modern, well-supported component framework
+    that has strong tooling, testing, and upgrade support.
+  name: Angular
+  version: 21.2.7
+  description: Use the latest stable Angular release to stay aligned with the current
+    framework, compiler, router, forms, CLI, and ecosystem guidance.
+  constraints:
+  - Keep Angular framework packages on the same major and minor version line.
+  - Keep PrimeNG and Angular CDK aligned with the active Angular major version.
+  created_version: 1.0.1
+  updated_version: 1.0.5
+- id: TS-0000003-angular-ui-toolkit
+  category: ui_component_library
+  capability: Provide a free, polished, accessible, production-ready UI component
+    toolkit for Angular.
+  name: PrimeNG
+  version: 21.1.5
+  description: Use PrimeNG as the default UI toolkit because it is free, mature, feature-rich,
+    visually polished out of the box, and gives the Angular application a broader
+    catalog of production-ready components without requiring a custom design system
+    to achieve a refined banking UI.
+  constraints:
+  - Use PrimeNG as the primary component library instead of mixing multiple Angular
+    UI kits.
+  - Prefer customization through theming, tokens, and composition before building
+    duplicate custom widgets.
+  created_version: 1.0.1
+  updated_version: 1.0.5
+- id: TS-0000004-angular-styling-approach
+  category: styling_architecture
+  capability: Keep application styling maintainable, scalable, and easy to evolve
+    across features and teams.
+  name: SCSS with Angular component-scoped styles and design tokens
+  version: Angular CLI native support
+  description: Use SCSS as the primary styling authoring format with Angular component-scoped
+    styles, shared design tokens, CSS custom properties, and a small set of layout
+    utilities. This is the most maintainable fit for this codebase because it keeps
+    styles close to components, avoids utility-class sprawl, preserves strong structure
+    for theming, and scales cleanly with PrimeNG customization.
+  constraints:
+  - Keep most styles component-local and reserve global styles for tokens, resets,
+    typography, and layout primitives.
+  - Centralize colors, spacing, radii, elevation, and typography as reusable design
+    tokens.
+  - Do not introduce a second competing styling system unless a clear gap is proven.
+  created_version: 1.0.1
+  updated_version: 1.0.5

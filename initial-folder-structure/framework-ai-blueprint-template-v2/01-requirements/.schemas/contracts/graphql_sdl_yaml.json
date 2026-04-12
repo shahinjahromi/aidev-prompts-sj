@@ -1,0 +1,6 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GraphQL SDL Contract",
+  "description": "GraphQL contracts are plain text files containing GraphQL Schema Definition Language (SDL). They define types, queries, mutations, and subscriptions. Validation is performed by GraphQL tooling, not by this schema. This schema exists only to document the convention.",
+  "type": "string"
+}

@@ -1,0 +1,248 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UI Contracts Schema",
+  "description": "Describes what is visible on each screen or screen section: fields, display formats, labels, actions, visual states, and layout. Captures presentational details that do not fit in functional/non-functional requirements, acceptance criteria, or acceptance tests.",
+  "type": "object",
+  "required": ["schema_version", "type", "items"],
+  "properties": {
+    "schema_version": { "type": "integer" },
+    "type": { "const": "ui_contracts" },
+    "version": { "type": "string" },
+    "generated_at": { "type": "string", "format": "date" },
+    "items": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/ui_contract_item" }
+    }
+  },
+  "definitions": {
+    "ui_contract_item": {
+      "type": "object",
+      "required": ["id", "title", "screen_type", "section_path"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^UIC-[0-9]{6}(-v[0-9]+)?$"
+        },
+        "replaces_id": {
+          "type": "string",
+          "pattern": "^UIC-[0-9]{6}(-v[0-9]+)?$"
+        },
+        "title": {
+          "type": "string",
+          "description": "Human-readable name of the screen or section."
+        },
+        "description": {
+          "type": "string",
+          "description": "Brief summary of what this screen or section shows the user."
+        },
+        "screen_type": {
+          "type": "string",
+          "enum": ["screen", "section", "dialog", "drawer", "bottom_sheet", "toast", "popover", "overlay"],
+          "description": "The kind of presentational surface."
+        },
+        "section_path": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "Hierarchical navigation or organisational path, e.g. [\"Accounts\", \"Account Detail\"]."
+        },
+        "url_path": {
+          "type": "string",
+          "description": "Route path without host (e.g. /accounts/:accountId). Used to group all screens, sections, dialogs, and overlays that appear on the same page."
+        },
+        "parent_uic_id": {
+          "type": "string",
+          "pattern": "^UIC-[0-9]{6}(-v[0-9]+)?$",
+          "description": "Parent screen UIC id when this item is a section, dialog, or child surface of another screen."
+        },
+        "page_section_id": {
+          "type": "string",
+          "description": "Named widget slot or area within the page this item occupies, e.g. 'header', 'sidebar', 'account_summary_card', 'recent_transactions'."
+        },
+        "sort_hint": {
+          "type": "integer",
+          "description": "Ordering hint among sibling items that share the same parent or url_path (lower numbers appear first)."
+        },
+        "fields": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/field" },
+          "description": "Fields displayed or collected on this screen/section."
+        },
+        "actions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/action" },
+          "description": "User-triggerable actions available on this screen/section."
+        },
+        "states": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/visual_state" },
+          "description": "Visual states the screen/section can be in."
+        },
+        "layout_notes": {
+          "type": "string",
+          "description": "Free-form description of layout, ordering, or grouping when the fields/actions arrays alone are not sufficient."
+        },
+        "related_requirement_ids": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "FR or NFR ids this screen relates to, for traceability."
+        },
+        "related_uic_ids": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^UIC-[0-9]{6}(-v[0-9]+)?$" },
+          "description": "Other UI contracts closely related to this one (e.g. sibling tabs, sub-sections)."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Any additional presentational detail that does not fit the structured fields above."
+        }
+      }
+    },
+    "field": {
+      "type": "object",
+      "required": ["name", "label", "display_type"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Programmatic field identifier."
+        },
+        "label": {
+          "type": "string",
+          "description": "Visible label shown to the user."
+        },
+        "display_type": {
+          "type": "string",
+          "enum": [
+            "text", "number", "currency", "date", "datetime", "time",
+            "email", "phone", "url", "percentage", "boolean",
+            "select", "multi_select", "radio", "checkbox", "toggle",
+            "textarea", "password", "masked",
+            "file", "image", "avatar",
+            "badge", "tag", "chip", "status_indicator", "progress", "rating",
+            "rich_text", "list", "table", "key_value"
+          ],
+          "description": "How the field value is displayed or collected."
+        },
+        "format": {
+          "type": "string",
+          "description": "Display format pattern, e.g. MM/DD/YYYY, $#,##0.00, ***-**-1234."
+        },
+        "editable": {
+          "type": "boolean",
+          "default": false,
+          "description": "True when the user can modify the value (input field). False for display-only."
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether the field is required for form submission (only meaningful when editable is true)."
+        },
+        "placeholder": {
+          "type": "string",
+          "description": "Placeholder or hint text shown when the field is empty."
+        },
+        "default_value": {
+          "type": "string",
+          "description": "Default value shown on initial render."
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["label", "value"],
+            "properties": {
+              "label": { "type": "string" },
+              "value": { "type": "string" }
+            },
+            "additionalProperties": false
+          },
+          "description": "Selectable options for select, multi_select, radio, or checkbox fields."
+        },
+        "validation": {
+          "type": "object",
+          "properties": {
+            "min_length": { "type": "integer" },
+            "max_length": { "type": "integer" },
+            "min_value": { "type": "number" },
+            "max_value": { "type": "number" },
+            "pattern": { "type": "string", "description": "Regex the input must match." },
+            "pattern_description": { "type": "string", "description": "Human-readable description of the pattern." },
+            "custom_rule": { "type": "string", "description": "Plain-language description of a validation rule not expressible by the other fields." }
+          },
+          "additionalProperties": false,
+          "description": "Client-side validation rules shown or enforced on the screen."
+        },
+        "visibility_condition": {
+          "type": "string",
+          "description": "Plain-language condition under which this field is shown, e.g. 'only when payment method is bank account'."
+        },
+        "group": {
+          "type": "string",
+          "description": "Logical grouping label when fields are visually grouped together."
+        },
+        "sort_hint": {
+          "type": "integer",
+          "description": "Optional ordering hint within the screen (lower numbers appear first)."
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "required": ["label", "action_type"],
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "Visible text on the button, link, or control."
+        },
+        "action_type": {
+          "type": "string",
+          "enum": ["button", "link", "icon_button", "menu_item", "fab", "toggle", "swipe", "tab", "drag_drop"],
+          "description": "The kind of interactive control."
+        },
+        "style": {
+          "type": "string",
+          "enum": ["primary", "secondary", "destructive", "ghost", "outline"],
+          "description": "Visual emphasis of the action."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon name or description shown with or instead of the label."
+        },
+        "navigates_to": {
+          "type": "string",
+          "description": "Target screen UIC id or route the action leads to."
+        },
+        "confirmation_required": {
+          "type": "boolean",
+          "description": "Whether a confirmation dialog is shown before executing the action."
+        },
+        "enabled_condition": {
+          "type": "string",
+          "description": "Plain-language condition under which this action is enabled."
+        },
+        "sort_hint": {
+          "type": "integer",
+          "description": "Optional ordering hint among actions."
+        }
+      }
+    },
+    "visual_state": {
+      "type": "object",
+      "required": ["name", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": ["loading", "empty", "error", "populated", "disabled", "readonly", "offline", "partial", "skeleton", "success"],
+          "description": "Canonical state name."
+        },
+        "description": {
+          "type": "string",
+          "description": "What the user sees when the screen is in this state."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,635 @@
+schema_version: 1
+type: nfr_and_global_cr
+generated_at: "2026-04-11"
+items:
+
+# ─────────────────────────────────────────────────────────────────────────────
+# NFR — Non-Functional Requirements
+# ─────────────────────────────────────────────────────────────────────────────
+
+- id: NFR-0000008-startup-operability
+  section: Startup Operability
+  text: >
+    The application repository shall provide a bash startup script at
+    `scripts/local-dev.sh` that starts the application in a runnable local
+    development mode from a standard shell environment. The script must be
+    idempotent, executable without root privileges, and documented in the
+    repository README. No manual steps outside of documented environment
+    setup shall be required to start the application.
+  acceptance_criteria:
+  - id: AC-0000022-startup-script-exists-and-starts-app
+    title: Startup script exists and starts the app
+    context: >
+      Developers and automation need a single predictable entry point to start
+      the application locally.
+    criteria:
+    - A bash script exists at `scripts/local-dev.sh` in the application repository.
+    - The script is executable or runnable with `bash scripts/local-dev.sh`.
+    - Running the script starts the application without requiring ad hoc manual steps
+      outside documented environment setup.
+    - The script is idempotent — running it twice does not cause errors or duplicate processes.
+  acceptance_tests:
+  - id: AT-0000013-verify-startup-script-starts-app
+    name: Verify startup script exists and starts the app
+    steps:
+    - Open the application repository root.
+    - Verify that `scripts/local-dev.sh` exists.
+    - Run `bash scripts/local-dev.sh` from the application repository root.
+    - Observe whether the application starts and becomes responsive.
+    expected_result: >
+      The file `scripts/local-dev.sh` exists and running it starts the
+      application without errors.
+  created_version: 1.0.1
+  updated_version: 1.0.1
+
+- id: NFR-0000009-code-quality-clean-code
+  section: Code Quality
+  text: >
+    All application code shall follow clean code principles: every function
+    must do exactly one thing; functions must have no hidden side effects
+    (a function named `getX` must not modify state); flag arguments are
+    forbidden — split into two named functions instead; prefer pure functions
+    where possible. Error handling must use the Go idiomatic error return model
+    consistently — never mix panics with error returns in the same layer.
+    Errors must never be swallowed silently; they must be handled, propagated,
+    or logged explicitly. Data structures must be simple; define explicit Go
+    structs for data moving between layers — never pass generic `map[string]interface{}`
+    as domain data. Validate data at system boundaries (HTTP handlers, message
+    consumers) and trust it internally — never re-validate the same value at
+    every layer. Use dependency injection throughout; never hard-code dependencies
+    inside business logic. Avoid circular package imports; if package A imports B
+    and B imports A, extract the shared concept into a third package.
+    Organize imports in three groups separated by blank lines: stdlib, external,
+    internal. Follow the project formatter (`gofmt` / `goimports`) without deviation.
+    Be consistent with patterns already in the codebase.
+  acceptance_criteria:
+  - id: AC-0000023-functions-single-responsibility-no-side-effects
+    title: Functions do one thing and have no hidden side effects
+    context: >
+      Single-responsibility and side-effect-free functions are the foundation
+      for testable, predictable Go code. AI-generated code must comply.
+    criteria:
+    - Every function performs a single, nameable job. No function whose name implies
+      a read also modifies state.
+    - Flag arguments (`process(data, true)`) do not exist; logic is split into
+      two named functions instead.
+    - No business logic function panics; panics are reserved for truly unrecoverable
+      startup conditions only (e.g., missing required config at boot).
+    - Errors are returned using Go's error return convention. No layer swallows
+      errors silently.
+  - id: AC-0000003-explicit-structs-for-domain-data
+    title: Explicit structs used for all domain data
+    context: >
+      Generic maps passed between layers obscure contracts and make code brittle
+      and untestable.
+    criteria:
+    - Request payloads, response payloads, domain entities, and service inputs/outputs
+      are defined as named Go structs, not `map[string]interface{}` or `interface{}`.
+    - Structs used at API boundaries are defined in a package accessible to handlers
+      and services without circular imports.
+  - id: AC-0000004-dependency-injection-no-hardcoded-deps
+    title: Dependency injection used; no hard-coded dependencies in business logic
+    context: >
+      Hard-coded dependencies inside business logic make code untestable and
+      force production infrastructure into unit tests.
+    criteria:
+    - Services, repositories, and handlers accept their dependencies through
+      constructor parameters or function parameters, not by instantiating them
+      internally.
+    - No database driver, HTTP client, or external service client is instantiated
+      inside a business logic function or service method.
+    - Circular package imports do not exist in the codebase.
+  acceptance_tests:
+  - id: AT-0000014-verify-no-flag-arguments-and-single-responsibility
+    name: Verify functions are single-responsibility with no flag arguments
+    steps:
+    - Review all exported and unexported function signatures in service and handler packages.
+    - Assert no boolean flag parameters exist on functions that select between two
+      distinct behaviors.
+    - Assert no function named as a read operation (Get*, Fetch*, Find*) contains
+      write or state-mutation calls.
+    expected_result: >
+      All reviewed functions are single-responsibility with no flag arguments
+      and no hidden side effects.
+  created_version: 1.0.1
+  updated_version: 1.0.1
+
+- id: NFR-0000003-code-readability
+  section: Code Readability
+  text: >
+    All code must be written for readability and understandability. Use
+    intention-revealing names: functions as verb-noun (`calculateTotal`,
+    `fetchUser`, `validateInput`), booleans as predicates (`isActive`,
+    `hasPermission`, `canRetry`). Avoid abbreviations unless universally
+    understood (`id`, `url`, `http`). Match names to domain language — if the
+    domain says "account", do not name it `acct` or `record`. Keep functions
+    short; one level of abstraction per function. Limit function parameters to
+    3 or fewer; use a struct for more. Return early with guard clauses; avoid
+    deep nesting beyond 3 levels. Prefer `switch` over long `if-else` chains
+    when branching on a single value. Do not comment what the code does —
+    make the code say that through naming. Do comment why — business rules,
+    non-obvious constraints, regulatory requirements, workarounds. Mark temporary
+    code with `// TODO(ticket-id):`. Keep files under 300 lines; a file that
+    grows beyond that is doing too much — split it. One concept per file. Organize
+    packages by feature/domain, not by technical layer.
+  acceptance_criteria:
+  - id: AC-0000005-intention-revealing-names
+    title: All names are intention-revealing and match domain language
+    context: >
+      A reader must understand the purpose of a symbol without reading
+      its implementation. This is especially critical for AI-generated code
+      where generic names inflate cognitive load.
+    criteria:
+    - All exported functions use verb-noun naming.
+    - Boolean variables and return values are named as predicates.
+    - No abbreviations are used beyond `id`, `url`, `http`, `err`, `ctx`.
+    - Names match the domain language used in requirements (e.g., if the domain
+      says "account", the code uses `account`, not `acct` or `record`).
+  - id: AC-0000006-short-functions-early-return-no-deep-nesting
+    title: Functions are short, use early return, and have no deep nesting
+    context: >
+      Deep nesting and long functions are the primary cause of unreadable
+      code in Go handlers and services.
+    criteria:
+    - No function body exceeds 50 lines (excluding comments and blank lines).
+    - Guard clauses appear at the top of functions; the happy path is at the bottom.
+    - Nesting depth does not exceed 3 levels within any function body.
+    - No file exceeds 300 lines.
+  acceptance_tests:
+  - id: AT-0000003-verify-naming-conventions
+    name: Verify naming conventions across all packages
+    steps:
+    - Run `golangci-lint` or equivalent linter with naming rules enabled.
+    - Review exported function names in handler and service packages for verb-noun format.
+    - Review boolean variable names for predicate format.
+    - Check that no names deviate from domain language as defined in requirements.
+    expected_result: >
+      Naming rules pass lint. All reviewed names are intention-revealing and
+      aligned with domain language.
+  created_version: 1.0.1
+  updated_version: 1.0.1
+
+- id: NFR-0000004-security-practices
+  section: Security
+  text: >
+    All application code must follow secure coding practices. Validate all
+    input at system boundaries (HTTP handlers, message consumers, CLI args)
+    using allowlists — define what is permitted, not what is forbidden.
+    Validate type, length, range, and format; reject anything that does not
+    match. Never concatenate user input into SQL, shell commands, or templates;
+    use parameterized queries and prepared statements exclusively. For dynamic
+    queries (filters, sorting), map user input to a fixed set of allowed
+    field names — never pass through directly. Enforce authentication on every
+    endpoint unless explicitly marked public — default-deny. Check authorization
+    at the resource level, not just the route; verify the caller owns or has
+    access to the specific resource. Never expose internal IDs that allow
+    enumeration without access control. Store secrets in environment variables
+    or a secrets manager — never in code, config files, or container images.
+    Never log secrets, tokens, passwords, PII, or full card numbers. Return
+    generic error messages to clients; log detailed errors server-side. Do not
+    leak stack traces, internal paths, database schemas, or infrastructure
+    details in API responses. Rate-limit and throttle authentication endpoints
+    and any endpoint performing expensive operations. Set response security
+    headers on all responses: `Content-Security-Policy`, `X-Content-Type-Options`,
+    `Strict-Transport-Security`. Implement request size limits; reject oversized
+    payloads before processing. Use HTTPS for all communication — no plaintext
+    exceptions. Use short-lived tokens; rotate secrets on compromise.
+    Encrypt sensitive data at rest; use TLS for data in transit. Pin
+    dependency versions using `go.sum`. Never run containers as root; use
+    least-privilege service accounts.
+  acceptance_criteria:
+  - id: AC-0000007-input-validated-at-boundaries
+    title: All input is validated at system boundaries using allowlists
+    context: >
+      Input validation at boundaries is the primary defense against injection,
+      data corruption, and unexpected behavior. Validation must be allowlist-based
+      and cover type, length, range, and format.
+    criteria:
+    - Every HTTP handler validates its request payload before passing it to the
+      service layer. Unvalidated data never reaches business logic.
+    - Validation uses struct tags or an explicit validation library with allowlist rules.
+    - Dynamic query parameters (sort fields, filters) are mapped to a compile-time
+      allowlist of permitted field names before use.
+    - Rejected input returns HTTP 400 with a generic error message; detailed
+      validation errors are never exposed in production responses.
+  - id: AC-0000008-no-secrets-in-code-or-logs
+    title: No secrets, tokens, or PII appear in code, config files, or log output
+    context: >
+      Secret leakage through source code or logs is one of the most common
+      and severe security failures. This rule is non-negotiable.
+    criteria:
+    - No literal secret, API key, password, or token appears anywhere in source
+      code or committed config files.
+    - Log statements do not emit secrets, tokens, passwords, PII, or full card numbers.
+    - Error responses to clients contain generic messages only; detailed internals
+      are logged server-side.
+  - id: AC-0000009-security-headers-on-all-responses
+    title: Security headers set on all HTTP responses
+    context: >
+      Missing security headers are a common finding in banking API security
+      reviews. They must be set via middleware on all responses.
+    criteria:
+    - A middleware layer sets `X-Content-Type-Options: nosniff`,
+      `Strict-Transport-Security: max-age=63072000; includeSubDomains` and
+      `X-Frame-Options: DENY` on every response.
+    - CORS is configured using an explicit allowlist of permitted origins;
+      `Access-Control-Allow-Origin: *` is never used on authenticated endpoints.
+    - Request body size is limited (e.g., `http.MaxBytesReader`) before reading.
+  - id: AC-0000010-auth-on-all-non-public-endpoints
+    title: Authentication enforced on all non-public endpoints
+    context: >
+      A BFF handling banking data must enforce authentication at the middleware
+      level, not rely on individual handler authors to remember to check.
+    criteria:
+    - A middleware chain enforces authentication verification before reaching
+      any non-public handler.
+    - Endpoints explicitly designated as public are marked in routing configuration
+      and reviewed on each change.
+    - Authorization checks verify the caller's ownership of or access to the
+      specific resource, not only route-level membership.
+  acceptance_tests:
+  - id: AT-0000004-verify-input-validation-at-boundaries
+    name: Verify input validation is present on all HTTP handlers
+    steps:
+    - For each HTTP handler, confirm a validation step exists before the service layer call.
+    - Submit a request with an invalid payload (wrong type, missing required field, oversized string).
+    - Assert the response is HTTP 400 with a generic error message.
+    - Assert no stack trace or internal path appears in the response body.
+    expected_result: >
+      All handlers reject invalid input with HTTP 400. No internal details leak
+      in error responses.
+  - id: AT-0000005-verify-security-headers-present
+    name: Verify security headers are present on all responses
+    steps:
+    - Start the application.
+    - Send a request to any endpoint (authenticated or public).
+    - Inspect response headers.
+    - Assert `X-Content-Type-Options`, `Strict-Transport-Security`, and
+      `X-Frame-Options` are present with correct values.
+    expected_result: >
+      All three security headers are present on every response. No response
+      omits them.
+  created_version: 1.0.1
+  updated_version: 1.0.1
+
+- id: NFR-0000005-design-for-failure
+  section: Resilience and Failure Handling
+  text: >
+    The application must be designed to handle failures of every external
+    dependency explicitly. Every network call, database query, and external
+    HTTP call must have an explicit timeout — no call may block indefinitely;
+    default to 5 seconds for external service calls and tune from operational
+    data. Retry transient failures (timeouts, 503s, connection resets) with
+    exponential backoff and jitter; set a maximum retry count of 3–5 and fail
+    explicitly after exhaustion. Never retry non-idempotent operations unless
+    safe retrial is explicitly designed. Wrap calls to external services with
+    a circuit breaker; after N consecutive failures, open the circuit and fail
+    fast for a cooldown period; provide a fallback (cached data, degraded
+    response, or explicit error — not a hang). Design features to degrade
+    independently — if a downstream service is unavailable, still serve what
+    is possible. Use bulkheads to isolate resource limits per dependency. Expose
+    liveness (`/health/live`) and readiness (`/health/ready`) probes. Emit
+    structured JSON logs with a correlation ID on every request including:
+    timestamp, level, service, correlation ID, message, and error details.
+    Track error rates, latency percentiles (p50, p95, p99) per dependency.
+    Use database transactions for multi-step operations that must be atomic.
+    Deploy behind feature flags and ensure every deployment is reversible.
+    Make all database schema changes backward-compatible; never drop columns
+    or tables that running code still references.
+  acceptance_criteria:
+  - id: AC-0000011-timeouts-on-all-external-calls
+    title: All external calls have explicit timeouts
+    context: >
+      Calls without timeouts can block goroutines indefinitely, exhausting the
+      server's concurrency budget under partial failure conditions.
+    criteria:
+    - Every outbound HTTP call uses a `http.Client` with an explicit `Timeout` set.
+    - Every database query uses a `context.Context` with a deadline or timeout.
+    - No call to an external dependency is made without a deadline-bounded context.
+  - id: AC-0000012-health-probes-exposed
+    title: Liveness and readiness health probes are exposed
+    context: >
+      Kubernetes readiness and liveness probes require dedicated endpoints
+      to determine container health without side effects.
+    criteria:
+    - A `GET /health/live` endpoint returns HTTP 200 when the process is alive.
+    - A `GET /health/ready` endpoint returns HTTP 200 only when the application
+      is ready to serve traffic (dependencies reachable, startup complete).
+    - Health endpoints do not require authentication.
+    - Health endpoints are excluded from request logging to avoid log noise.
+  - id: AC-0000013-structured-logs-with-correlation-id
+    title: Structured JSON logs include correlation ID on every request
+    context: >
+      Without structured logs and correlation IDs, debugging production
+      incidents in a BFF that calls multiple downstream services is infeasible.
+    criteria:
+    - Every request generates a correlation ID (from incoming header or generated
+      if absent) and propagates it through the request context.
+    - All log entries for a request include the correlation ID as a structured field.
+    - Log output is JSON-formatted with fields: `timestamp`, `level`, `service`,
+      `correlation_id`, `message`.
+    - Error log entries include the error detail as a structured field, not
+      interpolated into the message string.
+  acceptance_tests:
+  - id: AT-0000006-verify-health-probes-respond
+    name: Verify liveness and readiness probes respond correctly
+    steps:
+    - Start the application.
+    - Send `GET /health/live` — assert HTTP 200.
+    - Send `GET /health/ready` — assert HTTP 200 when all dependencies are reachable.
+    - Assert both responses do not require an Authorization header.
+    expected_result: >
+      Both health probes respond with HTTP 200 without authentication.
+  - id: AT-0000007-verify-structured-logs-correlation-id
+    name: Verify structured logs contain correlation ID
+    steps:
+    - Start the application with log output directed to stdout.
+    - Send a request with a custom `X-Correlation-ID` header value.
+    - Capture log output for that request.
+    - Assert the log entry is valid JSON and contains `correlation_id` matching
+      the sent header value.
+    expected_result: >
+      Log output is valid JSON and includes the correlation ID from the
+      request header.
+  created_version: 1.0.1
+  updated_version: 1.0.1
+
+- id: NFR-0000006-idempotency
+  section: Idempotency
+  text: >
+    Every non-GET mutating HTTP endpoint must support an idempotency key
+    mechanism. Accept a client-generated `Idempotency-Key` header on all
+    POST, PUT, and PATCH endpoints. Store the result of the first execution
+    keyed by the idempotency key; on duplicate requests with the same key,
+    return the stored result without re-executing the operation. Use a TTL
+    of 24–48 hours on stored idempotency keys to bound storage. For database
+    write operations, prefer upserts (`INSERT ... ON CONFLICT UPDATE`) over
+    check-then-insert. For state transitions, include the expected current
+    state in the `WHERE` clause to make transitions idempotent and prevent
+    double-processing. If consuming events or messages, assign a unique event
+    ID at the producer; consumers must deduplicate by event ID before processing.
+    Test every mutating endpoint by calling it twice with the same input and
+    asserting the same response with no side-effect duplication.
+  acceptance_criteria:
+  - id: AC-0000014-idempotency-key-header-supported
+    title: All mutating endpoints support Idempotency-Key header
+    context: >
+      A BFF relaying banking operations must support idempotency to prevent
+      duplicate charges, duplicate transfers, or duplicate account changes
+      when clients retry on network failures.
+    criteria:
+    - Every POST, PUT, and PATCH endpoint accepts an `Idempotency-Key` header.
+    - A duplicate request with the same key returns the same response as the
+      original without re-executing business logic.
+    - Idempotency key storage has a configurable TTL (default 24 hours).
+    - Requests without an `Idempotency-Key` on mutating endpoints are rejected
+      with HTTP 422 and a descriptive error (or the behavior is explicitly
+      documented as a deliberate exception in requirements).
+  - id: AC-0000015-db-writes-use-upserts-or-conditional-updates
+    title: Database writes use upserts or conditional state transitions
+    context: >
+      Check-then-insert and unconditional updates are not idempotent and
+      cause data corruption under concurrent or retry scenarios.
+    criteria:
+    - Database insert operations use `INSERT ... ON CONFLICT` (upsert) where
+      the operation must be idempotent.
+    - State transition updates include the expected current state in the
+      `WHERE` clause.
+    - No pair of read-then-write operations exists without a lock or optimistic
+      concurrency guard.
+  acceptance_tests:
+  - id: AT-0000008-verify-duplicate-request-returns-same-response
+    name: Verify duplicate request with same Idempotency-Key returns same response
+    steps:
+    - Send a mutating request (POST/PUT/PATCH) with a specific `Idempotency-Key` value.
+    - Record the response status and body.
+    - Send the identical request again with the same `Idempotency-Key`.
+    - Assert the second response matches the first response exactly.
+    - Assert no duplicate records, charges, or state changes were created in
+      the backing store.
+    expected_result: >
+      The second request returns an identical response to the first with no
+      additional side effects.
+  created_version: 1.0.1
+  updated_version: 1.0.1
+
+- id: NFR-0000007-solid-principles-and-testability
+  section: Architecture and Testability
+  text: >
+    All application code must follow SOLID principles to maximize testability
+    and AI coding quality. Single Responsibility Principle: handlers orchestrate —
+    they call validators, services, and repositories; they do not contain
+    business logic. Business rules must be testable without infrastructure.
+    Open/Closed Principle: extend behavior through interfaces and composition,
+    not by modifying existing working code. Use strategy/policy patterns for
+    behavior that varies by context (auth providers, downstream adapters).
+    Adding a new variant must require adding a new file/type, not editing an
+    existing switch statement. Liskov Substitution: every interface implementation
+    must honor the full interface contract — no `NotImplemented` stubs. Interface
+    Segregation: define small, focused interfaces; accept the narrowest interface
+    that covers the needed behavior. Dependency Inversion: high-level modules
+    (business logic) must not import low-level modules (database drivers, HTTP
+    clients) — both must depend on abstractions (interfaces). Inject all
+    infrastructure dependencies through constructors. This is the most impactful
+    principle for AI-generated code: every generated service must accept interfaces,
+    not concrete implementations, so tests can substitute fakes without needing
+    a running database or external service.
+  acceptance_criteria:
+  - id: AC-0000016-handlers-do-not-contain-business-logic
+    title: HTTP handlers contain orchestration only, not business logic
+    context: >
+      Business logic in handlers cannot be unit-tested without starting an
+      HTTP server. Isolating it in services enables fast, isolated tests.
+    criteria:
+    - No HTTP handler function contains conditional business logic beyond
+      request parsing, validation dispatch, service call, and response serialization.
+    - All business logic is encapsulated in service types that accept interface
+      dependencies.
+    - Repository and service types are defined in terms of interfaces, not
+      concrete structs.
+  - id: AC-0000017-interfaces-for-all-injectable-dependencies
+    title: All injectable dependencies are expressed as interfaces
+    context: >
+      Concrete dependencies in constructors tie the code to real infrastructure
+      and prevent fakes from being substituted in tests.
+    criteria:
+    - Every service constructor accepts interfaces, not concrete struct types,
+      for its dependencies.
+    - Every repository is accessed through an interface defined in the domain
+      or service package, not the infra package.
+    - Tests use fakes or stubs (implementing the interface) rather than real
+      database connections or HTTP servers.
+  acceptance_tests:
+  - id: AT-0000009-verify-handler-layer-has-no-business-logic
+    name: Verify handler layer contains no business logic
+    steps:
+    - Review all HTTP handler functions in the handler packages.
+    - Assert no handler contains conditional logic beyond: request body parsing,
+      validation call, service method call, response serialization.
+    - Assert all domain decisions (pricing, eligibility, state transitions) are
+      in service packages, not handler packages.
+    expected_result: >
+      All handlers are thin orchestrators. All business logic is in
+      service packages and can be tested without an HTTP server.
+  created_version: 1.0.1
+  updated_version: 1.0.1
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GLOBAL — Cross-Cutting Requirements
+# ─────────────────────────────────────────────────────────────────────────────
+
+- id: GLOBAL-0000001-module-url-path-convention
+  section: API Routing and URL Design
+  text: >
+    Every API route in this application shall use the module name as the
+    top-level path segment. A module named `accounts` exposes its endpoints
+    under `/accounts/...`; a module named `payments` under `/payments/...`;
+    a module named `cards` under `/cards/...`, and so on for every named module.
+    This convention must be applied consistently across all route registrations
+    so that routing communicates module ownership at a glance and provides a
+    stable URL boundary. The module name segment must be the first non-version
+    path segment. If API versioning is used (e.g., `/v1`), the module name
+    follows immediately: `/v1/accounts/...`, `/v1/payments/...`. No route may
+    use an arbitrary or abbreviated top-level path that differs from the declared
+    module name. Child resources and actions within a module are permitted as
+    sub-paths of the module root (e.g., `/accounts/{id}/transactions`).
+  acceptance_criteria:
+  - id: AC-0000018-api-routes-use-module-name-as-top-segment
+    title: All API routes use the module name as the top-level path segment
+    context: >
+      Consistent module-based URL topology makes the API self-documenting,
+      simplifies CORS and auth middleware configuration, and enables future
+      extraction of a module into a separate service without URL restructuring.
+    criteria:
+    - Every registered route's first non-version path segment matches its
+      declaring module's name exactly.
+    - No route uses an abbreviated, aliased, or generic path that diverges
+      from the module name without documented justification in the blueprint.
+    - If API versioning is used, the version prefix (`/v1`, `/v2`) precedes
+      the module name segment — the module name is always the first domain-specific
+      segment.
+    - Chi route group registration reflects the module name: `r.Route("/accounts", ...)`.
+  acceptance_tests:
+  - id: AT-0000010-verify-route-top-segment-matches-module-name
+    name: Verify all routes use module name as top-level segment
+    steps:
+    - Enumerate all registered Chi routes by walking the route tree or reviewing
+      route registration files.
+    - For each route, identify the first non-version path segment.
+    - Assert that segment matches the module name of the package or file where
+      the route is declared.
+    - Assert no route uses a top-level path that is an abbreviation or alias
+      of the module name.
+    expected_result: >
+      Every route's top-level domain segment matches its module name exactly.
+      No undocumented divergences exist.
+  created_version: 1.0.1
+  updated_version: 1.0.1
+
+- id: GLOBAL-0000002-go-internal-code-layout
+  section: Codebase Structure and Organization
+  text: >
+    All implementation code in this Go application must reside under the
+    `/internal/` directory. Code belonging to a named module must be placed
+    under `/internal/<module_name>/` (e.g., `/internal/accounts/`,
+    `/internal/payments/`, `/internal/cards/`). Code that belongs to no
+    specific module (shared utilities, middleware, infrastructure adapters,
+    cross-cutting concerns) must be placed under `/internal/default/`.
+    No Go source files may be placed at the repository root; the only
+    exception is `main.go` entrypoint files under `cmd/<entrypoint>/`.
+    This layout must be maintained even as the codebase grows so that any
+    individual module can be extracted into an independent service without
+    folder restructuring. When a requirement specifies a `module` field,
+    all code generated to implement that requirement must be placed in the
+    corresponding `/internal/<module_name>/` directory. When a requirement
+    has no `module` field, all code for it goes under `/internal/default/`.
+    Each module directory must contain at minimum: a handler file, a service
+    file, and any module-specific types. No file inside `/internal/<module_A>/`
+    may import directly from `/internal/<module_B>/`; cross-module dependencies
+    go through `/internal/default/` or a shared interface package.
+  acceptance_criteria:
+  - id: AC-0000019-all-impl-code-under-internal
+    title: All implementation code is under /internal/ with correct module sub-directory
+    context: >
+      The /internal/ layout enforces Go module boundary semantics and prevents
+      external packages from importing application internals. Consistent placement
+      by module name ensures each module is a self-contained, extractable unit.
+    criteria:
+    - No Go source files exist at the repository root (except `go.mod`, `go.sum`).
+    - All non-entrypoint Go source files reside under `/internal/`.
+    - Code for named modules is under `/internal/<module_name>/` with the directory
+      name matching the module name exactly.
+    - Code with no module affiliation is under `/internal/default/`.
+    - Entrypoint files are under `cmd/<entrypoint>/main.go` only.
+    - No file under `/internal/<module_A>/` imports from `/internal/<module_B>/`.
+  - id: AC-0000020-module-directory-contains-required-structure
+    title: Each module directory contains handler, service, and types
+    context: >
+      A minimum viable structure per module ensures consistent navigation
+      and prevents logic from being misplaced.
+    criteria:
+    - Each `/internal/<module_name>/` directory contains at minimum a handler file
+      (e.g., `handler.go`), a service file (e.g., `service.go`), and a types file
+      (e.g., `types.go` or separate request/response structs).
+    - Service files contain only business logic — no HTTP parsing, no database
+      driver imports directly.
+    - Handler files contain only request parsing, validation dispatch, service
+      call, and response serialization.
+  acceptance_tests:
+  - id: AT-0000011-verify-internal-layout-compliance
+    name: Verify /internal/ directory layout compliance
+    steps:
+    - List all Go source files in the repository root and assert none exist
+      (except `go.mod`, `go.sum`, `Makefile`, `Dockerfile`).
+    - List all directories under `/internal/` and verify each corresponds to
+      a declared module name or is `default`.
+    - For each module directory, verify it contains at minimum `handler.go`,
+      `service.go`, and at least one types file.
+    - Scan all import statements in files under `/internal/<module_A>/` and
+      assert no import path points to `/internal/<module_B>/`.
+    expected_result: >
+      All Go implementation code is correctly placed under `/internal/`
+      in module-named sub-directories. No cross-module direct imports exist.
+  created_version: 1.0.1
+  updated_version: 1.0.1
+
+- id: GLOBAL-0000003-nfr-and-global-constraints-apply-to-all-code
+  section: Cross-Cutting Standards Enforcement
+  text: >
+    All NFR and GLOBAL requirements defined in this blueprint are standing
+    constraints that apply to every requirement implementation and every
+    code change in this repository — present and future. Before finalizing
+    any functional requirement implementation, the author must verify compliance
+    with all active NFRs and GLOBAL items. Specifically: NFR-0000009 (clean code),
+    NFR-0000003 (code readability), NFR-0000004 (security), NFR-0000005
+    (design for failure), NFR-0000006 (idempotency), NFR-0000007 (SOLID principles),
+    GLOBAL-0000001 (module URL path convention), and GLOBAL-0000002 (Go internal
+    code layout) are mandatory for every implementation run. Any code generated
+    by AI that violates these constraints is non-compliant regardless of
+    whether the functional acceptance criteria are met.
+  acceptance_criteria:
+  - id: AC-0000021-nfr-global-compliance-verified-per-implementation
+    title: NFR and GLOBAL compliance verified for every implementation
+    context: >
+      Without an explicit standing constraint capturing all NFRs and GLOBALs
+      as mandatory, individual implementation runs may satisfy functional
+      criteria while silently violating non-functional ones.
+    criteria:
+    - Every implementation plan includes a `standing_nfr_and_global_cr_constraints`
+      section listing all active NFR and GLOBAL IDs as mandatory constraints.
+    - No implementation run is considered complete if any active NFR or GLOBAL
+      constraint is violated by newly written code.
+    - The structured diff and plan explicitly note NFR/GLOBAL implications for
+      each planned change.
+  acceptance_tests:
+  - id: AT-0000012-verify-nfr-global-compliance-in-plan
+    name: Verify implementation plans include NFR/GLOBAL constraint section
+    steps:
+    - Open the most recent `plan.yaml` under `02-implementation/01-implementations/`.
+    - Assert the plan contains a `standing_nfr_and_global_cr_constraints` section.
+    - Assert all active NFR and GLOBAL IDs appear in that section.
+    expected_result: >
+      Every implementation plan explicitly lists all active NFR and GLOBAL IDs
+      as mandatory standing constraints.
+  created_version: 1.0.1
+  updated_version: 1.0.1

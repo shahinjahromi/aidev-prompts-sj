@@ -1,0 +1,60 @@
+# ============================================================================
+# App-specific configuration — <<APP_SLUG>>
+# ============================================================================
+# BASE PATH — read this first:
+#   All paths in this file are relative to the blueprint root unless otherwise specified.
+#   Relative path from this file to blueprint root: ../
+#
+# Contains ONLY app-specific values. Generic framework conventions live in:
+#   instructions.md → Framework Policy, Pipeline Runbook, Requirement Authoring Rules
+#
+# identity          Canonical values. No other file should duplicate them.
+# tooling_root      Path to the AI development tooling repo, relative to the blueprint root.
+# implementations   Keyed by implementation_id. Layout documented in instructions.md → Specs Repo Layout.
+#                   All paths relative to blueprint root (../).
+#                   application: optional paths relative to application_root (uncomment to use).
+#                   database_contract_alignment: fixed paths in instructions.md → Fixed Blueprint Paths.
+# secrets           Generic policy → instructions.md → Secrets Policy.
+# variables         timezone, default_version, version_suffix_start: pipeline defaults.
+#                   email_fixed: use ONLY when AT/AC explicitly requires a fixed email.
+#                   email_random_domain: use "<lowercase-guid>@<domain>" for random emails.
+#                   Never hardcode literal emails in prompts/tests.
+# ============================================================================
+
+identity:
+  requirement_set_id: <<APP_SLUG>>
+  app_identifier: <<APP_SLUG>>
+
+tooling_root: ../framework-ai-development-tooling
+
+implementations:
+  <<IMPLEMENTATION_ID>>:
+    implementation_id: <<IMPLEMENTATION_ID>>
+    application_root: ../<APP_REPO_DIR>
+    startup_script: ../<APP_REPO_DIR>/<APP_STARTUP_SCRIPT>
+    app_test_startup_script: ../<APP_REPO_DIR>/<APP_STARTUP_SCRIPT>
+    manifest_path: ../<APP_REPO_DIR>/manifests/requirements-manifest.yaml
+    application: {}
+      # server_routes: server/src/routes
+      # server_services: server/src/services
+      # server_middleware: server/src/middleware
+      # server_config: server/src/config
+      # server_utils: server/src/utils
+      # client_features: client/src/app/features
+      # client_core: client/src/app/core
+      # client_layout: client/src/app/layout
+      # prisma_schema: server/prisma/schema.prisma
+    database_contract_alignment:
+      enabled: false
+      mac_contract_logical_id: <<DB_CONTRACT_LOGICAL_ID>>
+  # <IMPLEMENTATION_ID_2>:
+  #   implementation_id: <IMPLEMENTATION_ID_2>
+  #   application_root: ../<APP_REPO_DIR_2>
+  #   manifest_path: ../<APP_REPO_DIR_2>/manifests/requirements-manifest.yaml
+
+variables:
+  timezone: <<TIMEZONE>>
+  default_version: 1.0.0
+  version_suffix_start: v2
+  email_fixed: <<EMAIL_FIXED>>
+  email_random_domain: <<EMAIL_RANDOM_DOMAIN>>
