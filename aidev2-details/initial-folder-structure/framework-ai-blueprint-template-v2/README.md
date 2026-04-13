@@ -170,10 +170,10 @@ See `instructions/explanation.txt` for the full detailed guide.
 
 ## Tooling
 
-All commands use the shared tooling. Resolve the path from `config.yaml → tooling_root`:
+All commands use the shared tooling from the user prompts folder:
 
 ```
-<config.yaml → tooling_root>/ai-tooling.sh
+{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/framework-ai-development-tooling/ai-tooling.sh
 ```
 
 This tooling is application-agnostic. The specs repo provides the application-specific context while the tooling provides the pipeline logic.

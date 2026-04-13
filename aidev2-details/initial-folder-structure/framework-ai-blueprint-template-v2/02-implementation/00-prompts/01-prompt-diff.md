@@ -7,7 +7,7 @@
 2. Read `.instructions/config.yaml → implementations` to list registered implementation IDs. If there is only one, use it automatically. If there are multiple and the user has not specified one and you cannot determine it from context or the previous exchange, **stop and ask**.
 
 ## Run
-Resolve `TOOLING_ROOT` from `config.yaml → tooling_root`.
+Resolve `TOOLING_ROOT` from `{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/framework-ai-development-tooling`.
 ```
 <TOOLING_ROOT>/ai-tooling.sh diff -r "01-requirements" --implementation-id "<IMPLEMENTATION_ID>"
 ```

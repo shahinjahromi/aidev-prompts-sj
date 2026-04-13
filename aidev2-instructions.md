@@ -37,7 +37,7 @@ Run ranges like `02-07` to skip diff if it already exists.
   02-implementation-mapping/      ← cross-cutting mapping files
 03-test-results/<impl-id>/        ← acceptance test outputs
 .instructions/
-  config.yaml               ← app identity, impl mapping, tooling root, variables
+  config.yaml               ← app identity, impl mapping, variables
   codebase-context.yaml     ← optional tech/port hints for AI
 ```
 

@@ -74,7 +74,6 @@ Resolve these app-specific values from `config.yaml`. All blueprint-internal pat
 
 | Value | Resolved From |
 |-------|--------------|
-| Tooling root | `config.yaml → tooling_root` |
 | App repo root | `config.yaml → implementations.<IMPLEMENTATION_ID>.application_root` |
 | App manifest path | `config.yaml → implementations.<IMPLEMENTATION_ID>.manifest_path` |
 | App startup path | `config.yaml → implementations.<IMPLEMENTATION_ID>.app_test_startup_script` |
@@ -105,8 +104,8 @@ These paths are identical for every project using this blueprint. They are **har
 | `mac_artifact_file` | `01-requirements/03-current/models_and_contracts.yaml` |
 | `promoted_schema_specs_root` | `01-requirements/03-current/models_and_contracts` |
 | `pending_schema_specs_root` | `01-requirements/01-pending-promotion/models_and_contracts` |
-| `ai_tooling` | `../framework-ai-development-tooling` (relative to blueprint root; resolved from `config.yaml → tooling_root`) |
-| `tooling_command` | `../framework-ai-development-tooling/ai-tooling.sh` |
+| `ai_tooling` | `{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/framework-ai-development-tooling` (from user prompts folder) |
+| `tooling_command` | `{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/framework-ai-development-tooling/ai-tooling.sh` |
 
 ---
 
@@ -160,7 +159,7 @@ The specs repo supports multiple implementation IDs. Each has its own subdirecto
 
 All tooling and predefined prompts are application-agnostic and implementation-agnostic. Prompts live in `02-implementation/00-prompts/` (shared across all implementations). Implementation-specific content is confined to `config.yaml`, the [Codebase Context Template](#codebase-context-template), `02-implementation/02-implementation-mapping/`, and `01-requirements/`.
 
-**NEVER modify** tooling scripts (`../framework-ai-development-tooling/`), prompt files (`00-prompts/01-*.md` through `07-*.md`), or this file unless the user explicitly requests changes to the tooling or prompts themselves.
+**NEVER modify** tooling scripts (`{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/framework-ai-development-tooling/`), prompt files (`00-prompts/01-*.md` through `07-*.md`), or this file unless the user explicitly requests changes to the tooling or prompts themselves.
 
 ---
 

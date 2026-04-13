@@ -56,7 +56,7 @@ All prompt paths are relative to `../` (blueprint root). Shared prompts director
 - `01-requirements/03-current/nfr-and-global-cr/nfr-and-global-cr-<IMPLEMENTATION_ID>.yaml`
 - `config.yaml → implementations.<IMPLEMENTATION_ID>.manifest_path`
 
-**Command:** Resolve `TOOLING_CMD` from `config.yaml → tooling_root`.
+**Command:** Resolve `TOOLING_CMD` from `{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/framework-ai-development-tooling/ai-tooling.sh`.
 ```
 "$TOOLING_CMD" diff -r "$REQ_PATH" --implementation-id "<IMPLEMENTATION_ID>"
 ```

@@ -63,7 +63,7 @@ Required when authoring FR, NFR, MAC, or UIC — skip for TS only:
 1. Verify pending directory (`01-requirements/01-pending-promotion/`) has content (non-empty).
 2. Confirm the developer has reviewed the pending files before proceeding.
 
-**Action (Script):** Resolve `TOOLING_CMD` from `config.yaml → tooling_root`.
+**Action (Script):** Resolve `TOOLING_CMD` from `{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/framework-ai-development-tooling/ai-tooling.sh`.
 ```
 "$TOOLING_CMD" promote -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "<IMPLEMENTATION_ID>"
 ```

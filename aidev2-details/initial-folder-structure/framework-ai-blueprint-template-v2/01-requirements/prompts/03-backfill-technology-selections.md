@@ -7,7 +7,7 @@
 2. Read `.instructions/instructions.md` → canonical policy.
 3. Read `.instructions/config.yaml → implementations` to list registered implementation IDs. If there is only one, use it automatically. If there are multiple and the user has not specified one and you cannot determine it from context or the previous exchange, **stop and ask**.
 4. Path shorthands (fixed blueprint constants — all relative to the blueprint root):
-   - `TOOLING_CMD` = resolve from `config.yaml → tooling_root`, append `/ai-tooling.sh` (default: `../framework-ai-development-tooling/ai-tooling.sh`)
+   - `TOOLING_CMD` = `{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/framework-ai-development-tooling/ai-tooling.sh`
    - `REQ_PATH` = `01-requirements`
    - `APP_ROOT` = `implementations.<IMPLEMENTATION_ID>.application_root` (from config.yaml)
 

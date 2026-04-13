@@ -9,7 +9,6 @@
 #   instructions.md → Framework Policy, Pipeline Runbook, Requirement Authoring Rules
 #
 # identity          Canonical values. No other file should duplicate them.
-# tooling_root      Path to the AI development tooling repo, relative to the blueprint root.
 # implementations   Keyed by implementation_id. Layout documented in instructions.md → Specs Repo Layout.
 #                   All paths relative to blueprint root (../).
 #                   application: optional paths relative to application_root (uncomment to use).
@@ -24,8 +23,6 @@
 identity:
   requirement_set_id: <<APP_SLUG>>
   app_identifier: <<APP_SLUG>>
-
-tooling_root: ../ai-development-tooling-andrewq
 
 implementations:
   <<IMPLEMENTATION_ID>>:

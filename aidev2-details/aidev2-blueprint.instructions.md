@@ -7,7 +7,7 @@ description: "Embedded AI-dev v2 blueprint policy for aidev2 prompts. Covers fol
 This file is the generic source of truth for aidev2 prompts.
 
 Hard rules:
-- Read `BLUEPRINT_ROOT/.instructions/config.yaml` to resolve `IMPLEMENTATION_ID`, `APP_ROOT`, implementation paths, tooling root, startup hints, timezone, and variable defaults. See **Config Resolution** section below.
+- Read `BLUEPRINT_ROOT/.instructions/config.yaml` to resolve `IMPLEMENTATION_ID`, `APP_ROOT`, implementation paths, startup hints, timezone, and variable defaults. See **Config Resolution** section below.
 - Read `BLUEPRINT_ROOT/.instructions/codebase-context.yaml` when it exists and is populated — use it to supplement tech stack detection, known ports, env vars, npm scripts, and app layout paths. Do not rely solely on it; always verify against the actual app repo files. See **Codebase Context Resolution** section below.
 - Do not read any other file under `BLUEPRINT_ROOT/.instructions/` (e.g. `implementation.md`).
 - Do not read blueprint-local schema files. Use the local user-level schema bundle at `{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/aidev2-schemas`, which includes `requirements_manifest.json` for manifest validation.
@@ -53,8 +53,6 @@ identity:
   requirement_set_id:   # -> REQ_SET_ID
   app_identifier:       # -> APP_IDENTIFIER override (use in preference to derived name)
 
-tooling_root:           # -> path relative to BLUEPRINT_ROOT; resolve to TOOLING_CMD = tooling_root/ai-tooling.sh
-
 implementations:
   <IMPLEMENTATION_ID>:
     application_root:        # -> APP_ROOT (path relative to BLUEPRINT_ROOT)
@@ -71,7 +69,6 @@ Resolution order when a field is present in config.yaml:
 - `application_root` from config overrides the sibling-directory inference for `APP_ROOT`
 - `startup_script` and `app_test_startup_script` from config override the startup heuristics
 - `manifest_path` from config overrides the default `APP_ROOT/.aidev/requirements/requirements-state.yaml`
-- `tooling_root` from config overrides the tooling-discovery walk
 - `variables.timezone` is used for date-time fields in the manifest (e.g. `implementation_initial_date`, `implementation_last_date`) — default `UTC` if absent
 - `variables.email_fixed` and `variables.email_random_domain` are the only sources for email values in tests
 
@@ -222,18 +219,19 @@ Derived paths:
 
 ## Tooling Discovery
 
-Resolve `TOOLING_CMD` by searching for `framework-ai-development-tooling/ai-tooling.sh` in this order:
+Resolve `AI_TOOLING` from the user prompts folder:
 
-1. **Workspace root folders** — check every root folder loaded in the current VS Code workspace (i.e. the top-level directories visible in the Explorer sidebar). If any workspace root contains `framework-ai-development-tooling/ai-tooling.sh`, use it. This is the preferred resolution path.
-2. **Blueprint sibling** — `BLUEPRINT_ROOT/../framework-ai-development-tooling/ai-tooling.sh`
-3. **Ancestor walk** — walk up ancestor directories of `BLUEPRINT_ROOT`; at each level check for a sibling `framework-ai-development-tooling/ai-tooling.sh`
-4. If still missing, stop and ask the user for the tooling repo path.
+```
+AI_TOOLING = {{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/framework-ai-development-tooling
+```
 
-Important: the tooling folder must exist as a directory loaded in the IDE workspace. Do **not** use a path derived from the `ai-tooling.sh` internal `ROOT` variable — that variable may point to a stale or non-local path. Always invoke scripts directly from the discovered `AI_TOOLING` directory (e.g. `"$AI_TOOLING/promote_changes.py" ...`) rather than delegating to `ai-tooling.sh` unless you have verified its `ROOT` resolves correctly on the current machine.
+Verify `AI_TOOLING/ai-tooling.sh` exists. If it does not, stop and ask the user for the tooling path.
+
+Always invoke scripts directly from the `AI_TOOLING` directory (e.g. `"$AI_TOOLING/promote_changes.py" ...`) rather than delegating to `ai-tooling.sh` unless you have verified its internal `ROOT` resolves correctly on the current machine.
 
 Set:
-- `AI_TOOLING` = parent directory of the resolved `ai-tooling.sh` (i.e. the `framework-ai-development-tooling` folder)
-- `TOOLING_CMD` = `$AI_TOOLING/ai-tooling.sh` (for reference; invoke scripts directly if ROOT is stale)
+- `AI_TOOLING` = `{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/framework-ai-development-tooling`
+- `TOOLING_CMD` = `$AI_TOOLING/ai-tooling.sh`
 
 ## Startup Heuristics
 
