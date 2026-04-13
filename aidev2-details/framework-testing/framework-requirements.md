@@ -850,6 +850,49 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 
 ---
 
+### REQ-038 Grouped requirement filenames must contain the exact implementation_id
+
+#### Acceptance Criteria
+- AC-038: Every per-implementation-id YAML file inside a grouped requirement folder (`nfr-and-global-cr/`, `technology-selection/`) shall include the exact `implementation_id` value (from `.instructions/config.yaml`) as a suffix in its filename.
+- The filename pattern shall be `<folder-name>-<implementation_id>.yaml` (e.g. `nfr-and-global-cr-fakebank-omb-bff-web-go.yaml`).
+- Omitting any segment of the implementation_id (e.g. dropping `-bff-`) is a conformance violation.
+
+#### Acceptance Test — AT-038 Verify grouped filenames match implementation_id
+- Precondition: A blueprint has at least one file in `01-pending-promotion/nfr-and-global-cr/` or `01-pending-promotion/technology-selection/`.
+- Steps:
+  1. Read the `implementation_id` from `.instructions/config.yaml`.
+  2. List all YAML files in each grouped requirement folder (both pending-promotion and current).
+  3. For each file, verify the filename ends with `-<implementation_id>.yaml`.
+- Expected:
+  - Every grouped requirement file's basename ends with the exact implementation_id.
+
+---
+
+### REQ-039 Python tooling shall correctly promote and diff grouped requirement types
+
+#### Acceptance Criteria
+- AC-039: The Python tooling (`promote_changes.py`, `common.py`) shall handle grouped requirement types (`nfr_and_global_cr`, `technology_selection`) correctly:
+  - Promotion shall copy each grouped file to `03-current/<grouped-dir>/<same-filename>` rather than merging into a flat artifact file.
+  - Diff regeneration (`rebuild_requirement_diffs`) shall iterate all YAML files inside grouped current directories and create per-requirement diff entries.
+  - `get_diff_files` shall include the `nfr-and-global-cr` diff bucket in its scan.
+  - `DIFF_BUCKETS_BY_ARTIFACT_TYPE` and `REQUIREMENT_TYPE_TO_ARTIFACT` shall contain entries for `nfr_and_global_cr`.
+  - The `technology_selection_mirror_path` function shall use dash-separated naming (`technology-selection-<id>.yaml`) consistent with REQ-032.
+
+#### Acceptance Test — AT-039 Verify tooling grouped-file handling
+- Precondition: A blueprint has an `nfr_and_global_cr` file in `01-pending-promotion/nfr-and-global-cr/`.
+- Steps:
+  1. Run `promote_changes.py` against the blueprint.
+  2. Verify the file appears in `03-current/nfr-and-global-cr/` with the same filename.
+  3. Verify no flat `03-current/nfr_and_global_cr.yaml` file was created.
+  4. Verify diff files were generated in `02-diff/nfr-and-global-cr/` for each requirement in the grouped file.
+  5. Verify `technology_selection_mirror_path` returns a path ending in `technology-selection-<id>.yaml` (dashes, not underscores).
+- Expected:
+  - Grouped files are promoted to matching grouped directories under 03-current.
+  - Diff regeneration covers all requirements in grouped files.
+  - Mirror path naming conforms to REQ-032.
+
+---
+
 ## Traceability Matrix
 - REQ-001 -> AC-001 -> AT-001
 - REQ-002 -> AC-002 -> AT-002
@@ -888,6 +931,8 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 - REQ-035 -> AC-035 -> AT-035
 - REQ-036 -> AC-036 -> AT-036
 - REQ-037 -> AC-037 -> AT-037
+- REQ-038 -> AC-038 -> AT-038
+- REQ-039 -> AC-039 -> AT-039
 
 ## Notes
 - This specification is intentionally strict on implementation-id-specific preset files and merged-field parity, including module, to prevent silent schema drift during setup automation.
@@ -919,3 +964,5 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 - AC-035/AT-035 enforce DB schema migration artifacts: every physical_database_schema change must produce both a full resulting schema file and a companion `-migration` file before the run is considered complete.
 - AC-036/AT-036 enforce dispatcher stage narration: the dispatcher must emit `▶ Stage N/M` before and `✔`/`✘ Stage N/M` after every specialist invocation, plus a pipeline-complete summary.
 - AC-037/AT-037 enforce specialist milestone narration: specialists must emit `▷` milestone lines for each processed item and populate the handoff `milestones` list when processing multiple items.
+- AC-038/AT-038 enforce that grouped requirement filenames (NFR, technology selection) contain the exact implementation_id; truncated or partial implementation_id suffixes are forbidden.
+- AC-039/AT-039 enforce that Python tooling correctly promotes grouped files to folder-based current paths, regenerates diffs from grouped current directories, and uses dash-separated mirror path naming per REQ-032.
