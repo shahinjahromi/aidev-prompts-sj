@@ -28,5 +28,3 @@ Own only:
 - Do not author or promote requirements.
 - Do not generate or run acceptance tests.
 - Do not expand scope beyond approved plan requirements.
-
-Return exactly one `handoff` payload using the shared contract.

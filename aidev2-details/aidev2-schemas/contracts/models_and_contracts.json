@@ -74,11 +74,19 @@
               "graphql_sdl_yaml",
               "logical_database_schema",
               "physical_database_schema",
-              "domain_model"
+              "domain_model",
+              "ui_contracts"
             ]
           },
           "spec_path": {
             "type": "string"
+          },
+          "child_specifications": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "When this MAC entry wraps a spec file that defines multiple items (e.g. ui_contracts.yaml with many UIC entries), list all child IDs here. Must be kept in sync with the referenced spec file."
           }
         },
         "allOf": [

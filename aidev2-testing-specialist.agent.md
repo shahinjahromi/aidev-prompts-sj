@@ -26,5 +26,3 @@ Own only:
 - Do not implement feature code outside test files/config.
 - Do not change requirements artifacts.
 - Do not run full suite unless explicitly requested.
-
-Return exactly one `handoff` payload using the shared contract.

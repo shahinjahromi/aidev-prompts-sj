@@ -27,5 +27,3 @@ Own only:
 - Do not implement feature code.
 - Do not author requirements content.
 - Do not generate tests.
-
-Return exactly one `handoff` payload using the shared contract.

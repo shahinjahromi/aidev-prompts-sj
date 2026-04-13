@@ -26,5 +26,3 @@ Own only:
 - Do not change application runtime code.
 - Do not author requirements.
 - Do not create or run tests.
-
-Return exactly one `handoff` payload using the shared contract.

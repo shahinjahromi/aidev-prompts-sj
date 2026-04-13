@@ -56,11 +56,15 @@
         "properties": {
           "requirement_id": {
             "type": "string",
-            "pattern": "^(FR-[0-9]{6}|NFR-[0-9]{6}|TS-[a-z0-9-]+|DAC-[a-z0-9-]+|UIC-[0-9]{6})(-v[0-9]+)?$"
+            "pattern": "^(FR-[0-9]{7}|NFR-[0-9]{7}|GLOBAL-[0-9]{7}|TS-[0-9]{7}|MAC-[0-9]{7}|UIC-[0-9]{7})(-[a-z0-9-]+)?(-v[0-9]+)?$"
           },
           "pinned_version": {
             "type": "string",
             "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+          },
+          "module": {
+            "type": "string",
+            "description": "Logical module or feature area. Used to detect module reassignment during updates."
           },
           "functional_test_status": {
             "type": "object",
@@ -74,21 +78,89 @@
             "properties": {
               "status": {
                 "type": "string",
-                "enum": ["unspecified", "passed", "failed"]
+                "enum": [
+                  "unspecified",
+                  "passed",
+                  "failed"
+                ]
               },
               "first_version": {
-                "type": ["string", "null"],
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
               },
               "current_version": {
-                "type": ["string", "null"],
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
               },
               "tested_version": {
-                "type": ["string", "null"],
+                "type": [
+                  "string",
+                  "null"
+                ],
                 "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
               }
             }
+          },
+          "e2e_test_status": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "first_version",
+              "current_version",
+              "tested_version"
+            ],
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "unspecified",
+                  "passed",
+                  "failed"
+                ]
+              },
+              "first_version": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+              },
+              "current_version": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+              },
+              "tested_version": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+              }
+            }
+          },
+          "implementation_initial_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO-8601 date-time when the requirement was first implemented."
+          },
+          "implementation_last_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "ISO-8601 date-time of the most recent implementation update for this requirement."
           }
         }
       }

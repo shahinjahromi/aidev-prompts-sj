@@ -10,9 +10,9 @@ Hard rules:
 - Read `BLUEPRINT_ROOT/.instructions/config.yaml` to resolve `IMPLEMENTATION_ID`, `APP_ROOT`, implementation paths, tooling root, startup hints, timezone, and variable defaults. See **Config Resolution** section below.
 - Read `BLUEPRINT_ROOT/.instructions/codebase-context.yaml` when it exists and is populated — use it to supplement tech stack detection, known ports, env vars, npm scripts, and app layout paths. Do not rely solely on it; always verify against the actual app repo files. See **Codebase Context Resolution** section below.
 - Do not read any other file under `BLUEPRINT_ROOT/.instructions/` (e.g. `implementation.md`).
-- Do not read blueprint-local schema files. Use the local user-level schema bundle at `/home/parallels/.config/Code/User/prompts/aidev2-schemas`, which includes `requirements_manifest.json` for manifest validation.
+- Do not read blueprint-local schema files. Use the local user-level schema bundle at `{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/aidev2-schemas`, which includes `requirements_manifest.json` for manifest validation.
 - Use the blueprint repo only for storage layout, requirement files, implementation state, manifests, tests, and generated artifacts.
-- Use the local user-level schema bundle at `/home/parallels/.config/Code/User/prompts/aidev2-schemas` for schema truth, including `requirements_manifest.json`.
+- Use the local user-level schema bundle at `{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/aidev2-schemas` for schema truth, including `requirements_manifest.json`.
 
 ## Detect BLUEPRINT_ROOT
 
@@ -39,7 +39,7 @@ All paths below are relative to `BLUEPRINT_ROOT`.
 - `DIFF_ROOT` = `01-requirements/02-diff`
 - `IMPLEMENTATIONS_ROOT` = `02-implementation/01-implementations`
 - `IMPLEMENTATION_MAPPINGS` = `02-implementation/02-implementation-mapping`
-- `LOCAL_USER_PROMPTS_DIR` = `/home/parallels/.config/Code/User/prompts`
+- `LOCAL_USER_PROMPTS_DIR` = `{{VSCODE_USER_PROMPTS_FOLDER}}`
 - `TEST_RESULTS_ROOT` = `03-test-results`
 
 ## Config Resolution

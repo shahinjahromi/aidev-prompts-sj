@@ -397,7 +397,7 @@ if [[ -n "$CORE_STACK" && -n "$_PROMPTS_ROOT" ]]; then
   echo "Seeding ${CORE_STACK} presets for ${IMPL_ID}..."
 
   _NFR_PRESET="${_PROMPTS_ROOT}/aidev2-details/preset-requirements/nfr-and-global-cr-by-core-stack/${CORE_STACK}/nfr-and-global-cr-[implementation-id].yaml"
-  _TS_PRESET="${_PROMPTS_ROOT}/aidev2-details/preset-requirements/tech_selections_by-core-stack/${CORE_STACK}/technology-selection-[implementation-id].yaml"
+  _TS_PRESET="${_PROMPTS_ROOT}/aidev2-details/preset-requirements/tech-selections-by-core-stack/${CORE_STACK}/technology-selection-[implementation-id].yaml"
 
   _NFR_DEST="${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/nfr-and-global-cr/nfr-and-global-cr-${IMPL_ID}.yaml"
   _TS_DEST="${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/technology-selection/technology-selection-${IMPL_ID}.yaml"
@@ -423,7 +423,7 @@ if [[ -n "$CORE_STACK" && -n "$_PROMPTS_ROOT" ]]; then
     sed -i "s|\[implementation-id\]|${IMPL_ID}|g" "$_TS_DEST"
     echo "  Seeded TS preset → ${_TS_DEST}"
     # Register an impl-specific copy in the prompts preset folder
-    _TS_REGISTRY="${_PROMPTS_ROOT}/aidev2-details/preset-requirements/tech_selections_by-core-stack/${CORE_STACK}/technology-selection-${IMPL_ID}.yaml"
+    _TS_REGISTRY="${_PROMPTS_ROOT}/aidev2-details/preset-requirements/tech-selections-by-core-stack/${CORE_STACK}/technology-selection-${IMPL_ID}.yaml"
     cp "$_TS_DEST" "$_TS_REGISTRY"
     echo "  Registered TS preset → ${_TS_REGISTRY}"
   else

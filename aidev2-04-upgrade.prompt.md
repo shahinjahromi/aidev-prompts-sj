@@ -25,9 +25,9 @@ Do not delete or reset application-specific artifacts, including:
 - test outputs in `03-test-results/**`
 - update history, notes, and other existing project documents
 
-Never run destructive git commands.
-Never remove files outside the target blueprint root.
-Never delete obsolete v1 prompt/instruction files — only notify the user to review and remove them.
+**MANDATORY** — Never run destructive git commands. No exceptions.
+**MANDATORY** — Never remove files outside the target blueprint root. No exceptions.
+**MANDATORY** — Never delete obsolete v1 prompt/instruction files — report them to the user for manual removal (see Phase 6).
 
 ## Phase 1 - Detect and Validate Blueprint Root
 
@@ -40,40 +40,51 @@ If not found, ask user for absolute blueprint path.
 
 ## Phase 2 - Baseline Inventory (Read-only)
 
-Inspect and summarize:
+Run each sub-phase in order. Report results per sub-phase. If a sub-phase finds zero issues, report "clean" and proceed immediately to the next.
+
+### 2a — File structure and naming conventions
+
+Inspect:
 - Existing requirement type files in pending/current
-- Existing stage-local technology-selection mirror folders and files under pending/current, plus any misplaced root-level technology-selection folders
+- Technology-selection mirror folders and files under pending/current; flag any misplaced root-level technology-selection folders
 - Contract catalog filename and contract-spec folder names
 - Presence of old/new naming conventions:
   - `contracts_and_models` vs `models_and_contracts`
   - `data_and_api_contracts` vs `models_and_contracts`
   - `DAC-` vs `MAC-`
   - `dac_contract_logical_id` vs `mac_contract_logical_id`
-- ID format compliance and outliers for:
-  - requirement IDs (`FR-*`, `NFR-*`)
-  - technology IDs (`TS-*`)
-  - models/contracts IDs (`MAC-*`)
-  - UI contract IDs (`UIC-*`)
-  - acceptance IDs (`AC-*`, `AT-*`)
-  - contract logical IDs (`CONTRACT-*`)
-- **ID uniqueness violations**: for each type prefix (`FR`, `NFR`, `TS`, `MAC`, `UIC`, `AC`, `AT`), collect all sequence numbers across pending + current; flag any sequence number used by more than one item (duplicate sequences must be renumbered in Phase 4).
-- **Contract reference structure issues**: scan `contract_refs` in all requirement files for:
-  - `contract_type: ui_contracts` — obsolete; must be consolidated into `contract_type: models_and_contracts` with MAC ID and `child_specifications`
-  - bare strings in `specific_ids` (e.g. `- MAC-0000001-foo`) — must be object form `- id: MAC-0000001-foo`
-  - `sub_mac_ids` field — obsolete name; must be renamed to `child_specifications`
-  - MAC entries in `models_and_contracts.yaml` that wrap multi-item spec files but are missing `child_specifications`
-- Prompt/instruction references under:
-  - `github-config/`
-  - `02-implementation/00-prompts/`
-  - `.instructions/`
-  - `instructions/`
+
+Early exit: if all files already use `models_and_contracts` / `MAC-` / dash-named folders, report "naming: clean" and skip to 2b.
+
+### 2b — ID format and uniqueness
+
+Inspect:
+- ID format compliance for: `FR-*`, `NFR-*`, `TS-*`, `MAC-*`, `UIC-*`, `AC-*`, `AT-*`, `CONTRACT-*`
+- **ID uniqueness violations**: for each type prefix, collect all sequence numbers across pending + current; flag any sequence number used by more than one item (duplicates must be renumbered in Phase 4)
+
+Early exit: if all IDs match `<TYPE>-<7-digit>-<short-title>` and no duplicates exist, report "IDs: clean" and skip to 2c.
+
+### 2c — Contract reference structure
+
+Scan `contract_refs` in all requirement files for:
+- `contract_type: ui_contracts` — obsolete; must become `contract_type: models_and_contracts` with MAC ID and `child_specifications`
+- bare strings in `specific_ids` (e.g. `- MAC-0000001-foo`) — must be object form `- id: MAC-0000001-foo`
+- `sub_mac_ids` field — obsolete; must be renamed to `child_specifications`
+- MAC entries in `models_and_contracts.yaml` wrapping multi-item spec files but missing `child_specifications`
+
+Early exit: if no `contract_refs` exist in any requirement file, report "contract_refs: not present" and skip to 2d.
+
+### 2d — Manifest and v1 artifact compliance
+
+Inspect:
+- App manifest: locate via `config.yaml → implementations.<IMPLEMENTATION_ID>.manifest_path`; **flag if `manifest_path` still points to `manifests/requirements-manifest.yaml`** — migration target is `.aidev/requirements/requirements-state.yaml`; check whether each `requirement_baseline` entry has `e2e_test_status`, `implementation_initial_date`, `implementation_last_date`
 - Obsolete v1 prompt/instruction artifacts (superseded by user-level aidev2 prompts):
   - `02-implementation/00-prompts/` — v1 implementation step prompts, replaced by `aidev2-steps/implement/`
-  - `github-config/aidev-*.prompt.md` — v1 framework prompts, replaced by `.github/prompts/aidev2-*.prompt.md` wrappers
-  - `github-config/aidev-framework.instructions.md` — v1 framework instructions, replaced by user-level `aidev2-*.instructions.md`
+  - `github-config/aidev-*.prompt.md` — v1 framework prompts
+  - `github-config/aidev-framework.instructions.md` — v1 framework instructions
   - `instructions/` — v1 documentation folder
   Note: `.instructions/config.yaml` and `.instructions/codebase-context.yaml` are NOT obsolete — aidev2 reads both.
-- App manifest compliance: locate via `config.yaml → implementations.<IMPLEMENTATION_ID>.manifest_path`; **flag if `manifest_path` still points to `manifests/requirements-manifest.yaml`** — migration target is `.aidev/requirements/requirements-state.yaml`; check whether each `requirement_baseline` entry has `e2e_test_status`, `implementation_initial_date`, `implementation_last_date`
+- Prompt/instruction references under: `github-config/`, `02-implementation/00-prompts/`, `.instructions/`, `instructions/`
 
 ## Phase 3 - Write Targets
 

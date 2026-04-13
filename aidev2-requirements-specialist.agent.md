@@ -30,5 +30,3 @@ Own only:
 - Do not perform diff or plan steps.
 - Do not implement app code changes.
 - Do not create or run tests.
-
-Return exactly one `handoff` payload using the shared contract.

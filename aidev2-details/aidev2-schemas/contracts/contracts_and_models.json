@@ -1,20 +1,45 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Data and API Contracts Schema",
+  "title": "Data and API Contracts Schema (DEPRECATED v1)",
+  "description": "DEPRECATED: This is the v1 schema using type 'data_and_api_contracts' with DAC- ID prefixes. New blueprints must use models_and_contracts.json (type 'models_and_contracts', MAC- IDs). This file is retained only for upgrade/migration tooling to validate legacy artifacts. See aidev2-steps/upgrade/04-transform.md for DAC→MAC migration rules.",
   "type": "object",
-  "required": ["schema_version", "type", "generated_at", "items"],
+  "required": [
+    "schema_version",
+    "type",
+    "generated_at",
+    "items"
+  ],
   "properties": {
-    "schema_version": { "type": "integer" },
-    "type": { "const": "data_and_api_contracts" },
-    "generated_at": { "type": "string", "format": "date" },
-    "version": { "type": "string" },
+    "schema_version": {
+      "type": "integer"
+    },
+    "type": {
+      "const": "data_and_api_contracts"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "version": {
+      "type": "string"
+    },
     "items": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "logical_id", "title", "summary", "spec_format", "spec_path"],
+        "required": [
+          "id",
+          "logical_id",
+          "title",
+          "summary",
+          "spec_format",
+          "spec_path"
+        ],
         "properties": {
-          "id": { "type": "string", "pattern": "^DAC-[a-z0-9-]+(-v[0-9]+)?$" },
+          "id": {
+            "type": "string",
+            "pattern": "^DAC-[a-z0-9-]+(-v[0-9]+)?$"
+          },
           "logical_id": {
             "type": "string",
             "pattern": "^[a-z0-9-]+$",
@@ -25,22 +50,43 @@
             "pattern": "^DAC-[a-z0-9-]+(-v[0-9]+)?$",
             "description": "Original DAC id superseded by this entry. Required for versioned/update entries."
           },
-          "title": { "type": "string" },
-          "summary": { "type": "string" },
-          "spec_format": { "type": "string", "enum": ["openapi_yaml", "graphql_sdl_yaml", "logical_database_schema", "physical_database_schema", "domain_model"] },
-          "spec_path": { "type": "string" }
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "spec_format": {
+            "type": "string",
+            "enum": [
+              "openapi_yaml",
+              "graphql_sdl_yaml",
+              "logical_database_schema",
+              "physical_database_schema",
+              "domain_model"
+            ]
+          },
+          "spec_path": {
+            "type": "string"
+          }
         },
         "additionalProperties": false,
         "allOf": [
           {
             "if": {
               "properties": {
-                "id": { "pattern": "-v[0-9]+$" }
+                "id": {
+                  "pattern": "-v[0-9]+$"
+                }
               },
-              "required": ["id"]
+              "required": [
+                "id"
+              ]
             },
             "then": {
-              "required": ["replaces_id"]
+              "required": [
+                "replaces_id"
+              ]
             }
           }
         ]

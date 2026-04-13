@@ -36,3 +36,10 @@ handoff:
 - Keep `summary` concise but specific.
 - Include artifact paths whenever files are written.
 - Include failed or skipped checks explicitly.
+
+## Shared Agent Constraints
+
+Every specialist agent must:
+- Return exactly one `handoff` payload per run using the shape above.
+- Respect scope boundaries defined in its own `## Constraints` section — never perform work owned by another specialist.
+- Read only the files listed in its `Load only:` block (plus files discovered during execution).

@@ -64,7 +64,7 @@ Per-stack NFR and technology selections live in:
 ```
 aidev2-details/preset-requirements/
   nfr-and-global-cr-by-core-stack/<stack>/nfr-and-global-cr-<impl-id>.yaml
-  tech_selections_by-core-stack/<stack>/technology-selection-<impl-id>.yaml
+  tech-selections-by-core-stack/<stack>/technology-selection-<impl-id>.yaml
 ```
 
 Copy the placeholder template file for your implementation ID when setting up a new implementation.

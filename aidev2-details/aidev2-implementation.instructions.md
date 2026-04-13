@@ -10,7 +10,7 @@ Do not read blueprint-local implementation instructions other than `.instruction
 
 ## Core Rules
 
-- Use the local schema bundle at `/home/parallels/.config/Code/User/prompts/aidev2-schemas`.
+- Use the local schema bundle at `{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/aidev2-schemas`.
 - Code first, manifest second.
 - Only modify files required by the active diff and plan.
 - Existing NFRs and Global CRs constrain all new or changed code.

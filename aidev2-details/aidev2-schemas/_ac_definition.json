@@ -5,7 +5,7 @@
   "type": "object",
   "required": ["id", "title"],
   "properties": {
-    "id": { "type": "string", "pattern": "^AC-[0-9]{6}$" },
+    "id": { "type": "string", "pattern": "^AC-[0-9]{7}(-[a-z0-9-]+)?$" },
     "title": { "type": "string" },
     "context": { "type": "string", "description": "The precondition or state before the action" },
     "criteria": {
