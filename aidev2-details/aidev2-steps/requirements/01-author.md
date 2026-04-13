@@ -52,6 +52,13 @@ Environment variable documentation:
 - Each entry: name, module scope, description, format/type, sensitivity (secret/non-secret), default value, required/optional.
 - Create the file and `aidev/docs/` directory if they do not exist.
 
+Concrete test data in acceptance tests:
+- AT steps for API endpoints: include HTTP method, path, example request body (JSON), expected status code, expected response key fields.
+- AT steps for form/UI actions: include field names with example values and expected outcome (redirect, message, state change). Advisory when covered by screenshots.
+- Deterministic values (status codes, error codes, paths, cookie names): use exact literals.
+- Non-deterministic values (IDs, timestamps, tokens): describe shape/type (e.g. `"<string UUID>"`).
+- Applies to newly authored ATs only.
+
 ## Contract References (`contract_refs`)
 
 When authoring `contract_refs` on FR, NFR, or GLOBAL items:

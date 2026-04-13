@@ -178,6 +178,7 @@ IDs are 6-digit zero-padded. Numbers are never reused after deletion.
    - `selection: specific_ids` + explicit `specific_ids` list.
 6. **UI contracts are screen-only models.** Describe only what the user sees and does: screens, fields, formats, labels, actions, states, validation messages, navigation. MUST NOT include backend details.
 7. **Include detailed design decisions.** Requirements MUST include explicit design decisions — such as chosen patterns, data-flow approaches, error-handling strategies, naming conventions, component structures, and algorithmic choices — rather than leaving them open to interpretation. Detailed design decisions reduce variability in generative AI output and produce more consistent, deterministic implementations. When multiple valid approaches exist, state the selected approach and the rationale. Ambiguous or under-specified requirements lead to non-reproducible code generation.
+8. **Include concrete test data.** Acceptance tests MUST include concrete input data and expected output data where the result is deterministic. For API tests: HTTP method, path, example request body, expected status code, expected response shape/key fields. For form/UI tests: field values and expected outcome. For non-deterministic values (timestamps, generated IDs), describe the expected type/shape rather than a literal. Concrete test data enables the implementation agent to write precise assertions without guessing.
 
 ---
 

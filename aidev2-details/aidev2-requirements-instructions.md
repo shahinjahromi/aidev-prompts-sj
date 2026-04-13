@@ -125,6 +125,31 @@ When requirements introduce or reference new environment variables, the agent mu
 
 ---
 
+## Concrete Test Data in Acceptance Tests
+
+Acceptance tests must include concrete input data and expected output data where the result is deterministic. Vague steps like "submit the form" or "verify success" are insufficient — they force the implementation agent to guess payloads and assertions.
+
+### API endpoint ATs
+- Include: HTTP method, path, example request body (JSON), expected status code, and expected response body shape with key fields.
+- Example step: `POST /api/auth/login with body {"email": "user@example.com", "password": "Test1234!"} → expect 200 with {"token": "<string>", "expires_in": 3600}`
+
+### Form / UI action ATs
+- Include: field names with example values, the action (click, submit), and expected outcome (redirect URL, success message, state change).
+- This is advisory when the AT is purely visual and covered by screenshot assertions.
+
+### Data query ATs
+- Include: query parameters or filter values and expected result shape/count.
+
+### Deterministic vs. non-deterministic values
+- **Deterministic** (status codes, error codes, redirect paths, cookie names, fixed field values): use exact literals.
+- **Non-deterministic** (generated IDs, timestamps, tokens, session values): describe the expected type/shape — e.g. `"id": "<string UUID>"`, `"created_at": "<ISO 8601 timestamp>"`.
+
+### Scope
+- This rule applies to newly authored ATs. Existing ATs are not retroactively rewritten.
+- AC `scenarios` (Given/When/Then) should also use concrete values where applicable.
+
+---
+
 ## Per-Implementation NFR and Technology Selection Files
 
 NFR and technology selection requirements live exclusively in per-implementation-id files inside their type folders.

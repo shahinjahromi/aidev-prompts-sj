@@ -154,6 +154,10 @@ When generating or updating `playwright.config.ts`:
 - Run API tests with: `TEST_MODE=api npx playwright test --project=api`
 Use requirement AC/AT content to drive coverage.
 
+Concrete AT data:
+- When AT steps include concrete request bodies, expected status codes, and expected response fields, translate them directly into test assertions — use the exact values specified in the AT.
+- For non-deterministic values described by type/shape in the AT (e.g. `"<string UUID>"`), assert the type or format rather than a literal match.
+
 UI-specific requirements:
 - if UI is in scope, include UI contract acceptance tests for all relevant `ui_contracts` items and linked AC/AT entries
 - when a requirement references multiple UIC IDs, generate and execute separate UI tests for each referenced UIC ID
