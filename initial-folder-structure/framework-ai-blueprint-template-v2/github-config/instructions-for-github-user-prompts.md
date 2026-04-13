@@ -1,1 +1,0 @@
-This blueping uses GitHub User prompts aidev2-*, not prompts or instructions in this folder

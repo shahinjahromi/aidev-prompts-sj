@@ -1,7 +1,7 @@
 ---
 name: "aidev2-setup-app"
 description: "Create a new app blueprint and implementation repo from the framework-ai-blueprint-template-v2 setup script. Generated repos are compatible with aidev2 folder-layout detection without depending on blueprint-local instructions."
-argument-hint: "Optional: app-slug impl-suffix (e.g. 'fakebank-my-app angular'). Missing values will be requested."
+argument-hint: "Optional: app-slug impl-suffix (e.g. 'my-app goimp'). Missing values will be requested."
 agent: "agent"
 ---
 

@@ -101,7 +101,7 @@ Apply only needed updates, in place:
 
 2. ID format normalization:
 - convert IDs to the pattern `<TYPE>-<7-digit-sequence>-<short-title>`
-- examples: `FR-0000001-credit-platform-ui-placeholder`, `FR-0000001-credit-platform-ui-placeholder-v2`, `NFR-0000002-code-quality`, `TS-0000007-angular-framework`, `MAC-0000001-marqueta-credit-platform`, `UIC-0000001-authenticated-app-shell`, `AC-0000004-placeholder-ui-render`, `AT-0000004-verify-placeholder-navigation`, `CONTRACT-0000001-marqueta-credit-platform`
+- examples: `FR-0000001-credit-platform-ui-placeholder`, `FR-0000001-credit-platform-ui-placeholder-v2`, `NFR-0000002-code-quality`, `TS-0000007-frontend-framework`, `MAC-0000001-marqueta-credit-platform`, `UIC-0000001-authenticated-app-shell`, `AC-0000004-placeholder-ui-render`, `AT-0000004-verify-placeholder-navigation`, `CONTRACT-0000001-marqueta-credit-platform`
 - short-title format: lowercase kebab-case, concise semantic slug, no spaces/underscores
 - preserve meaning while normalizing order and numeric width; move numeric sequence immediately after type code
 - update cross-references when an ID changes (e.g., `replaces_id`, `specific_ids`, `contract_refs`, related requirement/UI links)

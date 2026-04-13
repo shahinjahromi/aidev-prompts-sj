@@ -91,8 +91,8 @@ project:
 
 tech_stack:
   client:
-    framework:     # -> e.g. angular, react
-    language:      # -> e.g. typescript
+    framework:     # -> front-end framework name (see codebase-context)
+    language:      # -> primary language name
     styling:       # -> e.g. sass, tailwind
   testing:
     e2e:           # -> e.g. playwright
@@ -115,7 +115,7 @@ server_layout:     # -> paths relative to APP_ROOT
 ```
 
 Usage rules:
-- If `tech_stack` fields are populated, prefer them over file-sniffing heuristics but still verify against `package.json` / `angular.json`.
+- If `tech_stack` fields are populated, prefer them over file-sniffing heuristics but still verify against `package.json` / framework-specific config files.
 - If `ports` are populated, use them in startup hints and E2E base URL configuration.
 - If `env_vars.required` is populated, include those in startup pre-checks.
 - If `npm_scripts.root.dev` is set, override the startup heuristic with that command.
@@ -178,7 +178,7 @@ App repo paths (relative to `APP_ROOT`) that are typically required by aidev2:
 - `manifests/requirements-manifest.yaml` -> implementation manifest
 - `scripts/local-dev.sh` -> preferred startup script
 - `scripts/start.sh` -> fallback startup script
-- `package.json` / `angular.json` / `go.mod` / equivalent stack roots -> tech detection and run/test commands
+- `package.json` / `go.mod` / framework config files -> tech detection and run/test commands
 
 Implementation layout under `02-implementation/01-implementations/<IMPLEMENTATION_ID>/`:
 - `01-delta-current`
@@ -230,7 +230,7 @@ Resolve `TOOLING_CMD` by searching for `framework-ai-development-tooling/ai-tool
 3. **Ancestor walk** — walk up ancestor directories of `BLUEPRINT_ROOT`; at each level check for a sibling `framework-ai-development-tooling/ai-tooling.sh`
 4. If still missing, stop and ask the user for the tooling repo path.
 
-Important: the tooling folder must exist as a directory loaded in the IDE workspace. Do **not** use a path derived from the `ai-tooling.sh` internal `ROOT` variable — that variable may point to a stale or non-local path. Always invoke scripts directly from the discovered `AI_TOOLING` directory (e.g. `python3 "$AI_TOOLING/promote_changes.py" ...`) rather than delegating to `ai-tooling.sh` unless you have verified its `ROOT` resolves correctly on the current machine.
+Important: the tooling folder must exist as a directory loaded in the IDE workspace. Do **not** use a path derived from the `ai-tooling.sh` internal `ROOT` variable — that variable may point to a stale or non-local path. Always invoke scripts directly from the discovered `AI_TOOLING` directory (e.g. `"$AI_TOOLING/promote_changes.py" ...`) rather than delegating to `ai-tooling.sh` unless you have verified its `ROOT` resolves correctly on the current machine.
 
 Set:
 - `AI_TOOLING` = parent directory of the resolved `ai-tooling.sh` (i.e. the `framework-ai-development-tooling` folder)
@@ -250,11 +250,11 @@ Treat startup hints as commands, not necessarily file paths.
 ## Tech Stack Summary Heuristics
 
 Infer a one-line `TECH_STACK_SUMMARY` from the app repo:
-- `angular.json` + `package.json` -> `npm | client: angular/typescript`
+- Framework-specific config + `package.json` present -> `npm | client: <framework> application`
 - `package.json` only -> `npm | node application`
 - `go.mod` -> `go application`
-- `pom.xml` -> `java/maven application`
-- `Cargo.toml` -> `rust application`
+- `pom.xml` -> `JVM/maven application`
+- `Cargo.toml` -> `compiled binary application`
 - Add port information only if clearly discoverable from config files or scripts
 - If uncertain, use `(not yet inferred)`
 

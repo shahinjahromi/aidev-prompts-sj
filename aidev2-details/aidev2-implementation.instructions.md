@@ -18,14 +18,6 @@ Do not read blueprint-local implementation instructions other than `.instruction
 - DB schema contract changes are mandatory work in the same run.
 - Module reassignment (a requirement's `module` field changed between current and manifest baseline) triggers undo/redo logic: remove the requirement's contributions from the old module location, then re-implement under the new module.
 
-### Golang module layout
-
-Applies when the runtime technology is golang:
-
-- DO place implementation code under `/internal/<module_name>/` when the requirement has a non-empty `module` field.
-- DO place implementation code under `/internal/default/` when the requirement has no `module` field or the field is empty.
-- DO NOT place Go source files at the repository root; the only exception is `main.go` entrypoint files in `cmd/<entrypoint>/`.
-
 ## IM-00 Pre-Step Verification
 
 1. Read `BLUEPRINT_ROOT/.instructions/config.yaml` (if present) — extract `IMPLEMENTATION_ID`, `APP_ROOT`, `STARTUP_HINT`, `APP_TEST_STARTUP_HINT`, `MANIFEST`, `TOOLING_CMD`, and DB contract alignment settings. See **Config Resolution** in `aidev2-blueprint.instructions.md`.
@@ -92,7 +84,7 @@ Output:
 - `IMPL_ROOT/04-extract-library-interfaces/ref-library-methods.yaml`
 
 Use stack-aware extraction.
-For Node/TypeScript, prefer the tooling extractor if present under `AI_TOOLING/interface-extractors/`.
+If a stack-specific tooling extractor is present under `AI_TOOLING/interface-extractors/`, prefer it over manual extraction.
 
 ## IM-06 Verify Diff Clear
 
@@ -110,7 +102,7 @@ Iterate until startup succeeds or the blocker is fully explained.
 Create acceptance tests under:
 - `IMPL_ROOT/06-e2e-tests`
 
-Prefer Playwright when the implementation layout is web-based.
+Prefer Playwright when the implementation layout is http web-based.
 
 ### Playwright config requirements
 
@@ -121,7 +113,7 @@ When generating or updating `playwright.config.ts`:
 - All report artifacts must stay under `BLUEPRINT_ROOT/03-test-results/IMPLEMENTATION_ID`, including HTML, JSON, screenshots, traces, videos, attachments, raw output, and any custom reporter output.
 - Do not emit report folders or files under `06-e2e-tests/`, including `test-results/`, `playwright-report/`, `blob-report/`, or any equivalent fallback output path.
 
-### UI tests (browser-rendered apps, e.g. Angular, React)
+### UI tests (browser-rendered apps)
 
 - Test file location: `06-e2e-tests/ui/`
 - Use a full Playwright browser context (`page` fixture). Render the real DOM — do **not** use `request`-only contexts.

@@ -25,7 +25,7 @@ identity:
   requirement_set_id: <<APP_SLUG>>
   app_identifier: <<APP_SLUG>>
 
-tooling_root: ../framework-ai-development-tooling
+tooling_root: ../ai-development-tooling-andrewq
 
 implementations:
   <<IMPLEMENTATION_ID>>:
