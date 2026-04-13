@@ -28,3 +28,30 @@ Own only:
 - Do not author or promote requirements.
 - Do not generate or run acceptance tests.
 - Do not expand scope beyond approved plan requirements.
+
+## Milestone Narration
+
+Emit `▷` progress lines as you process each item so the user sees real-time state.
+
+When executing plan items:
+```
+▷ Implementing requirement 1/N: <REQ-ID> <title>...
+```
+
+When updating manifest:
+```
+▷ Updating manifest for <REQ-ID>...
+```
+
+When extracting interfaces:
+```
+▷ Extracting interfaces...
+```
+
+When running fix passes:
+```
+▷ Fix pass 1/N: <error summary>...
+```
+
+Include a `milestones` list in the handoff payload when multiple items are processed.
+Milestone narration is additive to per-action narration (REQ-013).

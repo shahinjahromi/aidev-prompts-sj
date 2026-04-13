@@ -27,3 +27,20 @@ Own only:
 - Do not implement feature code.
 - Do not author requirements content.
 - Do not generate tests.
+
+## Milestone Narration
+
+Emit `▷` progress lines as you process each check so the user sees real-time state.
+
+When running checks:
+```
+▷ Running check 1/N: <check-name>...
+```
+
+When a check completes:
+```
+▷ Check result: <check-name> — <pass|fail|skipped>
+```
+
+Include a `milestones` list in the handoff payload when multiple checks are performed.
+Milestone narration is additive to per-action narration (REQ-013).

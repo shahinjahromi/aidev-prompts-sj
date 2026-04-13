@@ -30,3 +30,30 @@ Own only:
 - Do not perform diff or plan steps.
 - Do not implement app code changes.
 - Do not create or run tests.
+
+## Milestone Narration
+
+Emit `▷` progress lines as you process each item so the user sees real-time state.
+
+When authoring:
+```
+▷ Authoring requirement 1/N: <REQ-ID> <title>...
+```
+
+When promoting:
+```
+▷ Promoting requirement 1/N: <REQ-ID>...
+```
+
+When writing merged output:
+```
+▷ Writing merged requirements...
+```
+
+When reconciling:
+```
+▷ Reconciling requirement 1/N: <REQ-ID>...
+```
+
+Include a `milestones` list in the handoff payload when multiple items are processed.
+Milestone narration is additive to per-action narration (REQ-013).

@@ -26,3 +26,30 @@ Own only:
 - Do not change application runtime code.
 - Do not author requirements.
 - Do not create or run tests.
+
+## Milestone Narration
+
+Emit `▷` progress lines as you process each item so the user sees real-time state.
+
+When generating diff entries:
+```
+▷ Generating diff entry 1/N: <REQ-ID> <title>...
+```
+
+When writing diff artifact:
+```
+▷ Writing structured-diff.yaml...
+```
+
+When generating plan:
+```
+▷ Planning requirement 1/N: <REQ-ID>...
+```
+
+When writing plan artifacts:
+```
+▷ Writing plan artifacts: plan.yaml, plan.md, paths.yaml...
+```
+
+Include a `milestones` list in the handoff payload when multiple items are processed.
+Milestone narration is additive to per-action narration (REQ-013).

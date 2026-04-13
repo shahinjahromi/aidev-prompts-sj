@@ -26,3 +26,25 @@ Own only:
 - Do not implement feature code outside test files/config.
 - Do not change requirements artifacts.
 - Do not run full suite unless explicitly requested.
+
+## Milestone Narration
+
+Emit `▷` progress lines as you process each item so the user sees real-time state.
+
+When creating tests:
+```
+▷ Creating test for requirement 1/N: <REQ-ID> <title>...
+```
+
+When running tests:
+```
+▷ Running test suite (<partial|full>)...
+```
+
+When reporting test results:
+```
+▷ Test result: <REQ-ID> — <pass|fail>
+```
+
+Include a `milestones` list in the handoff payload when multiple items are processed.
+Milestone narration is additive to per-action narration (REQ-013).

@@ -1,4 +1,4 @@
-# Framework Requirements, Acceptance Criteria, and Tests
+# Framework Acceptance Criteria and Acceptance Tests
 
 ## Test Configuration
 - App name: test-framework-temp
@@ -9,49 +9,32 @@
 - App repo under test: test-framework-temp-goimp
 
 ## Scope
-This document defines requirements, acceptance criteria, and acceptance tests for the framework setup flow and generated blueprint structure.
-
-### Setup & Blueprint Structure
+This document defines acceptance criteria and acceptance tests for the framework setup flow and generated blueprint structure, with explicit coverage for:
 - NFR and technology stack preset folder creation
 - Implementation-id-specific artifact expectations
+- Merged requirements field parity with originals, including module
+- Go core stack runtime validation using a hello-world execution test
+- Prompt naming convention enforcing execution order via `aidev2-NN-` prefix
+- Process overview file discoverable by AI and a README pointing to it
 - Preset seeding destination (pending-promotion, not current) at setup time
 - Add-implementation-to-existing-blueprint setup mode
-- No `github-config` folder in the generated blueprint
-- Framework template's `initial-folder-structure` lives under `aidev2-details/`
-
-### Requirements & Contracts
-- Design-first authoring: models and contracts are first-class authoring targets alongside functional requirements
-- Contract references use `contract_type: models_and_contracts` and MAC ID object form only; `sub_mac_ids` is obsolete
-- MAC catalog `child_specifications` kept in sync with spec file child IDs at all times
-- Requirement IDs globally unique per type across pending and current (`next_seq = max + 1` rule)
-- Per-implementation technology selection and NFR files are the canonical source in their respective folders; no flat aggregate files exist
-- NFR and technology selection live in per-implementation-id folders (`nfr-and-global-cr/`, `technology-selection/`) under both pending-promotion and current; flat aggregate files (`nfr_and_global_cr.yaml`, `technology_selection.yaml`) do not exist
-- Requirements state file located at `.aidev/requirements/requirements-state.yaml` relative to app root
-
-### Prompt & Agent Design
-- Prompt naming convention enforcing execution order via `aidev2-NN-` prefix
-- Process instructions file named `aidev2-instructions.md`; README named `aidev2-readme.md` pointing to it
 - Prompt efficiency and minimal redundancy requirements
 - Execution optimization strategy documentation (agent routing, communication, gates, read efficiency)
-- Dispatcher enforces handoff contract; pipeline stops immediately on blocked or fail status
-- Framework prompt and instruction files contain no technology- or language-specific instructions; such content belongs exclusively in preset NFR, technology selection, and global requirement files
-- Framework-predetermined folder names use only dashes (no underscores)
-
-### Implementation Pipeline
-- Merged requirements field parity with originals, including module
-- Module reassignment triggers undo/redo; both old and new module locations must build after the change
-- DB alignment gate mandatory when diff contains physical_database_schema entries
-- DB physical schema changes produce both a full resulting schema file and a companion `-migration` file
-
-### Testing
 - Playwright as the standard e2e test framework for web-based implementations; one test per UIC ID; UI vs API test projects
 - All test artifacts confined to `03-test-results/<IMPLEMENTATION_ID>`; none written inside `06-e2e-tests/`
 - Screenshots captured for every visited screen state in UI tests and included as run artifacts
 - Default test run scope is partial; full suite only on explicit user request
 - Test output file naming convention: `<timestamp>-<REQ_ID>-<partial|full>.<ext>`
-
-### Runtime Validation
-- Go core stack runtime validation using a hello-world execution test
+- Module reassignment triggers undo/redo; both old and new module locations must build after the change
+- DB alignment gate mandatory when diff contains physical_database_schema entries
+- Dispatcher enforces handoff contract; pipeline stops immediately on blocked or fail status
+- Requirement IDs globally unique per type across pending and current (`next_seq = max + 1` rule)
+- Per-implementation technology selection and NFR files are the canonical source in their respective folders; no flat aggregate files exist
+- No `github-config` folder in the generated blueprint
+- Framework prompt and instruction files contain no technology- or language-specific instructions; such content belongs exclusively in preset NFR, technology selection, and global requirement files
+- NFR and technology selection live in per-implementation-id folders (`nfr-and-global-cr/`, `technology-selection/`) under both pending-promotion and current; flat aggregate files (`nfr_and_global_cr.yaml`, `technology_selection.yaml`) do not exist
+- Contract references use `contract_type: models_and_contracts` and MAC ID object form only; `sub_mac_ids` is obsolete
+- MAC catalog `child_specifications` kept in sync with spec file child IDs at all times
 
 ## Requirements
 
@@ -109,14 +92,14 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 ### REQ-004 Core-stack technology selection preset folder exists
 
 #### Acceptance Criteria
-- AC-004: The user prompts folder shall contain a core-stack subfolder for Go technology selection presets at `aidev2-details/preset-requirements/tech-selections-by-core-stack/go`.
+- AC-004: The user prompts folder shall contain a core-stack subfolder for Go technology selection presets at `aidev2-details/preset-requirements/tech_selections_by-core-stack/go`.
 - The folder shall hold implementation-specific technology selection files named `technology-selection-<implementation-id>.yaml`, one per registered implementation.
 - A placeholder template file (`technology-selection-[implementation-id].yaml`) shall also reside in this folder to serve as a copy-source for new implementations.
 
 #### Acceptance Test — AT-004 Verify Go tech-stack preset folder
 - Steps:
   1. Locate the user prompts root.
-  2. Check that `aidev2-details/preset-requirements/tech-selections-by-core-stack/go` exists.
+  2. Check that `aidev2-details/preset-requirements/tech_selections_by-core-stack/go` exists.
   3. Verify at least one implementation-specific file matching `technology-selection-<impl-id>.yaml` is present.
 - Expected:
   - Directory exists.
@@ -182,7 +165,7 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 
 #### Acceptance Criteria
 - AC-008: The app manifest file shall exist under `.aidev/requirements/requirements-state.yaml`.
-- The `implementation_id` field shall equal the effective implementation id.
+- implementation_id shall equal the effective implementation id.
 
 #### Acceptance Test — AT-008 Verify app manifest implementation id
 - Steps:
@@ -298,6 +281,8 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 - Expected:
   - Every side-effecting step has a matching narration line in the output.
   - All narration lines are concise and accurately describe the action taken.
+
+---
 
 ---
 
@@ -690,7 +675,7 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 
 #### Acceptance Criteria
 - AC-031: Top-level prompt files, agent files, and instruction files under `aidev2-details/` that are part of the framework itself shall contain no technology- or language-specific instructions (e.g. Go-specific module layout rules, JavaScript/TypeScript patterns, Python conventions, specific library APIs or version constraints).
-- Technology- and language-specific instructions belong exclusively in preset files: `aidev2-details/preset-requirements/nfr-and-global-cr-by-core-stack/<stack>/`, `aidev2-details/preset-requirements/tech-selections-by-core-stack/<stack>/`, and similar preset locations.
+- Technology- and language-specific instructions belong exclusively in preset files: `aidev2-details/preset-requirements/nfr-and-global-cr-by-core-stack/<stack>/`, `aidev2-details/preset-requirements/tech_selections_by-core-stack/<stack>/`, and similar preset locations.
 - An instruction or prompt file "belongs to the framework" if it applies to all implementations regardless of technology stack. A preset file scoped to a named technology stack is not a framework file for this requirement.
 
 #### Acceptance Test — AT-031 Verify no technology-specific content in framework instruction files
@@ -726,6 +711,42 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 - Expected:
   - All grouped-type subdirectories use dashes only.
   - No underscore variants exist in the blueprint or preset areas.
+
+---
+
+## Traceability Matrix
+- REQ-001 -> AC-001 -> AT-001
+- REQ-002 -> AC-002 -> AT-002
+- REQ-003 -> AC-003 -> AT-003
+- REQ-004 -> AC-004 -> AT-004
+- REQ-005 -> AC-005 -> AT-005
+- REQ-006 -> AC-006 -> AT-006
+- REQ-007 -> AC-007 -> AT-007
+- REQ-008 -> AC-008 -> AT-008
+- REQ-009 -> AC-009 -> AT-009
+- REQ-010 -> AC-010 -> AT-010
+- REQ-011 -> AC-011 -> AT-011
+- REQ-012 -> AC-012 -> AT-012
+- REQ-013 -> AC-013 -> AT-013
+- REQ-014 -> AC-014 -> AT-014
+- REQ-015 -> AC-015 -> AT-015
+- REQ-016 -> AC-016 -> AT-016
+- REQ-017 -> AC-017 -> AT-017
+- REQ-018 -> AC-018 -> AT-018
+- REQ-019 -> AC-019 -> AT-019
+- REQ-020 -> AC-020 -> AT-020
+- REQ-021 -> AC-021 -> AT-021
+- REQ-022 -> AC-022 -> AT-022
+- REQ-023 -> AC-023 -> AT-023
+- REQ-024 -> AC-024 -> AT-024
+- REQ-025 -> AC-025 -> AT-025
+- REQ-026 -> AC-026 -> AT-026
+- REQ-027 -> AC-027 -> AT-027
+- REQ-028 -> AC-028 -> AT-028
+- REQ-029 -> AC-029 -> AT-029
+- REQ-030 -> AC-030 -> AT-030
+- REQ-031 -> AC-031 -> AT-031
+- REQ-032 -> AC-032 -> AT-032
 
 ---
 
