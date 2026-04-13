@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 
-MANIFEST_REL_PATH = "manifests/requirements-manifest.yaml"
+MANIFEST_REL_PATH = ".aidev/requirements/requirements-state.yaml"
 PENDING_PROMOTION_DIR = "01-pending-promotion"
 DIFF_DIR = "02-diff"
 CURRENT_DIR = "03-current"
@@ -22,9 +22,9 @@ REQUIREMENTS_MANIFEST_REL_PATH = "manifest.yaml"
 MERGED_REL_PATH = f"{CURRENT_DIR}/merged/merged_requirements.yaml"
 DECISIONS_REL_PATH = f"{CURRENT_DIR}/decisions.yaml"
 TECHNOLOGY_SELECTION_REL_PATH = f"{CURRENT_DIR}/technology_selection.yaml"
-PENDING_TECH_SELECTIONS_DIR = f"{PENDING_PROMOTION_DIR}/technology_selection"
-CURRENT_TECH_SELECTIONS_DIR = f"{CURRENT_DIR}/technology_selection"
-CHANGES_REL_PATH = f"{PENDING_PROMOTION_DIR}/_control.yaml"
+PENDING_TECH_SELECTIONS_DIR = f"{PENDING_PROMOTION_DIR}/technology-selection"
+CURRENT_TECH_SELECTIONS_DIR = f"{CURRENT_DIR}/technology-selection"
+CHANGES_REL_PATH = "control.yaml"
 DEFAULT_ITERATION_ID = 1
 
 CANONICAL_ARTIFACT_REL_PATHS = {
@@ -42,7 +42,10 @@ CANONICAL_ARTIFACT_REL_PATHS = {
     "contracts_and_models": f"{CURRENT_DIR}/models_and_contracts.yaml",
 }
 
-GROUPED_REQUIREMENT_REL_DIRS: Dict[str, str] = {}
+GROUPED_REQUIREMENT_REL_DIRS: Dict[str, str] = {
+    "nfr_and_global_cr": "nfr-and-global-cr",
+    "technology_selection": "technology-selection",
+}
 
 DIFF_BUCKETS_BY_ARTIFACT_TYPE = {
     "functional_requirements": "functional",
@@ -155,7 +158,7 @@ def iter_pending_promotion_doc_paths(requirements_path: str) -> List[str]:
     if not os.path.isdir(root):
         return out
     for fp in sorted(Path(root).rglob("*.yaml")):
-        if fp.name in {"_control.yaml", "structured-diff.yaml"}:
+        if fp.name in {"control.yaml", "structured-diff.yaml"}:
             continue
         out.append(str(fp))
     return out
@@ -262,7 +265,7 @@ def technology_selection_mirror_path(
     fp = os.path.join(
         requirements_path,
         stage_dir,
-        "technology_selection",
+        "technology-selection",
         f"technology_selections_{implementation_id}.yaml",
     )
     if create_dirs:

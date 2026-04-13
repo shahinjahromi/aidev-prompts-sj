@@ -1,8 +1,35 @@
 ---
-description: "Embedded AI-dev v2 requirements pipeline for aidev2 prompts. Covers authoring, promotion, and reconciliation rules including module property handling, ID uniqueness, and contract reference structure."
+description: "Embedded AI-dev v2 requirements pipeline for aidev2 prompts. Covers authoring, promotion, and reconciliation rules including module property handling, ID uniqueness, contract reference structure, design-first authoring, and models/contracts authoring."
 ---
 
 # Aidev2 Requirements Pipeline
+
+## Design-First Authoring
+
+The framework follows a **design-first** approach. When authoring requirements:
+
+1. Models, data contracts, API contracts, and UI contracts (MAC items and their spec files) shall be defined or updated **before or alongside** the functional requirements that reference them.
+2. The user may request authoring of models and contracts as a standalone operation — without any accompanying FRs. This is a first-class operation, not secondary to FR authoring.
+3. When authoring models or contracts, narrate: "Authoring design artifact: `<MAC-ID> <title>`" before writing.
+
+### Models and Contracts Authoring
+
+When the user requests creation or update of a model, contract, API contract, UI contract, or data schema:
+
+1. Locate or create the relevant MAC catalog entry in `01-requirements/01-pending-promotion/models_and_contracts.yaml`.
+2. Create or update the referenced spec file under `01-requirements/01-pending-promotion/models_and_contracts/`.
+3. Sync `child_specifications` on the MAC catalog entry to match all child IDs in the spec file.
+4. If the user also requests FRs referencing this contract, author them next using `contract_type: models_and_contracts` with the MAC ID.
+5. Models and contracts can be authored in isolation — without accompanying FRs. Do not require an FR to author a contract.
+
+### Design-First Order
+
+When authoring a mix of contract and FR items in a single session:
+1. First: author or update MAC catalog entries and spec files.
+2. Second: author FRs, NFRs, or other requirement types that reference those contracts.
+3. If the user specifies a different order, follow it — but narrate the deviation.
+
+---
 
 ## Module Property
 
@@ -58,8 +85,8 @@ The canonical stage files remain:
 - `01-requirements/03-current/technology_selection.yaml`
 
 Per-implementation mirror files must live under stage-local subfolders:
-- `01-requirements/01-pending-promotion/technology_selection/technology_selections_<implementation_id>.yaml`
-- `01-requirements/03-current/technology_selection/technology_selections_<implementation_id>.yaml`
+- `01-requirements/01-pending-promotion/technology-selection/technology_selections_<implementation_id>.yaml`
+- `01-requirements/03-current/technology-selection/technology_selections_<implementation_id>.yaml`
 
 Rules:
 1. Treat the stage-root `technology_selection.yaml` file as the authoritative source for that stage.

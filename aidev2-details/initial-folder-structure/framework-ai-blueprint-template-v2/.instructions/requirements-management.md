@@ -34,7 +34,7 @@ Before authoring, load current state from `config.yaml` and the pending control 
 1. Read `config.yaml` → resolve app-specific values:
    - `variables.timezone`
    - `variables.version_suffix_start`
-2. Read `01-requirements/01-pending-promotion/_control.yaml` → note `current_version`, `next_version`, `iteration_id`.
+2. Read `01-requirements/control.yaml` → note `current_version`, `next_version`, `iteration_id`.
 3. Identify which artifact files already exist in `01-requirements/01-pending-promotion/`.
 
 #### Dependency: Identify Contracts and Models (if requirement touches contracts)
@@ -57,7 +57,7 @@ Required when authoring FR, NFR, MAC, or UIC — skip for TS only:
 
 ### RQ-2 — Promote
 
-**Instruction:** Validate and promote all pending artifacts to `03-current`, advancing the version in `_control.yaml`.
+**Instruction:** Validate and promote all pending artifacts to `03-current`, advancing the version in `control.yaml`.
 
 **Pre-checks:**
 1. Verify pending directory (`01-requirements/01-pending-promotion/`) has content (non-empty).
@@ -75,7 +75,7 @@ Review:
 - `01-requirements/03-current/` — updated with promoted artifacts.
 - `01-requirements/02-diff/` — diff files updated.
 
-Report: how many requirements were promoted (by type) and the new version from `_control.yaml`.
+Report: how many requirements were promoted (by type) and the new version from `control.yaml`.
 
 **CRITICAL — Iteration gate (developer action required):**
 After promote completes, the developer MUST manually update the app manifest's `iteration_id` before running diff.
@@ -95,12 +95,12 @@ After promote completes, the developer MUST manually update the app manifest's `
 **Phase 1 — Analyse code for undeclared technologies:**
 1. Read the application codebase at `APP_ROOT` — package manifests (`package.json`, `go.mod`, `requirements.txt`, `pom.xml`, etc.), framework configs, Docker images, CI configs.
 2. Read `01-requirements/03-current/technology_selection.yaml`.
-3. Treat `01-requirements/03-current/technology_selection.yaml` as the authoritative TS file and keep the per-implementation mirror under `01-requirements/03-current/technology_selection/technology_selections_<IMPLEMENTATION_ID>.yaml` aligned with it.
+3. Treat `01-requirements/03-current/technology_selection.yaml` as the authoritative TS file and keep the per-implementation mirror under `01-requirements/03-current/technology-selection/technology_selections_<IMPLEMENTATION_ID>.yaml` aligned with it.
 4. Identify technologies or version changes present in code but missing from the TS file.
 4. For each new technology found:
    - Add a new `TS-NNNNNN` entry directly to `01-requirements/03-current/technology_selection.yaml`.
-   - Set `created_version` and `updated_version` to the current version from `01-requirements/01-pending-promotion/_control.yaml → current_version`.
-5. Refresh `01-requirements/03-current/technology_selection/technology_selections_<IMPLEMENTATION_ID>.yaml` from the updated current TS file.
+   - Set `created_version` and `updated_version` to the current version from `01-requirements/control.yaml → current_version`.
+5. Refresh `01-requirements/03-current/technology-selection/technology_selections_<IMPLEMENTATION_ID>.yaml` from the updated current TS file.
 5. Add each new entry to the app manifest `requirement_baseline` (path from `config.yaml → implementations.<IMPLEMENTATION_ID>.manifest_path`).
 
 **Phase 2 — Sync backported requirements into diff directory:**
@@ -115,8 +115,8 @@ Diff file naming:
 | Requirement type | Bucket directory | File name |
 |---|---|---|
 | `FR-NNNNNN` | `02-diff/functional/` | `FR-NNNNNN.yaml` |
-| `NFR-NNNNNN` | `02-diff/nfr_and_global_cr/` | `NFR-NNNNNN.yaml` |
-| `TS-NNNNNN` | `02-diff/technology_selection/` | `TS-NNNNNN.yaml` |
+| `NFR-NNNNNN` | `02-diff/nfr-and-global-cr/` | `NFR-NNNNNN.yaml` |
+| `TS-NNNNNN` | `02-diff/technology-selection/` | `TS-NNNNNN.yaml` |
 
 **Phase 3 — Handle replaced requirements:**
 If any backfilled entry replaces an existing requirement (`replaces_id`):
@@ -231,8 +231,8 @@ Each requirement has exactly one diff history file under `02-diff/`, named by it
 | Requirement type | Bucket directory | File name pattern | Example |
 |---|---|---|---|
 | `FR-NNNNNN` | `02-diff/functional/` | `<ID>.yaml` | `02-diff/functional/FR-000004.yaml` |
-| `NFR-NNNNNN` | `02-diff/nfr_and_global_cr/` | `<ID>.yaml` | `02-diff/nfr_and_global_cr/NFR-000001.yaml` |
-| `TS-*` | `02-diff/technology_selection/` | `<ID>.yaml` | `02-diff/technology_selection/TS-angular-framework.yaml` |
+| `NFR-NNNNNN` | `02-diff/nfr-and-global-cr/` | `<ID>.yaml` | `02-diff/nfr-and-global-cr/NFR-000001.yaml` |
+| `TS-*` | `02-diff/technology-selection/` | `<ID>.yaml` | `02-diff/technology-selection/TS-frontend-framework.yaml` |
 | `MAC-NNNNNN` | `02-diff/contracts/` | `<ID>.yaml` | `02-diff/contracts/MAC-000001.yaml` |
 | `UIC-NNNNNN` | `02-diff/ui_contracts/` | `<ID>.yaml` | `02-diff/ui_contracts/UIC-000001.yaml` |
 
@@ -242,7 +242,7 @@ Each diff file contains a `diffs` array with chronological entries recording eve
 
 ## Requirements Versioning
 
-**Source of truth:** `01-requirements/01-pending-promotion/_control.yaml`
+**Source of truth:** `01-requirements/control.yaml`
 
 | Field | Meaning |
 |-------|---------|

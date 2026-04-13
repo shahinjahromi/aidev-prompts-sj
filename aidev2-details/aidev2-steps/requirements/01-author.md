@@ -26,7 +26,7 @@ Sequence numbers must be globally unique within each type across the entire blue
 
 Technology selection mirrors:
 - The authoritative TS files are the stage-root files `01-pending-promotion/technology_selection.yaml` and `03-current/technology_selection.yaml`.
-- Per-implementation mirrors under `01-pending-promotion/technology_selection/` and `03-current/technology_selection/` are derived outputs and must be refreshed after TS writes; do not treat mirror files as the source of truth for authoring.
+- Per-implementation mirrors under `01-pending-promotion/technology-selection/` and `03-current/technology-selection/` are derived outputs and must be refreshed after TS writes; do not treat mirror files as the source of truth for authoring.
 
 ## Contract References (`contract_refs`)
 

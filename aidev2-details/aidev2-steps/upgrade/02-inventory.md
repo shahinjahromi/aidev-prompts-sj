@@ -20,6 +20,8 @@ Inspect and summarize current state before edits:
   - `instructions/` directory (v1 documentation)
   Note: `.instructions/config.yaml` and `.instructions/codebase-context.yaml` are NOT obsolete — aidev2 reads both.
 - app manifest status — locate via `config.yaml → implementations.<IMPLEMENTATION_ID>.manifest_path`:
+  - **flag if `manifest_path` still points to `manifests/requirements-manifest.yaml`** — this path is obsolete; migration target is `.aidev/requirements/requirements-state.yaml`
+  - **flag if the app repo contains `manifests/requirements-manifest.yaml`** — this file must be moved to `.aidev/requirements/requirements-state.yaml`
   - check whether each `requirement_baseline` entry has `e2e_test_status`, `implementation_initial_date`, `implementation_last_date`
   - flag entries missing these fields as requiring upgrade
 

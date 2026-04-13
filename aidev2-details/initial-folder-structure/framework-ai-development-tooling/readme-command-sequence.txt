@@ -23,7 +23,7 @@ Command:
 - "$TOOL" promote -r "$REQ" -a "$APP" --implementation-id "$IMPL"
 Review before running:
 - $REQ/manifest.yaml
-- $REQ/01-pending-promotion/_control.yaml
+- $REQ/control.yaml
 - $REQ/01-pending-promotion/**/<artifact>.yaml
 Review after running:
 - $REQ/03-current/**/*.yaml
@@ -35,7 +35,7 @@ Review after running:
 Command:
 - "$TOOL" delta -r "$REQ" -a "$APP" --implementation-id "$IMPL"
 Review before running:
-- $APP/manifests/requirements-manifest.yaml
+- $APP/.aidev/requirements/requirements-state.yaml
 - $REQ/manifest.yaml
 - $REQ/03-current/merged/requirements.yaml
 Review after running:
@@ -64,6 +64,6 @@ Review before running:
 - <spec-root>/02-implementation-state/01-implementations/$IMPL/01-delta-current/structured-diff.yaml
 - <spec-root>/02-implementation-state/01-implementations/$IMPL/02-delta-history/01-delta-current.yaml
 Review after running:
-- $APP/manifests/requirements-manifest.yaml
+- $APP/.aidev/requirements/requirements-state.yaml
 - <spec-root>/02-implementation-state/01-implementations/$IMPL/$IMPL.manifest.yaml
 - <spec-root>/02-implementation-state/01-implementations/$IMPL/02-delta-history/*.yaml

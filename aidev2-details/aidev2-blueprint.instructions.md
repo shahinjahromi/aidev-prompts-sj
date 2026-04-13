@@ -70,7 +70,7 @@ Resolution order when a field is present in config.yaml:
 - `app_identifier` from config overrides the derived `APP_IDENTIFIER`
 - `application_root` from config overrides the sibling-directory inference for `APP_ROOT`
 - `startup_script` and `app_test_startup_script` from config override the startup heuristics
-- `manifest_path` from config overrides the default `APP_ROOT/manifests/requirements-manifest.yaml`
+- `manifest_path` from config overrides the default `APP_ROOT/.aidev/requirements/requirements-state.yaml`
 - `tooling_root` from config overrides the tooling-discovery walk
 - `variables.timezone` is used for date-time fields in the manifest (e.g. `implementation_initial_date`, `implementation_last_date`) — default `UTC` if absent
 - `variables.email_fixed` and `variables.email_random_domain` are the only sources for email values in tests
@@ -138,21 +138,20 @@ Top-level folders relative to `BLUEPRINT_ROOT`:
 - `notes/`, `update-history/`, `README.md`, `readme-files.yaml` -> documentation and change logs
 
 Important requirement paths relative to `BLUEPRINT_ROOT`:
-- `01-requirements/01-pending-promotion/_control.yaml` -> requirements version state
+- `01-requirements/control.yaml` -> requirements version state
 - `01-requirements/01-pending-promotion/functional_requirements.yaml`
-- `01-requirements/01-pending-promotion/nfr_and_global_cr.yaml`
-- `01-requirements/01-pending-promotion/technology_selection.yaml`
-- `01-requirements/01-pending-promotion/technology_selection/technology_selections_<IMPLEMENTATION_ID>.yaml` -> per-implementation pending technology-selection mirror
+- `01-requirements/01-pending-promotion/nfr-and-global-cr/nfr_and_global_cr_<IMPLEMENTATION_ID>.yaml` -> per-implementation pending NFR file
+- `01-requirements/01-pending-promotion/technology-selection/technology_selections_<IMPLEMENTATION_ID>.yaml` -> per-implementation pending technology-selection mirror
 - `01-requirements/01-pending-promotion/models_and_contracts.yaml`
 - `01-requirements/01-pending-promotion/models_and_contracts/` -> pending contract spec files
 - `01-requirements/01-pending-promotion/structured-diff.yaml` -> diff summary for planning/execution
 - `01-requirements/02-diff/functional/<ID>.yaml`
-- `01-requirements/02-diff/nfr_and_global_cr/<ID>.yaml`
-- `01-requirements/02-diff/technology_selection/<ID>.yaml`
+- `01-requirements/02-diff/nfr-and-global-cr/<ID>.yaml`
+- `01-requirements/02-diff/technology-selection/<ID>.yaml`
 - `01-requirements/02-diff/contracts/<ID>.yaml`
 - `01-requirements/02-diff/ui_contracts/<ID>.yaml`
 - `01-requirements/03-current/*.yaml` -> canonical promoted artifacts
-- `01-requirements/03-current/technology_selection/technology_selections_<IMPLEMENTATION_ID>.yaml` -> per-implementation current technology-selection mirror
+- `01-requirements/03-current/technology-selection/technology_selections_<IMPLEMENTATION_ID>.yaml` -> per-implementation current technology-selection mirror
 - `01-requirements/03-current/models_and_contracts/` -> promoted contract specs
 - `01-requirements/03-current/merged/merged_requirements.yaml` -> merged requirement view
 
@@ -175,7 +174,7 @@ Important implementation paths relative to `BLUEPRINT_ROOT`:
 - `02-implementation/01-implementations/<IMPLEMENTATION_ID>/53-update-history/`
 
 App repo paths (relative to `APP_ROOT`) that are typically required by aidev2:
-- `manifests/requirements-manifest.yaml` -> implementation manifest
+- `.aidev/requirements/requirements-state.yaml` -> implementation manifest
 - `scripts/local-dev.sh` -> preferred startup script
 - `scripts/start.sh` -> fallback startup script
 - `package.json` / `go.mod` / framework config files -> tech detection and run/test commands
@@ -216,7 +215,7 @@ Infer `APP_ROOT` using this order:
 
 Derived paths:
 - `APP_ROOT` = inferred application repo root
-- `MANIFEST` = `APP_ROOT/manifests/requirements-manifest.yaml`
+- `MANIFEST` = `APP_ROOT/.aidev/requirements/requirements-state.yaml`
 - `IMPL_ROOT` = `BLUEPRINT_ROOT/02-implementation/01-implementations/IMPLEMENTATION_ID`
 - `E2E_ROOT` = `IMPL_ROOT/06-e2e-tests`
 - `E2E_REPORTS` = `BLUEPRINT_ROOT/03-test-results/IMPLEMENTATION_ID`

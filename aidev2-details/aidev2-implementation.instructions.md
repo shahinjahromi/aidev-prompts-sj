@@ -14,7 +14,7 @@ Do not read blueprint-local implementation instructions other than `.instruction
 - Code first, manifest second.
 - Only modify files required by the active diff and plan.
 - Existing NFRs and Global CRs constrain all new or changed code.
-- Current technology selections (canonical `03-current/technology_selection.yaml`, aligned with per-implementation mirrors under `03-current/technology_selection/`, and manifest baseline) constrain all new or changed code in every iteration; do not introduce stack/tool deviations unless requirements are explicitly updated first.
+- Current technology selections (canonical `03-current/technology_selection.yaml`, aligned with per-implementation mirrors under `03-current/technology-selection/`, and manifest baseline) constrain all new or changed code in every iteration; do not introduce stack/tool deviations unless requirements are explicitly updated first.
 - DB schema contract changes are mandatory work in the same run.
 - Module reassignment (a requirement's `module` field changed between current and manifest baseline) triggers undo/redo logic: remove the requirement's contributions from the old module location, then re-implement under the new module.
 
@@ -48,6 +48,20 @@ Inspect the structured diff for any entry tied to `physical_database_schema` or 
 If found:
 - mark DB alignment as mandatory in plan and execute
 - do not consider the run complete until schema verification evidence exists
+
+### DB Schema File Requirements
+
+When implementing a `physical_database_schema` contract change, produce **two** output files for every schema change:
+
+1. **Full schema file** — the complete resulting database schema as it should exist after the change. File name is determined by the contract spec (e.g. `user-account-schema.sql`, `schema.prisma`).
+2. **Migration file** — a companion file with the **same base name** as the full schema file, plus a `-migration` suffix before the extension (e.g. `user-account-schema-migration.sql`, `schema-migration.prisma`). This file contains only the migration statements needed to transition from the previous schema version to the new one (ALTER TABLE, CREATE TABLE, DROP COLUMN, etc.).
+
+Rules:
+- Both files must be written before the DB gate is cleared.
+- The migration file must be runnable as a deployment artifact against the previous schema version.
+- If no previous schema exists (new table/schema), the migration file is equivalent to the full schema file (CREATE TABLE only).
+- Place both files in the same output directory as determined by the contract spec path or the designated schema output location in `config.yaml`.
+- Log: "Writing full schema: `<filename>`" and "Writing migration: `<filename>-migration.<ext>`" before each write.
 
 ## IM-03 Plan
 

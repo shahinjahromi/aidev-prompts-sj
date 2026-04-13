@@ -22,7 +22,7 @@ Any omitted optional arguments will be prompted interactively or defaulted.
 1. Copy this entire directory to your target location
 2. Search-and-replace all `<<PLACEHOLDER>>` tokens (see table below)
 3. Rename `02-implementation/01-implementations/__IMPL_ID__/` to your actual implementation ID
-4. Copy `manifest-template.yaml` to your app repo at `manifests/requirements-manifest.yaml`
+4. Copy `manifest-template.yaml` to your app repo at `.aidev/requirements/requirements-state.yaml`
 5. Fill in `instructions/codebase-context.yaml` with your project's structure
 
 ## Placeholders
@@ -77,7 +77,7 @@ All project identity and paths are consolidated in **one file**: `instructions/c
 - `config.yaml -> identity` -- `requirement_set_id`, `app_identifier`, `app_name`
 - `config.yaml -> paths` -- workspace, specs root, implementations root, mappings root
 - `config.yaml -> implementations` -- per-implementation app repo linkage
-- `_control.yaml` -- only version management (`current_version`, `next_version`, `iteration_id`)
+- `control.yaml` -- only version management (`current_version`, `next_version`, `iteration_id`)
 - App manifest `iteration_id` -- developer-controlled; must be manually updated to include an iteration's requirements in the pipeline
 
 Generic framework conventions (fixed tooling paths, requirements directory layout, secrets policy) live in `ai-tooling-hints.yaml`.
@@ -117,8 +117,9 @@ Generic framework conventions (fixed tooling paths, requirements directory layou
 │   │       ├── graphql_sdl_yaml.json
 │   │       ├── physical_database_schema.json
 │   │       └── ui_contracts.json
+│   ├── manifest.yaml                    -- Requirements manifest
+│   ├── control.yaml                     -- Version management
 │   ├── 01-pending-promotion/            -- Staging area (empty YAML templates)
-│   │   ├── _control.yaml               -- Version management
 │   │   ├── technology_selection/        -- Per-implementation pending TS mirrors
 │   │   ├── models_and_contracts/        -- Pending contract spec files
 │   │   └── *.yaml                       -- Per-type pending files

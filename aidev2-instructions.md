@@ -10,7 +10,7 @@ aidev2 is a structured pipeline for managing requirements and implementing them 
 
 | Step | Prompt | Purpose | Key Inputs | Key Outputs |
 |------|--------|---------|------------|-------------|
-| 01 | `/01-aidev2-setup-app` | Create blueprint + app repo pair from template | `app-slug`, `impl-suffix` | `<slug>-ai-blueprint/`, `<slug>-<impl-suffix>/`, `.instructions/config.yaml`, `manifests/requirements-manifest.yaml` |
+| 01 | `/01-aidev2-setup-app` | Create blueprint + app repo pair from template | `app-slug`, `impl-suffix` | `<slug>-ai-blueprint/`, `<slug>-<impl-suffix>/`, `.instructions/config.yaml`, `.aidev/requirements/requirements-state.yaml` |
 | 02 | `/02-aidev2-requirements` | Author, promote, and reconcile requirements | Blueprint root, requirement description | Pending requirements YAML in `01-requirements/01-pending-promotion/`, current requirements in `01-requirements/03-current/`, merged file in `01-requirements/03-current/merged/` |
 | 03 | `/03-aidev2-implement` | Diff requirements → plan → execute → test | Blueprint root, implementation id | Diff manifest in `01-requirements/02-diff/`, plan artifact, implemented code in app repo, test results in `03-test-results/` |
 | 04 | `/04-aidev2-upgrade` | Migrate existing blueprint to current conventions | Blueprint root | Updated folder structure and naming, no semantic content loss |
@@ -41,10 +41,17 @@ Run ranges like `02-07` to skip diff if it already exists.
   codebase-context.yaml     ← optional tech/port hints for AI
 ```
 
+App repo layout (relative to `APP_ROOT`):
+```
+.aidev/
+  requirements/
+    requirements-state.yaml   ← implementation manifest (iteration, baseline, version tracking)
+```
+
 ## How to Navigate
 
 - **Starting a new app** → use `/01-aidev2-setup-app`
-- **Adding or updating requirements** → use `/02-aidev2-requirements 01-author` then `02-promote`
+- **Adding or updating requirements** → use `/02-aidev2-requirements 01-author` then `02-promote`; authoring is design-first: define models, contracts, and UI contracts before or alongside functional requirements
 - **Implementing requirements** → open any file in the blueprint repo, then use `/03-aidev2-implement 01-diff` (or a later step if diff exists)
 - **Scope implementation to one module** → pass the module name as a filter argument to `/03-aidev2-implement` so only diff entries with that module property are processed
 - **Something broke** → use `/03-aidev2-implement 05-fix`

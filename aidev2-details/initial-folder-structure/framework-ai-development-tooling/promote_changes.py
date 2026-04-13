@@ -264,7 +264,7 @@ def main() -> None:
     cp = args.change_file or changes_path(args.requirements_path)
     control = read_yaml(cp)
     from_v = str(control.get('current_version', '1.0.0'))
-    # Requirements version is driven solely by _control.yaml — never by the app manifest.
+    # Requirements version is driven solely by control.yaml — never by the app manifest.
     to_v = str(control.get('next_version') or bump_patch(from_v))
     if compare_versions(to_v, from_v) <= 0:
         to_v = bump_patch(from_v)

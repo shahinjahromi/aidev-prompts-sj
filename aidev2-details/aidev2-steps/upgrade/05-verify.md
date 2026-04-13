@@ -28,6 +28,8 @@ Obsolete v1 artifact detection:
 - do NOT delete any of these files
 
 Manifest verification:
+- **confirm app manifest exists at `.aidev/requirements/requirements-state.yaml` in the app repo** — the old path `manifests/requirements-manifest.yaml` must be absent
+- **confirm `manifest_path` in `.instructions/config.yaml` references `.aidev/requirements/requirements-state.yaml`** — not the old `manifests/requirements-manifest.yaml` path
 - confirm every `requirement_baseline` entry in the manifest has `e2e_test_status` set to one of `NOT_TESTED`, `PASSED`, or `FAILED`
 - confirm all `requirement_id` values in the manifest match normalized IDs in scope
 - validate overall manifest shape against the local schema at `/home/parallels/.config/Code/User/prompts/aidev2-schemas/requirements_manifest.json`

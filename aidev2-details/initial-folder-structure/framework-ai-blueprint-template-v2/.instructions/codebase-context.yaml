@@ -76,8 +76,8 @@ implementations:
       # specs: []
 
     other:
-      manifests_dir: manifests/
-      requirements_manifest: manifests/requirements-manifest.yaml
+      manifests_dir: .aidev/requirements/
+      requirements_manifest: .aidev/requirements/requirements-state.yaml
       # local_dev_script: scripts/local-dev.sh
 
     conventions: {}

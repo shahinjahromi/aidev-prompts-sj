@@ -152,7 +152,7 @@ The specs repo supports multiple implementation IDs. Each has its own subdirecto
 | `e2e-email-source-of-truth` | Never hardcode literal emails in E2E/API tests. Resolve fixed email from `config.yaml:variables.email_fixed` only when AT/AC explicitly requires it; otherwise generate `<lowercase-guid>@<config.yaml:variables.email_random_domain>`. |
 | `tooling-not-in-pending` | Tooling/process changes are NOT application requirements and must not go in `01-pending-promotion`. Exception: database CONTRACT specs (MAC with `physical_database_schema`) ARE requirement artifacts and MUST be staged in pending. |
 | `retired-artifact-types` | Retired and no longer having standalone files: decisions, glossary, business_context, change_log, requirements (aggregate), standalone acceptance_criteria, standalone acceptance_tests, standalone ui_contracts.yaml. AC and AT are embedded inline in FR/NFR items. Requirement removals are expressed via `replaces_id` with empty `text`; the original entry stays in `03-current/` for history. Look up prior state in `02-diff/<bucket>/<ID>.yaml`. |
-| `identity-in-config-only` | `requirement_set_id` and `app_identifier` live ONLY in `config.yaml → identity`. Do not duplicate them in other files. `_control.yaml` holds only version management. |
+| `identity-in-config-only` | `requirement_set_id` and `app_identifier` live ONLY in `config.yaml → identity`. Do not duplicate them in other files. `control.yaml` holds only version management. |
 
 ---
 
@@ -237,9 +237,8 @@ implementations:
       # specs: []
 
     other:
-      manifests_dir: manifests/
-      requirements_manifest: manifests/requirements-manifest.yaml
-      # local_dev_script: scripts/local-dev.sh
+      manifests_dir: .aidev/requirements/
+      requirements_manifest: .aidev/requirements/requirements-state.yaml
 
     conventions: {}
       # server_routes: "<CONVENTION>"

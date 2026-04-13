@@ -2,4 +2,4 @@
 
 For pipeline stages, execution order, and navigation instructions, see:
 
-**[ai-instructions.md](./ai-instructions.md)**
+**[aidev2-instructions.md](./aidev2-instructions.md)**

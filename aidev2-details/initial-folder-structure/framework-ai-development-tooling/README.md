@@ -50,8 +50,8 @@ Examples:
 
 ## App requirements manifest file
 
-The file `$APP/manifests/requirements-manifest.yaml` (for example
-`/media/psf/z-work-ai-enablement/projects/sixert_bank-main/manifests/requirements-manifest.yaml`)
+The file `$APP/.aidev/requirements/requirements-state.yaml` (for example
+`/media/psf/z-work-ai-enablement/projects/sixert_bank-main/.aidev/requirements/requirements-state.yaml`)
 is the app-side control and traceability manifest for requirement implementation state.
 
 What this file represents:
@@ -89,7 +89,7 @@ TOOL=/media/psf/z-work-ai-enablement/projects/ai-development-tooling/ai-tooling.
 ### 1) Add or update requirements in pending-promotion staging
 
 The control file is:
-- `$REQ/01-pending-promotion/_control.yaml`
+- `$REQ/control.yaml`
 
 For staging updates, set:
 - `current_version` (already implemented baseline)
@@ -163,7 +163,7 @@ Outputs:
 ### 5) Implement in app and update app manifest
 
 After app code is implemented for the promoted requirement set, update:
-- `$APP/manifests/requirements-manifest.yaml`
+- `$APP/.aidev/requirements/requirements-state.yaml`
 
 Set:
 - `requirements_version_target`: target version for this rollout (for example `1.1.0`)
@@ -181,7 +181,7 @@ Promotion effects:
 - Clears pending-promotion item lists
 - Rebuilds requirement diff files in `$REQ/02-diff/`
 - Regenerates merged outputs in `$REQ/03-current/merged/`
-- Updates control versions in `$REQ/01-pending-promotion/_control.yaml`:
+- Updates control versions in `$REQ/control.yaml`:
   - `current_version = previous next_version`
   - `next_version = patch bump(current_version)`
 
@@ -206,7 +206,7 @@ Implementation ID updates in app manifest are conservative by default:
 
 Requirements versioning and app manifest versioning are **independent concerns**.
 
-- **Requirements control version** (`$REQ/01-pending-promotion/_control.yaml`) — **sole source of truth**
+- **Requirements control version** (`$REQ/control.yaml`) — **sole source of truth**
   - `current_version`: the version of the currently promoted requirements
   - `next_version`: the version that will be assigned on the next promote
   - During promotion: tooling advances `current_version` to `next_version`, then bumps `next_version` by patch
@@ -214,7 +214,7 @@ Requirements versioning and app manifest versioning are **independent concerns**
 - **Merged requirements version** (`$REQ/03-current/merged/requirements.yaml`)
   - Derived from control `current_version`
   - Changes after promotion/regeneration
-- **App manifest versions** (`$APP/manifests/requirements-manifest.yaml`) — **downstream consumer**
+- **App manifest versions** (`$APP/.aidev/requirements/requirements-state.yaml`) — **downstream consumer**
   - `requirements_version_target`: set by the app/engineer to indicate which requirements version the app intends to implement (does not influence requirements versioning)
   - `requirements_version_implemented`: set by tooling (`apply` command) or engineer after implementation is complete
   - Must never have `requirements_version_implemented > requirements_version_target`
@@ -236,7 +236,7 @@ Requirements versioning and app manifest versioning are **independent concerns**
 ## Pending artifacts
 
 - Pending promotion files (requirements change staging):
-  - `01-requirements/01-pending-promotion/_control.yaml`
+  - `01-requirements/control.yaml`
   - `01-requirements/01-pending-promotion/<artifact_type>.yaml`
 - Per-implementation structured diff:
   - `02-implementation-state/01-implementations/<implementation_id>/01-delta-current/structured-diff.yaml`

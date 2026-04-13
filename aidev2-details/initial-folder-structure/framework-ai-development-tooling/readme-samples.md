@@ -62,4 +62,4 @@ Review plan in:
 
 App manifest updated:
 
-- `/media/psf/z-work-ai-enablement/projects/sixert_bank-main/manifests/requirements-manifest.yaml`
+- `/media/psf/z-work-ai-enablement/projects/sixert_bank-main/.aidev/requirements/requirements-state.yaml`

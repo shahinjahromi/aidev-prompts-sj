@@ -1,5 +1,5 @@
 # Application requirements manifest template.
-# Copy this to ../<<APP_REPO_DIR>>/manifests/requirements-manifest.yaml
+# Copy this to ../<<APP_REPO_DIR>>/.aidev/requirements/requirements-state.yaml
 # and replace placeholders with your project values.
 #
 # iteration_id is developer-controlled. Update it manually to include

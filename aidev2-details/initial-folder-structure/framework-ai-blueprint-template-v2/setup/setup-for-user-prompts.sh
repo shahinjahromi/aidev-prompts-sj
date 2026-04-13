@@ -293,17 +293,17 @@ if [[ "$ADD_IMPL" != "true" ]]; then
 
   # ─── Ensure type subfolders exist in pending and current ──────
   echo "Ensuring requirement type subfolders..."
-  mkdir -p "${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/nfr_and_global_cr"
-  mkdir -p "${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/technology_selection"
-  mkdir -p "${BLUEPRINT_DIR}/01-requirements/03-current/nfr_and_global_cr"
-  mkdir -p "${BLUEPRINT_DIR}/01-requirements/03-current/technology_selection"
+  mkdir -p "${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/nfr-and-global-cr"
+  mkdir -p "${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/technology-selection"
+  mkdir -p "${BLUEPRINT_DIR}/01-requirements/03-current/nfr-and-global-cr"
+  mkdir -p "${BLUEPRINT_DIR}/01-requirements/03-current/technology-selection"
   mkdir -p "${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/models_and_contracts"
   mkdir -p "${BLUEPRINT_DIR}/01-requirements/03-current/models_and_contracts"
   for _dir in \
-    "${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/nfr_and_global_cr" \
-    "${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/technology_selection" \
-    "${BLUEPRINT_DIR}/01-requirements/03-current/nfr_and_global_cr" \
-    "${BLUEPRINT_DIR}/01-requirements/03-current/technology_selection" \
+    "${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/nfr-and-global-cr" \
+    "${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/technology-selection" \
+    "${BLUEPRINT_DIR}/01-requirements/03-current/nfr-and-global-cr" \
+    "${BLUEPRINT_DIR}/01-requirements/03-current/technology-selection" \
     "${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/models_and_contracts" \
     "${BLUEPRINT_DIR}/01-requirements/03-current/models_and_contracts"; do
     if [[ -z "$(ls -A "${_dir}" 2>/dev/null)" ]]; then
@@ -341,18 +341,18 @@ else
     echo "  Created implementation directory (no template): ${IMPL_DEST_DIR}"
   fi
   # Ensure type subfolders exist for new impl
-  mkdir -p "${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/nfr_and_global_cr"
-  mkdir -p "${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/technology_selection"
-  mkdir -p "${BLUEPRINT_DIR}/01-requirements/03-current/nfr_and_global_cr"
-  mkdir -p "${BLUEPRINT_DIR}/01-requirements/03-current/technology_selection"
+  mkdir -p "${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/nfr-and-global-cr"
+  mkdir -p "${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/technology-selection"
+  mkdir -p "${BLUEPRINT_DIR}/01-requirements/03-current/nfr-and-global-cr"
+  mkdir -p "${BLUEPRINT_DIR}/01-requirements/03-current/technology-selection"
   mkdir -p "${BLUEPRINT_DIR}/03-test-results/${IMPL_ID}"
 fi
 
 # ─── Create app directory with manifest ──────────────────────────
-APP_MANIFEST_DIR="${APP_DIR}/manifests"
+APP_MANIFEST_DIR="${APP_DIR}/.aidev/requirements"
 mkdir -p "$APP_MANIFEST_DIR"
-if [[ ! -f "${APP_MANIFEST_DIR}/requirements-manifest.yaml" ]]; then
-  cat > "${APP_MANIFEST_DIR}/requirements-manifest.yaml" <<MANIFEST
+if [[ ! -f "${APP_MANIFEST_DIR}/requirements-state.yaml" ]]; then
+  cat > "${APP_MANIFEST_DIR}/requirements-state.yaml" <<MANIFEST
 manifest_version: '1.0'
 requirement_set_id: ${APP_SLUG}
 app_identifier: ${APP_SLUG}
@@ -362,9 +362,9 @@ requirements_version_target: 1.0.0
 requirements_version_implemented: 0.0.0
 requirement_baseline: []
 MANIFEST
-  echo "Created app directory and manifest: ${APP_MANIFEST_DIR}/requirements-manifest.yaml"
+  echo "Created app directory and manifest: ${APP_MANIFEST_DIR}/requirements-state.yaml"
 else
-  echo "App manifest already exists: ${APP_MANIFEST_DIR}/requirements-manifest.yaml"
+  echo "App manifest already exists: ${APP_MANIFEST_DIR}/requirements-state.yaml"
 fi
 
 # ─── Seed core-stack presets into pending-promotion ──────────────
@@ -384,11 +384,11 @@ done
 if [[ -n "$CORE_STACK" && -n "$_PROMPTS_ROOT" ]]; then
   echo "Seeding ${CORE_STACK} presets for ${IMPL_ID}..."
 
-  _NFR_PRESET="${_PROMPTS_ROOT}/aidev2-details/preset-requirements/nfr_and_global_cr_by_core_stack/${CORE_STACK}/nfr_and_global_cr-[implementation id].yaml"
+  _NFR_PRESET="${_PROMPTS_ROOT}/aidev2-details/preset-requirements/nfr-and-global-cr-by-core-stack/${CORE_STACK}/nfr_and_global_cr-[implementation id].yaml"
   _TS_PRESET="${_PROMPTS_ROOT}/aidev2-details/preset-requirements/tech_selections_by-core-stack/${CORE_STACK}/technology_selection_[implementation_id].yaml"
 
-  _NFR_DEST="${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/nfr_and_global_cr/nfr_and_global_cr_${IMPL_ID}.yaml"
-  _TS_DEST="${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/technology_selection/technology_selection_${IMPL_ID}.yaml"
+  _NFR_DEST="${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/nfr-and-global-cr/nfr_and_global_cr_${IMPL_ID}.yaml"
+  _TS_DEST="${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/technology-selection/technology_selection_${IMPL_ID}.yaml"
 
   if [[ -f "$_NFR_PRESET" ]]; then
     mkdir -p "$(dirname "$_NFR_DEST")"
@@ -397,7 +397,7 @@ if [[ -n "$CORE_STACK" && -n "$_PROMPTS_ROOT" ]]; then
     sed -i "s|\[implementation id\]|${IMPL_ID}|g" "$_NFR_DEST"
     echo "  Seeded NFR preset → ${_NFR_DEST}"
     # Register an impl-specific copy in the prompts preset folder
-    _NFR_REGISTRY="${_PROMPTS_ROOT}/aidev2-details/preset-requirements/nfr_and_global_cr_by_core_stack/${CORE_STACK}/nfr_and_global_cr_${IMPL_ID}.yaml"
+    _NFR_REGISTRY="${_PROMPTS_ROOT}/aidev2-details/preset-requirements/nfr-and-global-cr-by-core-stack/${CORE_STACK}/nfr_and_global_cr_${IMPL_ID}.yaml"
     cp "$_NFR_DEST" "$_NFR_REGISTRY"
     echo "  Registered NFR preset → ${_NFR_REGISTRY}"
   else

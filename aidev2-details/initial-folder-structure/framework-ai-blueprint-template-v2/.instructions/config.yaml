@@ -33,7 +33,7 @@ implementations:
     application_root: ../<APP_REPO_DIR>
     startup_script: ../<APP_REPO_DIR>/<APP_STARTUP_SCRIPT>
     app_test_startup_script: ../<APP_REPO_DIR>/<APP_STARTUP_SCRIPT>
-    manifest_path: ../<APP_REPO_DIR>/manifests/requirements-manifest.yaml
+    manifest_path: ../<APP_REPO_DIR>/.aidev/requirements/requirements-state.yaml
     application: {}
       # server_routes: server/src/routes
       # server_services: server/src/services
@@ -50,7 +50,7 @@ implementations:
   # <IMPLEMENTATION_ID_2>:
   #   implementation_id: <IMPLEMENTATION_ID_2>
   #   application_root: ../<APP_REPO_DIR_2>
-  #   manifest_path: ../<APP_REPO_DIR_2>/manifests/requirements-manifest.yaml
+  #   manifest_path: ../<APP_REPO_DIR_2>/.aidev/requirements/requirements-state.yaml
 
 variables:
   timezone: <<TIMEZONE>>

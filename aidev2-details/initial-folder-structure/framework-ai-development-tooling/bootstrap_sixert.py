@@ -271,7 +271,7 @@ def main() -> None:
         or APP_IDENTIFIER
     )
     implementation_id = str(app_manifest.get("implementation_id") or IMPLEMENTATION_ID)
-    # Requirements versioning is driven by _control.yaml / requirements manifest only.
+    # Requirements versioning is driven by control.yaml / requirements manifest only.
     # App manifest versions are never used as input for requirements versioning.
     base_version = str(
         prev_control.get("current_version")
@@ -417,7 +417,7 @@ def main() -> None:
         {
             "implementation_id": implementation_id,
             "app_path": args.app_path,
-            "app_manifest_path": os.path.join(args.app_path or "", "manifests/requirements-manifest.yaml"),
+            "app_manifest_path": os.path.join(args.app_path or "", ".aidev/requirements/requirements-state.yaml"),
             "app_identifier": app_identifier,
             "delta_file": "02-delta-history/01-delta-current.yaml",
             "delta_history_dir": "02-delta-history",

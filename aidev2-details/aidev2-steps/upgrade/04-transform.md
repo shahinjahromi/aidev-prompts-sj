@@ -2,8 +2,8 @@
 
 Normalize technology-selection mirror layout:
 - Keep canonical stage files at `01-requirements/01-pending-promotion/technology_selection.yaml` and `01-requirements/03-current/technology_selection.yaml`.
-- Ensure stage-local mirror folders exist at `01-requirements/01-pending-promotion/technology_selection/` and `01-requirements/03-current/technology_selection/`.
-- Move any misplaced root-level mirror files into the matching stage-local `technology_selection/` folder.
+- Ensure stage-local mirror folders exist at `01-requirements/01-pending-promotion/technology-selection/` and `01-requirements/03-current/technology-selection/`.
+- Move any misplaced root-level mirror files into the matching stage-local `technology-selection/` folder.
 - Refresh per-implementation mirror filenames as `technology_selections_<IMPLEMENTATION_ID>.yaml` from the authoritative stage-root `technology_selection.yaml` file for that stage.
 
 Perform in-place naming upgrades for pending/current requirements and contracts:
@@ -12,7 +12,7 @@ Perform in-place naming upgrades for pending/current requirements and contracts:
 - `DAC-` -> `MAC-`
 - `dac_contract_logical_id` -> `mac_contract_logical_id`
 - `non_functional_requirements.yaml` -> `nfr_and_global_cr.yaml` (rename files in `01-pending-promotion/`, `03-current/`, `02-implementation-mapping/`; update `type: non_functional_requirements` -> `type: nfr_and_global_cr` inside the file)
-- `02-diff/non_functional/` -> `02-diff/nfr_and_global_cr/` (rename diff bucket directory if present)
+- `02-diff/non_functional/` -> `02-diff/nfr-and-global-cr/` (rename diff bucket directory if present)
 
 Perform in-place ID format normalization:
 - Normalize IDs to `<TYPE>-<7-digit-sequence>-<short-title>`.
@@ -60,6 +60,13 @@ Do not delete implementation/test/history artifacts.
 
 Manifest schema upgrade:
 - Locate the app manifest from `BLUEPRINT_ROOT/.instructions/config.yaml → implementations.<IMPLEMENTATION_ID>.manifest_path` (path relative to BLUEPRINT_ROOT).
+- **Requirements state file migration**: if the manifest currently lives at `manifests/requirements-manifest.yaml` inside the app repo:
+  1. Create the directory `APP_ROOT/.aidev/requirements/` if it does not exist.
+  2. Copy the manifest file to `APP_ROOT/.aidev/requirements/requirements-state.yaml`.
+  3. Update `manifest_path` in `BLUEPRINT_ROOT/.instructions/config.yaml` to point to the new location (e.g. `../<APP_REPO_DIR>/.aidev/requirements/requirements-state.yaml`).
+  4. After confirming the copy is intact, delete the old `manifests/requirements-manifest.yaml`.
+  5. If `manifests/` is now empty, remove it.
+  6. Log: "Migrated app manifest: `manifests/requirements-manifest.yaml` → `.aidev/requirements/requirements-state.yaml`"
 - For each entry in `requirement_baseline` that is missing `e2e_test_status`, add `e2e_test_status: NOT_TESTED`.
 - Do NOT add `implementation_initial_date` or `implementation_last_date` — leave them absent; they are filled in by IM-04 Execute when code is implemented. Only add them if they are already present and need normalization.
 - Timezone for any existing date fields comes from `config.yaml → variables.timezone`.

@@ -1,4 +1,4 @@
-# Framework Acceptance Criteria and Acceptance Tests
+# Framework Requirements
 
 ## Test Configuration
 - App name: test-framework-temp
@@ -32,9 +32,14 @@ This document defines acceptance criteria and acceptance tests for the framework
 - Per-implementation technology selection and NFR files are the canonical source in their respective folders; no flat aggregate files exist
 - No `github-config` folder in the generated blueprint
 - Framework prompt and instruction files contain no technology- or language-specific instructions; such content belongs exclusively in preset NFR, technology selection, and global requirement files
-- NFR and technology selection live in per-implementation-id folders (`nfr_and_global_cr/`, `technology_selection/`) under both pending-promotion and current; flat aggregate files (`nfr_and_global_cr.yaml`, `technology_selection.yaml`) do not exist
+- NFR and technology selection live in per-implementation-id folders (`nfr-and-global-cr/`, `technology-selection/`) under both pending-promotion and current; flat aggregate files (`nfr_and_global_cr.yaml`, `technology_selection.yaml`) do not exist
 - Contract references use `contract_type: models_and_contracts` and MAC ID object form only; `sub_mac_ids` is obsolete
 - MAC catalog `child_specifications` kept in sync with spec file child IDs at all times
+- Requirements state file located at `.aidev/requirements/requirements-state.yaml` relative to app root
+- Design-first authoring: models and contracts are first-class authoring targets alongside functional requirements
+- DB physical schema changes produce both a full resulting schema file and a companion `-migration` file
+- Process instructions file named `aidev2-instructions.md`; README named `aidev2-readme.md` pointing to it
+- Framework template's `initial-folder-structure` lives under `aidev2-details/`
 
 ## Requirements
 
@@ -151,7 +156,7 @@ This document defines acceptance criteria and acceptance tests for the framework
 
 #### Acceptance Test — AT-007 Verify merged field parity including module
 - Steps:
-  1. Read originals from `01-requirements/03-current/functional_requirements.yaml`, per-implementation files in `01-requirements/03-current/nfr_and_global_cr/`, and per-implementation files in `01-requirements/03-current/technology_selection/`.
+  1. Read originals from `01-requirements/03-current/functional_requirements.yaml`, per-implementation files in `01-requirements/03-current/nfr-and-global-cr/`, and per-implementation files in `01-requirements/03-current/technology-selection/`.
   2. Read merged artifact from `01-requirements/03-current/merged/merged_requirements.yaml`.
   3. Compare field sets by type.
   4. Validate module field is preserved in merged when present in originals.
@@ -164,12 +169,12 @@ This document defines acceptance criteria and acceptance tests for the framework
 ### REQ-008 App manifest binds effective implementation id
 
 #### Acceptance Criteria
-- AC-008: The app manifest file shall exist under manifests/requirements-manifest.yaml.
-- implementation_id shall equal the effective implementation id.
+- AC-008: The app manifest file shall exist under `.aidev/requirements/requirements-state.yaml`.
+- The `implementation_id` field shall equal the effective implementation id.
 
 #### Acceptance Test — AT-008 Verify app manifest implementation id
 - Steps:
-  1. Read test-framework-temp-goimp/manifests/requirements-manifest.yaml.
+  1. Read test-framework-temp-goimp/.aidev/requirements/requirements-state.yaml.
   2. Validate implementation_id value.
 - Expected:
   - implementation_id equals test-framework-temp-goimp.
@@ -240,24 +245,24 @@ This document defines acceptance criteria and acceptance tests for the framework
 
 ---
 
-### REQ-012 `ai-instructions.md` is the sole general instructions file
+### REQ-012 `aidev2-instructions.md` is the sole general instructions file
 
 #### Acceptance Criteria
-- AC-012: The prompts folder shall contain a file named `ai-instructions.md` at its root. This is the single canonical file for all general aidev2 process instructions and pipeline overview.
-- `ai-instructions.md` shall contain a succinct end-to-end description of the aidev2 pipeline: its stages, the order prompts are run, what inputs each stage consumes, and what artifacts it produces.
+- AC-012: The prompts folder shall contain a file named `aidev2-instructions.md` at its root. This is the single canonical file for all general aidev2 process instructions and pipeline overview.
+- `aidev2-instructions.md` shall contain a succinct end-to-end description of the aidev2 pipeline: its stages, the order prompts are run, what inputs each stage consumes, and what artifacts it produces.
 - The overview shall be self-contained enough that an AI agent reading only that file understands how to navigate to the correct stage prompt for any given task.
-- No other file at the root of the prompts folder (including `README.md`) shall duplicate general pipeline instructions or process descriptions; any such content belongs exclusively in `ai-instructions.md`.
-- `README.md` may exist as a minimal human pointer but shall contain no general instructions itself — only a reference to `ai-instructions.md`.
+- No other file at the root of the prompts folder (including `aidev2-readme.md`) shall duplicate general pipeline instructions or process descriptions; any such content belongs exclusively in `aidev2-instructions.md`.
+- `aidev2-readme.md` may exist as a minimal human pointer but shall contain no general instructions itself — only a reference to `aidev2-instructions.md`.
 
-#### Acceptance Test — AT-012 Verify ai-instructions.md is the sole general instructions file
+#### Acceptance Test — AT-012 Verify aidev2-instructions.md is the sole general instructions file
 - Precondition: The user prompts folder is accessible.
 - Steps:
-  1. Check that `ai-instructions.md` exists at the root of the prompts folder.
+  1. Check that `aidev2-instructions.md` exists at the root of the prompts folder.
   2. Read the file and verify it contains at minimum: a list of pipeline stages, the execution order, expected inputs per stage, and expected outputs per stage.
-  3. If `README.md` exists, verify it contains no general pipeline instructions — only a brief pointer to `ai-instructions.md`.
-  4. Verify no other root-level file duplicates the content of `ai-instructions.md`.
+  3. If `aidev2-readme.md` exists, verify it contains no general pipeline instructions — only a brief pointer to `aidev2-instructions.md`.
+  4. Verify no other root-level file duplicates the content of `aidev2-instructions.md`.
 - Expected:
-  - `ai-instructions.md` exists and contains the complete succinct pipeline overview.
+  - `aidev2-instructions.md` exists and contains the complete succinct pipeline overview.
   - No other root-level file contains general aidev2 process instructions.
 
 ---
@@ -289,7 +294,7 @@ This document defines acceptance criteria and acceptance tests for the framework
 ### REQ-014 Setup seeds core-stack presets into pending-promotion, not directly into current
 
 #### Acceptance Criteria
-- AC-014: When `--core-stack` is provided and matching preset files exist in the user prompts preset folder, setup shall copy them into `01-requirements/01-pending-promotion/nfr_and_global_cr/` and `01-requirements/01-pending-promotion/technology_selection/` respectively.
+- AC-014: When `--core-stack` is provided and matching preset files exist in the user prompts preset folder, setup shall copy them into `01-requirements/01-pending-promotion/nfr-and-global-cr/` and `01-requirements/01-pending-promotion/technology-selection/` respectively.
 - The seeded files shall be named `nfr_and_global_cr_<implementation_id>.yaml` and `technology_selection_<implementation_id>.yaml`.
 - Presets shall NOT be written directly into `01-requirements/03-current/`; they must enter the blueprint via the promote step.
 - If no `--core-stack` is provided or no preset file exists for the given stack, setup shall skip seeding without error.
@@ -298,8 +303,8 @@ This document defines acceptance criteria and acceptance tests for the framework
 - Precondition: User prompts folder contains Go preset templates; setup is run with `--core-stack go`.
 - Steps:
   1. Run setup with app slug test-framework-temp, impl suffix goimp, and `--core-stack go`.
-  2. Check that `01-requirements/01-pending-promotion/technology_selection/technology_selection_test-framework-temp-goimp.yaml` exists in the blueprint.
-  3. Check that `01-requirements/01-pending-promotion/nfr_and_global_cr/nfr_and_global_cr_test-framework-temp-goimp.yaml` exists in the blueprint.
+  2. Check that `01-requirements/01-pending-promotion/technology-selection/technology_selection_test-framework-temp-goimp.yaml` exists in the blueprint.
+  3. Check that `01-requirements/01-pending-promotion/nfr-and-global-cr/nfr_and_global_cr_test-framework-temp-goimp.yaml` exists in the blueprint.
   4. Verify neither file was written into `01-requirements/03-current/`.
 - Expected:
   - Both preset files exist under `01-pending-promotion/`.
@@ -311,7 +316,7 @@ This document defines acceptance criteria and acceptance tests for the framework
 
 #### Acceptance Criteria
 - AC-015: The setup script shall support an `--add-impl` mode that operates when the blueprint folder already exists.
-- In `--add-impl` mode, setup shall: create a new implementation directory under `02-implementation/01-implementations/<new-impl-id>`; create a new app repo folder with the new implementation ID; seed core-stack presets for the new implementation into `01-requirements/01-pending-promotion/` (if `--core-stack` is provided); and create `manifests/requirements-manifest.yaml` in the new app repo.
+- In `--add-impl` mode, setup shall: create a new implementation directory under `02-implementation/01-implementations/<new-impl-id>`; create a new app repo folder with the new implementation ID; seed core-stack presets for the new implementation into `01-requirements/01-pending-promotion/` (if `--core-stack` is provided); and create `.aidev/requirements/requirements-state.yaml` in the new app repo.
 - The existing blueprint, its existing requirements, and any existing implementation directories shall not be modified or deleted.
 - If `--add-impl` is not specified and the blueprint already exists, setup shall fail with a clear error (existing behaviour preserved).
 
@@ -320,7 +325,7 @@ This document defines acceptance criteria and acceptance tests for the framework
 - Steps:
   1. Run setup with `--add-impl`, app slug test-framework-temp, impl suffix goimp2, and `--core-stack go`.
   2. Verify `02-implementation/01-implementations/test-framework-temp-goimp2` was created in the existing blueprint.
-  3. Verify `test-framework-temp-goimp2/manifests/requirements-manifest.yaml` was created.
+  3. Verify `test-framework-temp-goimp2/.aidev/requirements/requirements-state.yaml` was created.
   4. Verify the original implementation directory and existing requirements files are unchanged.
 - Expected:
   - New implementation directory and app repo exist.
@@ -331,18 +336,18 @@ This document defines acceptance criteria and acceptance tests for the framework
 ### REQ-016 Framework prompts are written efficiently with minimal redundancy
 
 #### Acceptance Criteria
-- AC-016: Each top-level prompt file shall not duplicate content already present in `ai-instructions.md` or in other prompt files; pipeline-level descriptions, stage overviews, and schema definitions shall be referenced by pointer or assumed as prior context rather than restated inline.
+- AC-016: Each top-level prompt file shall not duplicate content already present in `aidev2-instructions.md` or in other prompt files; pipeline-level descriptions, stage overviews, and schema definitions shall be referenced by pointer or assumed as prior context rather than restated inline.
 - Common logic required by multiple prompts (e.g. resolving `config.yaml`, computing paths, reading the manifest) shall be factored into a shared instruction file under `aidev2-details/` and referenced, not copy-pasted into each prompt.
-- Each prompt shall be scoped to the actions and decisions unique to its stage; introductory pipeline summaries that merely repeat `ai-instructions.md` are not permitted.
+- Each prompt shall be scoped to the actions and decisions unique to its stage; introductory pipeline summaries that merely repeat `aidev2-instructions.md` are not permitted.
 
 #### Acceptance Test — AT-016 Verify prompt efficiency and low redundancy
-- Precondition: All top-level prompt files and `ai-instructions.md` are accessible.
+- Precondition: All top-level prompt files and `aidev2-instructions.md` are accessible.
 - Steps:
-  1. For each top-level prompt, identify any block of text (3+ sentences or a numbered list) that also appears verbatim or near-verbatim in `ai-instructions.md` or another prompt.
+  1. For each top-level prompt, identify any block of text (3+ sentences or a numbered list) that also appears verbatim or near-verbatim in `aidev2-instructions.md` or another prompt.
   2. Check whether common setup logic (path resolution, config reading) is factored into a shared file under `aidev2-details/` rather than repeated inline.
   3. Check that each prompt contains no stage summary section that re-explains the full pipeline.
 - Expected:
-  - No substantial duplication of content between prompt files or between a prompt and `ai-instructions.md`.
+  - No substantial duplication of content between prompt files or between a prompt and `aidev2-instructions.md`.
   - Common logic is located in one shared instruction file, not in-lined across multiple prompts.
 
 ---
@@ -350,7 +355,7 @@ This document defines acceptance criteria and acceptance tests for the framework
 ### REQ-017 Framework documents execution optimization methods for speed and quality
 
 #### Acceptance Criteria
-- AC-017: `ai-instructions.md` shall include a dedicated section specifying the execution optimization strategy for the aidev2 pipeline, covering at minimum:
+- AC-017: `aidev2-instructions.md` shall include a dedicated section specifying the execution optimization strategy for the aidev2 pipeline, covering at minimum:
   - **Agent routing**: which agent mode handles which stage (e.g. dispatcher routes to specialist agents; specialist agents do not re-route).
   - **Agent communication pattern**: how the dispatcher invokes a specialist (subagent call), how the specialist returns results (single report message back to dispatcher), and how the dispatcher continues after receiving the result.
   - **Sequencing gates**: explicit gates that must be satisfied before the next stage begins (e.g. plan artifact must exist and be reviewed before execute; diff must be non-empty before planning).
@@ -358,10 +363,10 @@ This document defines acceptance criteria and acceptance tests for the framework
   - Any other technique explicitly adopted by the framework that provides a measurable improvement to response speed or output quality.
 - The section shall be prescriptive, not aspirational — it shall state what the framework does, not what it recommends.
 
-#### Acceptance Test — AT-017 Verify optimization strategy is documented in ai-instructions.md
-- Precondition: `ai-instructions.md` exists at the root of the user prompts folder.
+#### Acceptance Test — AT-017 Verify optimization strategy is documented in aidev2-instructions.md
+- Precondition: `aidev2-instructions.md` exists at the root of the user prompts folder.
 - Steps:
-  1. Read `ai-instructions.md`.
+  1. Read `aidev2-instructions.md`.
   2. Locate the execution optimization section.
   3. Verify it names at least: dispatcher-to-specialist routing, subagent communication pattern, plan-before-execute gate, and read-efficiency rule.
   4. Verify the section is written as prescriptive statements (shall/must), not suggestions.
@@ -583,9 +588,9 @@ This document defines acceptance criteria and acceptance tests for the framework
 ### REQ-027 Per-implementation NFR and TS files are canonical; no flat aggregate files exist
 
 #### Acceptance Criteria
-- AC-027: `nfr_and_global_cr` and `technology_selection` requirements shall reside exclusively in per-implementation-id files inside their respective type folders, under both `01-requirements/01-pending-promotion/` and `01-requirements/03-current/`.
-- The pending folder structure shall be `01-requirements/01-pending-promotion/nfr_and_global_cr/<nfr_and_global_cr_<implementation_id>.yaml>` and `01-requirements/01-pending-promotion/technology_selection/technology_selection_<implementation_id>.yaml`.
-- The current folder structure shall be `01-requirements/03-current/nfr_and_global_cr/nfr_and_global_cr_<implementation_id>.yaml` and `01-requirements/03-current/technology_selection/technology_selection_<implementation_id>.yaml`.
+- AC-027: `nfr-and-global-cr` and `technology-selection` requirements shall reside exclusively in per-implementation-id files inside their respective type folders, under both `01-requirements/01-pending-promotion/` and `01-requirements/03-current/`.
+- The pending folder structure shall be `01-requirements/01-pending-promotion/nfr-and-global-cr/<nfr_and_global_cr_<implementation_id>.yaml>` and `01-requirements/01-pending-promotion/technology-selection/technology_selection_<implementation_id>.yaml`.
+- The current folder structure shall be `01-requirements/03-current/nfr-and-global-cr/nfr_and_global_cr_<implementation_id>.yaml` and `01-requirements/03-current/technology-selection/technology_selection_<implementation_id>.yaml`.
 - No flat `nfr_and_global_cr.yaml` or `technology_selection.yaml` file shall exist at the `01-pending-promotion/` or `03-current/` directory level.
 - These per-implementation files are the sole authoritative source; they are never treated as derived outputs or mirrors.
 - After promote, the current folder shall contain an updated per-implementation file for each promoted pending file.
@@ -593,12 +598,12 @@ This document defines acceptance criteria and acceptance tests for the framework
 #### Acceptance Test — AT-027 Verify per-impl-id folder structure and absence of flat files
 - Precondition: Setup has run with `--core-stack go` and promote has been executed.
 - Steps:
-  1. Verify `01-requirements/01-pending-promotion/nfr_and_global_cr/` directory exists.
-  2. Verify `01-requirements/01-pending-promotion/technology_selection/` directory exists.
+  1. Verify `01-requirements/01-pending-promotion/nfr-and-global-cr/` directory exists.
+  2. Verify `01-requirements/01-pending-promotion/technology-selection/` directory exists.
   3. Verify NO `nfr_and_global_cr.yaml` file exists at the `01-pending-promotion/` level.
   4. Verify NO `technology_selection.yaml` file exists at the `01-pending-promotion/` level.
-  5. After promote: verify `01-requirements/03-current/nfr_and_global_cr/nfr_and_global_cr_<implementation_id>.yaml` exists.
-  6. After promote: verify `01-requirements/03-current/technology_selection/technology_selection_<implementation_id>.yaml` exists.
+  5. After promote: verify `01-requirements/03-current/nfr-and-global-cr/nfr_and_global_cr_<implementation_id>.yaml` exists.
+  6. After promote: verify `01-requirements/03-current/technology-selection/technology_selection_<implementation_id>.yaml` exists.
   7. Verify NO `nfr_and_global_cr.yaml` or `technology_selection.yaml` flat file exists at the `03-current/` level.
 - Expected:
   - Both type folders exist in pending-promotion and current.
@@ -675,7 +680,7 @@ This document defines acceptance criteria and acceptance tests for the framework
 
 #### Acceptance Criteria
 - AC-031: Top-level prompt files, agent files, and instruction files under `aidev2-details/` that are part of the framework itself shall contain no technology- or language-specific instructions (e.g. Go-specific module layout rules, JavaScript/TypeScript patterns, Python conventions, specific library APIs or version constraints).
-- Technology- and language-specific instructions belong exclusively in preset files: `aidev2-details/preset-requirements/nfr_and_global_cr_by_core_stack/<stack>/`, `aidev2-details/preset-requirements/tech_selections_by-core-stack/<stack>/`, and similar preset locations.
+- Technology- and language-specific instructions belong exclusively in preset files: `aidev2-details/preset-requirements/nfr-and-global-cr-by-core-stack/<stack>/`, `aidev2-details/preset-requirements/tech_selections_by-core-stack/<stack>/`, and similar preset locations.
 - An instruction or prompt file "belongs to the framework" if it applies to all implementations regardless of technology stack. A preset file scoped to a named technology stack is not a framework file for this requirement.
 
 #### Acceptance Test — AT-031 Verify no technology-specific content in framework instruction files
@@ -687,6 +692,102 @@ This document defines acceptance criteria and acceptance tests for the framework
 - Expected:
   - No technology-specific keywords appear in framework prompt, agent, or instruction files.
   - All technology- or stack-specific content is confined to preset files.
+
+---
+
+### REQ-032 Framework-predetermined folder names use only dashes (no underscores)
+
+#### Acceptance Criteria
+- AC-032: All folder names that are predetermined by the framework (i.e. created by setup and referenced in tooling) shall use only dashes — no underscores.
+- The canonical folder names for the grouped requirement types shall be `nfr-and-global-cr/` and `technology-selection/` (not `nfr_and_global_cr/` or `technology_selection/`).
+- These folder names shall be consistent under both `01-requirements/01-pending-promotion/` and `01-requirements/03-current/`.
+- Diff bucket directories for these types shall be `02-diff/nfr-and-global-cr/` and `02-diff/technology-selection/`.
+- Preset folder names under `aidev2-details/preset-requirements/` shall also follow this convention: `nfr-and-global-cr-by-core-stack/` (not `nfr_and_global_cr_by_core_stack/`).
+
+#### Acceptance Test — AT-032 Verify dash-only folder names in blueprint and preset areas
+- Precondition: Setup has run with `--core-stack go`.
+- Steps:
+  1. Verify `01-requirements/01-pending-promotion/nfr-and-global-cr/` exists (with dashes).
+  2. Verify `01-requirements/01-pending-promotion/technology-selection/` exists (with dashes).
+  3. Verify `01-requirements/03-current/nfr-and-global-cr/` exists (with dashes).
+  4. Verify `01-requirements/03-current/technology-selection/` exists (with dashes).
+  5. Verify no `nfr_and_global_cr/` or `technology_selection/` folder exists at any level in the blueprint.
+  6. Verify preset folder `aidev2-details/preset-requirements/nfr-and-global-cr-by-core-stack/` exists (with dashes).
+- Expected:
+  - All grouped-type subdirectories use dashes only.
+  - No underscore variants exist in the blueprint or preset areas.
+
+---
+
+### REQ-033 Requirements state file resides at `.aidev/requirements/requirements-state.yaml` in the app repo
+
+#### Acceptance Criteria
+- AC-033: The implementation manifest (requirements state file) shall be located at `.aidev/requirements/requirements-state.yaml` relative to `APP_ROOT`.
+- The setup script shall create this file at that path when creating a new app repo or adding a new implementation.
+- All framework tooling, blueprint instructions, and config templates shall reference this path — not `manifests/requirements-manifest.yaml` or any other location.
+- The `manifest_path` field in `.instructions/config.yaml` shall default to `../<APP_REPO_DIR>/.aidev/requirements/requirements-state.yaml`.
+
+#### Acceptance Test — AT-033 Verify requirements state file location
+- Precondition: Setup has been run to create an app repo.
+- Steps:
+  1. After running setup, verify `.aidev/requirements/requirements-state.yaml` exists at `APP_ROOT`.
+  2. Verify `manifests/requirements-manifest.yaml` does NOT exist at `APP_ROOT`.
+  3. Read `.instructions/config.yaml` and verify `manifest_path` references `.aidev/requirements/requirements-state.yaml`.
+  4. In `--add-impl` mode, run setup and verify the new app repo also creates the file at the correct location.
+- Expected:
+  - Requirements state file exists at `.aidev/requirements/requirements-state.yaml`.
+  - Legacy `manifests/requirements-manifest.yaml` path is absent.
+  - Config template reflects the correct path.
+
+---
+
+### REQ-034 Requirements authoring is design-first; models, contracts, and updates are supported
+
+#### Acceptance Criteria
+- AC-034: When authoring requirements, the framework shall follow a design-first approach: models, data contracts, API contracts, and UI contracts (MAC items) shall be defined or updated before or alongside the functional requirements that reference them.
+- The requirements authoring step shall support explicit user requests to author or update models and contracts (MAC entries, UI contracts, API contracts, data schemas) as a first-class operation — not secondary to FR authoring.
+- When a user requests changes to models or contracts, the authoring agent shall: (1) locate or create the relevant MAC catalog entry in `models_and_contracts.yaml`; (2) create or update the referenced spec file under `models_and_contracts/`; (3) sync `child_specifications` on the MAC catalog entry; and (4) update or create any FRs that reference those contracts.
+- Models and contracts can be authored in isolation (without accompanying FRs) when the user requests it.
+- The authoring step narration shall indicate when design artifacts (contracts, models) are being authored before functional requirements.
+
+#### Acceptance Test — AT-034 Verify design-first authoring and models/contracts support
+- Precondition: Blueprint with empty pending-promotion folder is available.
+- Steps:
+  1. Request authoring of a data contract without any accompanying FR.
+  2. Verify the MAC catalog entry is created in `01-requirements/01-pending-promotion/models_and_contracts.yaml`.
+  3. Verify the spec file is created under `01-requirements/01-pending-promotion/models_and_contracts/`.
+  4. Request authoring of an FR that references that contract.
+  5. Verify the FR uses `contract_type: models_and_contracts` with the correct MAC ID.
+  6. Request an update to the contract (add a field); verify the spec file is updated and the MAC catalog entry's `child_specifications` is kept in sync.
+- Expected:
+  - MAC catalog entry and spec file are created on contract-only authoring requests.
+  - FRs referencing contracts use correct contract_refs structure.
+  - Contract updates are reflected in both the spec file and the MAC catalog entry.
+
+---
+
+### REQ-035 Physical database schema updates produce a full schema file and a companion migration file
+
+#### Acceptance Criteria
+- AC-035: When a database physical schema contract (MAC with `physical_database_schema` type) is created or updated, the implementation step shall produce two files:
+  1. The full resulting schema file — containing the complete database schema as it should exist after the change.
+  2. A companion migration file — named with the same base name as the schema file but with a `-migration` suffix (e.g. if the schema file is `user-account-schema.sql`, the migration file is `user-account-schema-migration.sql`). The migration file shall contain the scripts needed to migrate an existing database to the new schema.
+- Both files shall be written under the contract spec path (relative to `APP_ROOT` or the designated schema output directory as configured).
+- The migration file shall be usable as a deployment artifact — it should be runnable against the previous version of the schema to produce the new schema state.
+- The framework shall not consider a DB schema change complete until both files exist.
+
+#### Acceptance Test — AT-035 Verify DB schema full-schema and migration file generation
+- Precondition: A blueprint with a pending physical_database_schema MAC change is available.
+- Steps:
+  1. Run the implementation step for a diff entry containing a `physical_database_schema` contract update.
+  2. Verify the full resulting schema file is created at the expected output path.
+  3. Verify a companion `-migration` suffixed file exists at the same directory with the same base name.
+  4. Open the migration file and verify it contains valid migration statements (ALTER TABLE, CREATE TABLE, etc.) to transition from the previous schema to the new one.
+  5. Attempt to close the run without both files present; verify the framework blocks completion.
+- Expected:
+  - Both schema file and migration file are created before the run is closed.
+  - Migration file name follows `<schema-base-name>-migration.<ext>` pattern.
+  - Migration file contains runnable migration statements.
 
 ---
 
@@ -722,17 +823,21 @@ This document defines acceptance criteria and acceptance tests for the framework
 - REQ-029 -> AC-029 -> AT-029
 - REQ-030 -> AC-030 -> AT-030
 - REQ-031 -> AC-031 -> AT-031
+- REQ-032 -> AC-032 -> AT-032
+- REQ-033 -> AC-033 -> AT-033
+- REQ-034 -> AC-034 -> AT-034
+- REQ-035 -> AC-035 -> AT-035
 
 ## Notes
 - This specification is intentionally strict on implementation-id-specific preset files and merged-field parity, including module, to prevent silent schema drift during setup automation.
 - AC-010/AT-010 enforce that module-scoped runs are filtered at the diff stage; any tool consuming diffs must expose module filtering rather than passing full unfiltered diff to the implementation step.
 - AC-011/AT-011 enforce the `aidev2-NN-` naming convention so slash-command discovery reflects pipeline execution order.
-- AC-012/AT-012 enforce that `ai-instructions.md` is the sole canonical general instructions file; no other file may duplicate pipeline or process overview content.
+- AC-012/AT-012 enforce that `aidev2-instructions.md` is the sole canonical general instructions file; no other file may duplicate pipeline or process overview content.
 - AC-013/AT-013 enforce per-step narration: every side-effecting action must emit a concise status line; silent execution of writes or deletions is not permitted.
 - AC-014/AT-014 enforce that preset files are seeded into pending-promotion at setup time, never directly into 03-current; this ensures all requirement changes go through the promote pipeline.
 - AC-015/AT-015 enforce that adding a second implementation to a blueprint is a supported operation that leaves existing content intact.
 - AC-016/AT-016 enforce prompt efficiency; prompts must not re-explain the pipeline or duplicate shared logic inline.
-- AC-017/AT-017 enforce that the optimization strategy (agent routing, communication, gates, read efficiency) is prescribed in ai-instructions.md so all agents operate consistently.
+- AC-017/AT-017 enforce that the optimization strategy (agent routing, communication, gates, read efficiency) is prescribed in aidev2-instructions.md so all agents operate consistently.
 - AC-018/AT-018 enforce that e2e tests use Playwright with one test per UIC ID for UI; tests split into `ui/` and `api/` projects with correct fixture types.
 - AC-019/AT-019 enforce that no Playwright artifact lands in `06-e2e-tests/`; all outputs must be under `03-test-results/IMPLEMENTATION_ID`.
 - AC-020/AT-020 enforce per-state screenshot capture in UI tests; every visited screen state must have a screenshot attached and the HTML report must embed them inline.
@@ -742,8 +847,12 @@ This document defines acceptance criteria and acceptance tests for the framework
 - AC-024/AT-024 enforce the DB alignment gate: runs touching physical_database_schema cannot be closed without schema verification evidence.
 - AC-025/AT-025 enforce the handoff contract: every specialist must return a valid handoff payload; the dispatcher must stop immediately on blocked or fail and must not pass full prompt content between stages.
 - AC-026/AT-026 enforce global ID uniqueness within each requirement type: the authoring agent must scan both pending and current before assigning, and use `max + 1` — reuse of any existing sequence number is forbidden.
-- AC-027/AT-027 enforce the folder-based structure for NFR and TS: per-implementation-id files inside type folders (`nfr_and_global_cr/`, `technology_selection/`) are the canonical source under both pending-promotion and current; flat aggregate files at those directory levels are forbidden.
+- AC-027/AT-027 enforce the folder-based structure for NFR and TS: per-implementation-id files inside type folders (`nfr-and-global-cr/`, `technology-selection/`) are the canonical source under both pending-promotion and current; flat aggregate files at those directory levels are forbidden.
 - AC-028/AT-028 enforce contract_refs structure: only `contract_type: models_and_contracts`, only MAC ID object form in specific_ids, no sub_mac_ids, no contract_type: ui_contracts, no isolated UIC-level entries.
 - AC-029/AT-029 enforce MAC catalog sync: child_specifications on a MAC catalog entry must match its spec file contents at all times; adding a child to a spec file must update the MAC catalog entry in the same operation.
 - AC-030/AT-030 enforce that no github-config folder appears inside the generated blueprint; this folder has no role in the blueprint structure.
 - AC-031/AT-031 enforce that framework-level prompt, agent, and instruction files are technology-agnostic; any language- or stack-specific rules belong in the preset files under aidev2-details/preset-requirements/.
+- AC-032/AT-032 enforce that all framework-predetermined folder names use only dashes: canonical grouped-type folders shall be `nfr-and-global-cr/` and `technology-selection/`; underscore variants are forbidden.
+- AC-033/AT-033 enforce that the requirements state file (implementation manifest) is located at `.aidev/requirements/requirements-state.yaml` in the app repo; the legacy `manifests/requirements-manifest.yaml` path is forbidden.
+- AC-034/AT-034 enforce design-first authoring: models and contracts are first-class authoring targets; MAC catalog entries and spec files must be created/updated when requested, with or without accompanying FRs.
+- AC-035/AT-035 enforce DB schema migration artifacts: every physical_database_schema change must produce both a full resulting schema file and a companion `-migration` file before the run is considered complete.

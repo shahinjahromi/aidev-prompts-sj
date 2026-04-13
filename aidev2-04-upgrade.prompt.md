@@ -73,7 +73,7 @@ Inspect and summarize:
   - `github-config/aidev-framework.instructions.md` — v1 framework instructions, replaced by user-level `aidev2-*.instructions.md`
   - `instructions/` — v1 documentation folder
   Note: `.instructions/config.yaml` and `.instructions/codebase-context.yaml` are NOT obsolete — aidev2 reads both.
-- App manifest compliance: locate via `config.yaml → implementations.<IMPLEMENTATION_ID>.manifest_path`; check whether each `requirement_baseline` entry has `e2e_test_status`, `implementation_initial_date`, `implementation_last_date`
+- App manifest compliance: locate via `config.yaml → implementations.<IMPLEMENTATION_ID>.manifest_path`; **flag if `manifest_path` still points to `manifests/requirements-manifest.yaml`** — migration target is `.aidev/requirements/requirements-state.yaml`; check whether each `requirement_baseline` entry has `e2e_test_status`, `implementation_initial_date`, `implementation_last_date`
 
 ## Phase 3 - Write Targets
 
@@ -87,7 +87,7 @@ Apply only needed updates, in place:
 
 0. Technology-selection folder normalization:
 - Keep the canonical stage files at `01-requirements/01-pending-promotion/technology_selection.yaml` and `01-requirements/03-current/technology_selection.yaml`.
-- Ensure stage-local mirror folders exist at `01-requirements/01-pending-promotion/technology_selection/` and `01-requirements/03-current/technology_selection/`.
+- Ensure stage-local mirror folders exist at `01-requirements/01-pending-promotion/technology-selection/` and `01-requirements/03-current/technology-selection/`.
 - Move any misplaced root-level mirror files into the appropriate stage-local folder.
 - Mirror naming must be `technology_selections_<IMPLEMENTATION_ID>.yaml`.
 - When a stage-root `technology_selection.yaml` exists, refresh the corresponding per-implementation mirror file(s) from that stage-root source.
@@ -126,6 +126,15 @@ Apply only needed updates, in place:
 - Keep `child_specifications` on MAC catalog entries in sync with the actual items in the referenced spec file.
 - Single-item spec files do not require `child_specifications` on the catalog entry.
 
+6. **Requirements state file migration**:
+- If the app repo manifest currently lives at `manifests/requirements-manifest.yaml`:
+  1. Create `APP_ROOT/.aidev/requirements/` if absent.
+  2. Copy the file to `APP_ROOT/.aidev/requirements/requirements-state.yaml`.
+  3. Update `manifest_path` in `BLUEPRINT_ROOT/.instructions/config.yaml` to the new location (e.g. `../<APP_REPO_DIR>/.aidev/requirements/requirements-state.yaml`).
+  4. Delete `APP_ROOT/manifests/requirements-manifest.yaml` after confirming the copy is intact.
+  5. Remove `APP_ROOT/manifests/` if it is now empty.
+  6. Log: "Migrated app manifest → `.aidev/requirements/requirements-state.yaml`"
+
 Reference integrity requirements (mandatory):
 - build an old->new ID mapping for every rewritten ID and apply it everywhere in scope
 - update reference fields including (as applicable): `requirement_id`, `replaces_id`, `related_requirement_ids`, `related_uic_ids`, `contract_refs`, `specific_ids`, `implements_contract_ids`, `consumes_upstream_contract_ids`, `contract_id`, and manifest/baseline references
@@ -137,12 +146,13 @@ Reference integrity requirements (mandatory):
 After edits:
 - verify no stale references remain for old naming patterns (unless intentionally retained for backward-compat comments)
 - verify key expected files/folders exist under new naming
-- verify technology-selection mirror files exist under `01-pending-promotion/technology_selection/` and `03-current/technology_selection/` as applicable, and that no active mirror file remains under a misplaced root-level `technology/` folder
+- verify technology-selection mirror files exist under `01-pending-promotion/technology-selection/` and `03-current/technology-selection/` as applicable, and that no active mirror file remains under a misplaced root-level `technology/` folder
 - verify IDs are normalized to `<TYPE>-<7-digit-sequence>-<short-title>` where applicable, with references updated consistently
 - verify no dangling references exist (every rewritten ID must resolve to an existing target definition)
 - **verify ID uniqueness**: for each type prefix, confirm no two items in pending + current share the same sequence number
 - **verify contract_refs structure**: confirm no `contract_type: ui_contracts` remains; confirm all `specific_ids` entries use object form; confirm no `sub_mac_ids` remains
 - **verify MAC catalog `child_specifications`**: confirm that MAC entries wrapping multi-item spec files have a `child_specifications` list
+- **verify manifest location**: confirm app manifest exists at `.aidev/requirements/requirements-state.yaml` in the app repo; confirm `manifests/requirements-manifest.yaml` is absent; confirm `manifest_path` in `.instructions/config.yaml` references the new path
 - if unresolved references remain, stop and report blockers instead of declaring success
 - report changed files and a migration summary
 

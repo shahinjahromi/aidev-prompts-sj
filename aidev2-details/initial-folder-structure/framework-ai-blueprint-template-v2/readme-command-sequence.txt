@@ -18,7 +18,7 @@ delta
 - Command: "$TOOL" delta -r "$REQ" -a "$APP" --implementation-id "$IMPL"
 - Review files:
   - 01-requirements/03-current/merged/merged_requirements.yaml
-  - ../<<APP_REPO_DIR>>/manifests/requirements-manifest.yaml
+  - ../<<APP_REPO_DIR>>/.aidev/requirements/requirements-state.yaml
   - 02-implementation/01-implementations/$IMPL/01-delta-current/structured-diff.yaml
 
 update-merged
@@ -36,5 +36,5 @@ plan
 apply
 - Command: "$TOOL" apply -r "$REQ" -a "$APP" --implementation-id "$IMPL"
 - Review files:
-  - ../<<APP_REPO_DIR>>/manifests/requirements-manifest.yaml
+  - ../<<APP_REPO_DIR>>/.aidev/requirements/requirements-state.yaml
   - 02-implementation/01-implementations/$IMPL/50-delta-history/*.yaml

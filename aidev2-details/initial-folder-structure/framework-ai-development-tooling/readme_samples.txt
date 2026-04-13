@@ -43,7 +43,7 @@ $AI_DEV_TOOLING_CMD refresh-merged -r "$AI_DEV_REQ" --all-implementations
 
 1) Add a new requirement (pending)
 
-Edit $AI_DEV_REQ/01-pending-promotion/_control.yaml and per-artifact pending files, then append:
+Edit $AI_DEV_REQ/control.yaml and per-artifact pending files, then append:
 
 changes:
   - op: add
@@ -64,7 +64,7 @@ $AI_DEV_TOOLING_CMD diff -r "$AI_DEV_REQ" --implementation-id "$AI_DEV_IMPL"
 
 2) Update an existing requirement (pending)
 
-Append in $AI_DEV_REQ/01-pending-promotion/_control.yaml:
+Append in $AI_DEV_REQ/control.yaml:
 
 changes:
   - op: update
