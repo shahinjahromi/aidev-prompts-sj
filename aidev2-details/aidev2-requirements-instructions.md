@@ -97,10 +97,31 @@ Sequence numbers must be **globally unique within each requirement type** across
 
 When authoring requirements or acceptance tests that reference environment variables:
 
-- Specify the **exact environment variable name** — never use vague descriptions like "the database connection env var". Use the actual name: e.g. `DATABASE_URL`, `JWT_SECRET`, `REDIS_PORT`.
+- Specify the **exact environment variable name** — never use vague descriptions like "the database connection env var". Use the actual name: e.g. `FAKEBANK_OMB_WEB_DATABASE_URL`, `AUTH_JWT_SECRET`, `REDIS_PORT`.
 - If the variable is **specific to a module**, prefix it with the module name in UPPERCASE followed by underscore: `<MODULE>_<VAR_NAME>`. Examples: `PAYMENTS_STRIPE_KEY`, `AUTH_JWT_SECRET`, `NOTIFICATIONS_SMTP_HOST`.
-- **Global or shared** env vars (not module-specific) use no module prefix: `DATABASE_URL`, `PORT`, `LOG_LEVEL`.
+- **Global or shared** env vars (not module-specific) must use the **app identifier prefix**: `<APP_IDENTIFIER>_<VAR_NAME>`. Derive the prefix from `config.yaml → identity.app_identifier`: uppercase all characters, replace every `-` with `_`, append trailing `_`. Example: `app_identifier: fakebank-omb-web` → prefix `FAKEBANK_OMB_WEB_` → `FAKEBANK_OMB_WEB_DATABASE_URL`, `FAKEBANK_OMB_WEB_LOG_LEVEL`.
+- **Exception — well-known universal env vars** whose meaning is standard and unambiguous may omit the app identifier prefix: `PORT`, `HOME`, `PATH`, `TZ`.
 - In acceptance criteria and acceptance tests, reference env vars by their exact name inside backticks.
+- **Existing requirements are not retroactively renamed.** The app identifier prefix applies to newly authored env vars only.
+
+---
+
+## Environment Variable Documentation
+
+When requirements introduce or reference new environment variables, the agent must maintain an env var documentation file at `<APP_ROOT>/aidev/docs/env-variable-instructions.md`.
+
+- **Create** the file (and the `aidev/docs/` directory) if it does not exist.
+- **Append** new env var entries; **update** existing entries if their definition changes.
+- Each entry must document:
+  - **Name** — exact variable name (e.g. `<APP_IDENTIFIER>_DATABASE_URL`)
+  - **Module scope** — module name or `default` for non-module vars
+  - **Description** — one-line purpose
+  - **Format / type** — e.g. URL, integer, boolean, comma-separated list
+  - **Sensitivity** — `secret` or `non-secret`
+  - **Default value** — if any, or "none"
+  - **Required / optional**
+- Use a consistent markdown table or definition-list format.
+- This file lives in the **application repo** (`APP_ROOT`), not the blueprint.
 
 ---
 

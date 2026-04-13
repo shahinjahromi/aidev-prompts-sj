@@ -5,6 +5,14 @@
 The authoritative schema bundle is at `{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/aidev2-schemas`.
 Never read schemas from a blueprint's local `.schemas` folder.
 
+## No `.schemas` in Application Blueprints
+
+Application blueprints must not include a `.schemas` folder. Schemas are maintained exclusively in the aidev2 framework at the user-level schema bundle path above. All schema validation — during authoring, promotion, reconciliation, and implementation — references the framework bundle, never a blueprint-local copy. If a `.schemas` folder is found in an application blueprint, ignore it.
+
+## Preset Requirements Are Blueprint-Only
+
+The preset requirement templates in `aidev2-details/preset-requirements/` (NFR and technology selection files organized by core stack) are source templates only. When seeded during setup, the resulting implementation-specific copies must be written exclusively to the application blueprint's `01-requirements/01-pending-promotion/` folders — never back into the VS Code user prompts folder or the framework's preset-requirements directory. The framework preset folder must contain only the reusable `[implementation-id]` template files.
+
 ## File Naming
 
 Schema JSON files use **underscores** in their names (e.g. `functional_requirements.json`, `nfr_and_global_cr.json`).

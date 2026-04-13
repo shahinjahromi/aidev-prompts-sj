@@ -1,6 +1,6 @@
 schema_version: 1
 type: nfr_and_global_cr
-generated_at: "2026-04-11"
+generated_at: "2026-04-13"
 items:
 
 - id: NFR-0000008-startup-operability
@@ -29,7 +29,7 @@ items:
     - Verify the application starts without error.
     expected_result: The file scripts/local-dev.sh exists and running it starts the application.
 
-- id: NFR-0000009-go-code-quality
+- id: GLOBAL-0000003-go-code-quality
   section: Code Quality
   text: >-
     All Go source files must comply with the Go code quality standards: formatted
@@ -51,7 +51,7 @@ items:
     - Review function signatures for bool flag arguments.
     expected_result: gofmt reports no files need formatting.
 
-- id: NFR-0000010-golang-module-layout
+- id: GLOBAL-0000004-golang-module-layout
   section: Code Organization
   module: core
   text: >-
@@ -75,7 +75,7 @@ items:
     - Verify each module has its own subfolder under internal/.
     expected_result: All .go source files are under internal/ or cmd/.
 
-- id: NFR-0000011-security-headers
+- id: GLOBAL-0000005-security-headers
   section: Security
   text: >-
     All HTTP responses must include the required security headers. A middleware
@@ -124,3 +124,76 @@ items:
     - For each route, identify the first non-version path segment.
     - Verify it matches the module name of the requirement it implements.
     expected_result: All routes have the module name as their first domain-specific path segment.
+
+- id: GLOBAL-0000002-api-error-response-schema
+  section: API Design
+  text: >-
+    All API error responses must conform to the API Error Response Schema
+    (MAC-0000001-api-error-response-schema). Every error response body must
+    include at minimum the required fields: code (machine-readable error code)
+    and message (human-readable summary). Optional fields target, reference,
+    and issues may be included when relevant.
+  contract_refs:
+  - contract_type: models_and_contracts
+    selection: specific_ids
+    specific_ids:
+    - id: MAC-0000001-api-error-response-schema
+  acceptance_criteria:
+  - id: AC-0000027-api-errors-conform-to-schema
+    title: All API error responses conform to the error schema
+    context: Consistent error response structure is required for client portability and auditability.
+    criteria:
+    - Every API error response body includes a code field (string, machine-readable).
+    - Every API error response body includes a message field (string, human-readable).
+    - No additional properties are present beyond those defined in the schema.
+    - When multiple validation issues occur, they are returned in the issues array.
+  acceptance_tests:
+  - id: AT-0000027-verify-api-error-schema-compliance
+    name: Verify API error responses conform to schema
+    steps:
+    - Trigger an error condition on any API endpoint (e.g. invalid request body).
+    - Inspect the response body.
+    - Validate the response body against MAC-0000001-api-error-response-schema.
+    expected_result: All API error response bodies validate against the API Error Response Schema with at minimum code and message fields present.
+
+- id: NFR-0000012-idempotency
+  section: API Design
+  text: >-
+    All mutation endpoints must support idempotent request handling via the
+    Idempotency-Key request header. The server must retain the result of the
+    first processed request for 7 days and return the cached response unchanged
+    for duplicate requests within that window. The internal deduplication key
+    must be formed as <consumer_id>-<idempotency_key>, where consumer_id is the
+    authenticated user's ID for human consumers and the configured client ID for
+    M2M (service-to-service) consumers. Two different consumers submitting the
+    same Idempotency-Key value must never share a cached result.
+  acceptance_criteria:
+  - id: AC-0000028-idempotency-key-behavior
+    title: Idempotency-Key header enforces per-consumer deduplication
+    context: >-
+      Mutation endpoints in banking systems must be safe to retry without
+      causing duplicate side effects. The deduplication scope must be per
+      consumer to prevent cross-consumer key collisions.
+    criteria:
+    - The header name for client-supplied idempotency keys is exactly Idempotency-Key.
+    - The server stores the result of the first processed request for 7 days from the time of that first request.
+    - The internal deduplication key is formed by concatenating consumer_id and the client-supplied Idempotency-Key value as <consumer_id>-<idempotency_key>.
+    - For human (end-user) consumers, consumer_id is the authenticated user's ID in the bank system.
+    - For M2M (service-to-service) consumers, consumer_id is the client ID configured in the system for that service.
+    - Two different consumers submitting the same Idempotency-Key value are not treated as the same request and do not share a cached result.
+    - A duplicate request from the same consumer within the 7-day retention window returns the cached response unchanged without reprocessing.
+  acceptance_tests:
+  - id: AT-0000028-verify-idempotency-key-behavior
+    name: Verify Idempotency-Key header enforces per-consumer deduplication
+    steps:
+    - Submit a mutation request with Idempotency-Key: test-key-001 as consumer A; record the response body and status code.
+    - Submit the identical request again with Idempotency-Key: test-key-001 as consumer A within 7 days of the first request.
+    - Verify the response is identical to the first response (same status code and body), confirming the cached result is returned.
+    - Submit the same request with Idempotency-Key: test-key-001 as a different consumer B.
+    - Verify consumer B's request is processed independently and does not return consumer A's cached result.
+    - Verify via server-side inspection or logs that the internal deduplication key combines consumer_id with the Idempotency-Key value.
+    expected_result: >-
+      Duplicate requests from the same consumer within 7 days return the cached
+      response unchanged. Requests from different consumers with the same
+      Idempotency-Key value are treated as independent requests with no
+      cross-consumer result sharing.

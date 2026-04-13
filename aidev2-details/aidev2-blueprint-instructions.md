@@ -125,7 +125,7 @@ Use this awareness for navigation, validation, and safe write targeting.
 
 Top-level folders relative to `BLUEPRINT_ROOT`:
 - `.instructions/` -> blueprint-local policy/config/context files; aidev2 reads `.instructions/config.yaml` (always) and `.instructions/codebase-context.yaml` (supplemental, when populated)
-- `.schemas/` -> blueprint-local schema files (aware of location; aidev2 should use user-level schemas instead)
+- `.schemas/` → blueprint-local schema files — **must not exist** in application blueprints; aidev2 uses the user-level schema bundle exclusively. If present, ignore it.
 - `01-requirements/` -> requirements lifecycle root
 - `02-implementation/` -> implementation state, prompts, mappings, history
 - `03-test-results/` -> per-implementation test reports and artifacts

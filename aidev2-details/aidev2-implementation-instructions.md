@@ -17,6 +17,7 @@ Do not read blueprint-local implementation instructions other than `.instruction
 - Current technology selections (per-implementation files under `03-current/technology-selection/technology-selection-<IMPL_ID>.yaml`, and manifest baseline) constrain all new or changed code in every iteration; do not introduce stack/tool deviations unless requirements are explicitly updated first.
 - DB schema contract changes are mandatory work in the same run.
 - Module reassignment (a requirement's `module` field changed between current and manifest baseline) triggers undo/redo logic: remove the requirement's contributions from the old module location, then re-implement under the new module.
+- If `<APP_ROOT>/aidev/docs/env-variable-instructions.md` exists, read it before planning or executing steps that reference environment variables. Use it to resolve exact variable names, expected formats, and sensitivity levels.
 
 ## IM-00 Pre-Step Verification
 

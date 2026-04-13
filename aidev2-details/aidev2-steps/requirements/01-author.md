@@ -41,9 +41,16 @@ NFR and technology selection files:
 - No flat aggregate files exist at the stage root. Read and write the per-implementation file directly.
 
 Environment variable naming:
-- Specify exact env var names (e.g. `DATABASE_URL`, not "the DB env var").
+- Specify exact env var names (e.g. `FAKEBANK_OMB_WEB_DATABASE_URL`, not "the DB env var").
 - Module-specific vars use `<MODULE>_<VAR_NAME>` prefix in UPPERCASE (e.g. `PAYMENTS_STRIPE_KEY`, `AUTH_JWT_SECRET`).
-- Global vars have no module prefix.
+- Global/shared vars (not module-specific) must use the app identifier prefix: `<APP_IDENTIFIER>_<VAR_NAME>`. Derive from `config.yaml → identity.app_identifier`: uppercase, replace `-` with `_`, append `_` (e.g. `fakebank-omb-web` → `FAKEBANK_OMB_WEB_DATABASE_URL`).
+- Exception: well-known universal vars (`PORT`, `HOME`, `PATH`, `TZ`) may omit the app identifier prefix.
+- Existing requirements are not retroactively renamed — the app identifier prefix applies to newly authored env vars only.
+
+Environment variable documentation:
+- When requirements introduce new env vars, create or update `<APP_ROOT>/aidev/docs/env-variable-instructions.md`.
+- Each entry: name, module scope, description, format/type, sensitivity (secret/non-secret), default value, required/optional.
+- Create the file and `aidev/docs/` directory if they do not exist.
 
 ## Contract References (`contract_refs`)
 

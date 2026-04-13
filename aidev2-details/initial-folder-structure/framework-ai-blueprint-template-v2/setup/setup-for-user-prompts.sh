@@ -408,10 +408,6 @@ if [[ -n "$CORE_STACK" && -n "$_PROMPTS_ROOT" ]]; then
     # Replace placeholder implementation id in the file
     sed -i "s|\[implementation-id\]|${IMPL_ID}|g" "$_NFR_DEST"
     echo "  Seeded NFR preset → ${_NFR_DEST}"
-    # Register an impl-specific copy in the prompts preset folder
-    _NFR_REGISTRY="${_PROMPTS_ROOT}/aidev2-details/preset-requirements/nfr-and-global-cr-by-core-stack/${CORE_STACK}/nfr-and-global-cr-${IMPL_ID}.yaml"
-    cp "$_NFR_DEST" "$_NFR_REGISTRY"
-    echo "  Registered NFR preset → ${_NFR_REGISTRY}"
   else
     echo "  No NFR preset found for stack '${CORE_STACK}' (skipping)"
   fi
@@ -422,10 +418,6 @@ if [[ -n "$CORE_STACK" && -n "$_PROMPTS_ROOT" ]]; then
     # Replace placeholder implementation id in the file
     sed -i "s|\[implementation-id\]|${IMPL_ID}|g" "$_TS_DEST"
     echo "  Seeded TS preset → ${_TS_DEST}"
-    # Register an impl-specific copy in the prompts preset folder
-    _TS_REGISTRY="${_PROMPTS_ROOT}/aidev2-details/preset-requirements/tech-selections-by-core-stack/${CORE_STACK}/technology-selection-${IMPL_ID}.yaml"
-    cp "$_TS_DEST" "$_TS_REGISTRY"
-    echo "  Registered TS preset → ${_TS_REGISTRY}"
   else
     echo "  No TS preset found for stack '${CORE_STACK}' (skipping)"
   fi
