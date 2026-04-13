@@ -2,10 +2,6 @@ schema_version: 1
 type: tooling_requirements
 generated_at: '2026-03-06'
 functional_requirements:
-- id: FR-088
-  text: The project must maintain a traceability matrix mapping requirements to source
-    backlog item identifiers for Sixert and DRyVE using Sixert_Traceability_Matrix.csv/.xlsx.
-  section: Traceability
 - id: FR-089
   text: The requirements system must support multiple implementation targets for the
     same requirement set, including implementations in different programming languages.
@@ -13,10 +9,6 @@ functional_requirements:
 - id: FR-090
   text: Each requirement traceability entry must include per-implementation path mapping
     keyed by app_identifier so implementation-specific scope can be calculated.
-  section: Traceability
-- id: FR-091
-  text: For sixert implementations, app_identifier must be SIXERT_NODEJS_01 unless
-    explicitly superseded by a new registered implementation id.
   section: Traceability
 - id: FR-092
   text: The tooling package must provide a single action script that supports bootstrap,
