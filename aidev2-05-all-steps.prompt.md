@@ -21,6 +21,6 @@ Required sequence when not overridden:
 Use these relative references only:
 - [Dispatcher Agent](./aidev2-dispatcher.agent.md)
 - [Agent Handoff Contract](./aidev2-details/aidev2-agent-handoff.md)
-- [Blueprint Policy](./aidev2-details/aidev2-blueprint.instructions.md)
-- [Requirements Pipeline](./aidev2-details/aidev2-requirements.instructions.md)
-- [Implementation Pipeline](./aidev2-details/aidev2-implementation.instructions.md)
+- [Blueprint Policy](./aidev2-details/aidev2-blueprint-instructions.md)
+- [Requirements Pipeline](./aidev2-details/aidev2-requirements-instructions.md)
+- [Implementation Pipeline](./aidev2-details/aidev2-implementation-instructions.md)

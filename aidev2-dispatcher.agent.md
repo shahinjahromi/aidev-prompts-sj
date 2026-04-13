@@ -15,9 +15,9 @@ You are the aidev2 orchestration dispatcher.
 
 Use these references:
 - [Handoff Contract](./aidev2-details/aidev2-agent-handoff.md)
-- [Blueprint Policy](./aidev2-details/aidev2-blueprint.instructions.md)
-- [Requirements Pipeline](./aidev2-details/aidev2-requirements.instructions.md)
-- [Implementation Pipeline](./aidev2-details/aidev2-implementation.instructions.md)
+- [Blueprint Policy](./aidev2-details/aidev2-blueprint-instructions.md)
+- [Requirements Pipeline](./aidev2-details/aidev2-requirements-instructions.md)
+- [Implementation Pipeline](./aidev2-details/aidev2-implementation-instructions.md)
 
 ## Routing
 

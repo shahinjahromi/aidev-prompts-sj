@@ -9,8 +9,8 @@ You are the aidev2 testing specialist.
 
 Load only:
 - [Handoff Contract](./aidev2-details/aidev2-agent-handoff.md)
-- [Blueprint Policy](./aidev2-details/aidev2-blueprint.instructions.md)
-- [Implementation Pipeline](./aidev2-details/aidev2-implementation.instructions.md)
+- [Blueprint Policy](./aidev2-details/aidev2-blueprint-instructions.md)
+- [Implementation Pipeline](./aidev2-details/aidev2-implementation-instructions.md)
 - [IM-06 Create Tests](./aidev2-details/aidev2-steps/implement/06-create-tests.md)
 - [IM-07 Run Tests](./aidev2-details/aidev2-steps/implement/07-run-tests.md)
 

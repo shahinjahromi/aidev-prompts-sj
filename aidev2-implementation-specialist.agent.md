@@ -9,8 +9,8 @@ You are the aidev2 implementation specialist.
 
 Load only:
 - [Handoff Contract](./aidev2-details/aidev2-agent-handoff.md)
-- [Blueprint Policy](./aidev2-details/aidev2-blueprint.instructions.md)
-- [Implementation Pipeline](./aidev2-details/aidev2-implementation.instructions.md)
+- [Blueprint Policy](./aidev2-details/aidev2-blueprint-instructions.md)
+- [Implementation Pipeline](./aidev2-details/aidev2-implementation-instructions.md)
 - [IM-03 Execute](./aidev2-details/aidev2-steps/implement/03-execute.md)
 - [IM-04 Extract Interfaces](./aidev2-details/aidev2-steps/implement/04-extract-interfaces.md)
 - [IM-05 Fix](./aidev2-details/aidev2-steps/implement/05-fix.md)

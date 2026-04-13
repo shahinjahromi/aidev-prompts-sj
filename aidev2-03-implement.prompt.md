@@ -17,4 +17,4 @@ Use these relative references only:
 - [Testing Specialist](./aidev2-testing-specialist.agent.md)
 - [Validation Specialist](./aidev2-validation-specialist.agent.md)
 - [Agent Handoff Contract](./aidev2-details/aidev2-agent-handoff.md)
-- [Implementation Pipeline](./aidev2-details/aidev2-implementation.instructions.md)
+- [Implementation Pipeline](./aidev2-details/aidev2-implementation-instructions.md)

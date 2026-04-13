@@ -9,8 +9,8 @@ You are the aidev2 planning specialist.
 
 Load only:
 - [Handoff Contract](./aidev2-details/aidev2-agent-handoff.md)
-- [Blueprint Policy](./aidev2-details/aidev2-blueprint.instructions.md)
-- [Implementation Pipeline](./aidev2-details/aidev2-implementation.instructions.md)
+- [Blueprint Policy](./aidev2-details/aidev2-blueprint-instructions.md)
+- [Implementation Pipeline](./aidev2-details/aidev2-implementation-instructions.md)
 - [IM-01 Diff](./aidev2-details/aidev2-steps/implement/01-diff.md)
 - [IM-02 Plan](./aidev2-details/aidev2-steps/implement/02-plan.md)
 

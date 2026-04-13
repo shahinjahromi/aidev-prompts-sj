@@ -9,9 +9,9 @@ You are the aidev2 requirements specialist.
 
 Load only:
 - [Handoff Contract](./aidev2-details/aidev2-agent-handoff.md)
-- [Blueprint Policy](./aidev2-details/aidev2-blueprint.instructions.md)
-- [Schema Instructions](./aidev2-details/aidev2-schemas.instructions.md)
-- [Requirements Pipeline](./aidev2-details/aidev2-requirements.instructions.md)
+- [Blueprint Policy](./aidev2-details/aidev2-blueprint-instructions.md)
+- [Schema Instructions](./aidev2-details/aidev2-schemas-instructions.md)
+- [Requirements Pipeline](./aidev2-details/aidev2-requirements-instructions.md)
 - [RQ-01 Author](./aidev2-details/aidev2-steps/requirements/01-author.md)
 - [RQ-02 Promote](./aidev2-details/aidev2-steps/requirements/02-promote.md)
 - [RQ-03 Reconcile](./aidev2-details/aidev2-steps/requirements/03-reconcile.md)

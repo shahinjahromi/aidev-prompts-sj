@@ -15,8 +15,8 @@ Path semantics:
 - App repo paths are absolute values inferred from repository neighbors.
 
 Always use the policy and rules from:
-[Blueprint Policy](./aidev2-details/aidev2-blueprint.instructions.md)
-[Schema Instructions](./aidev2-details/aidev2-schemas.instructions.md)
+[Blueprint Policy](./aidev2-details/aidev2-blueprint-instructions.md)
+[Schema Instructions](./aidev2-details/aidev2-schemas-instructions.md)
 
 Do not read `BLUEPRINT_ROOT/.instructions/*`.
 Do not read blueprint-local `.schemas`.
@@ -30,7 +30,7 @@ Only accepted argument: `refresh`.
 
 ## Step 2 — Detect and Validate BLUEPRINT_ROOT
 
-Walk up from `${file}` using the rules from `aidev2-blueprint.instructions.md`.
+Walk up from `${file}` using the rules from `aidev2-blueprint-instructions.md`.
 
 Hard stops:
 - active file is not inside a blueprint-layout repo

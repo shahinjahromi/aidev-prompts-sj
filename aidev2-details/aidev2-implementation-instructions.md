@@ -20,7 +20,7 @@ Do not read blueprint-local implementation instructions other than `.instruction
 
 ## IM-00 Pre-Step Verification
 
-1. Read `BLUEPRINT_ROOT/.instructions/config.yaml` (if present) — extract `IMPLEMENTATION_ID`, `APP_ROOT`, `STARTUP_HINT`, `APP_TEST_STARTUP_HINT`, `MANIFEST`, and DB contract alignment settings. Resolve `TOOLING_CMD` and `AI_TOOLING` from the user prompts folder per **Tooling Discovery** in `aidev2-blueprint.instructions.md`.
+1. Read `BLUEPRINT_ROOT/.instructions/config.yaml` (if present) — extract `IMPLEMENTATION_ID`, `APP_ROOT`, `STARTUP_HINT`, `APP_TEST_STARTUP_HINT`, `MANIFEST`, and DB contract alignment settings. Resolve `TOOLING_CMD` and `AI_TOOLING` from the user prompts folder per **Tooling Discovery** in `aidev2-blueprint-instructions.md`.
 2. Resolve `IMPLEMENTATION_ID`.
 3. Resolve `APP_ROOT`, `MANIFEST`, `IMPL_ROOT`, `TOOLING_CMD`, `AI_TOOLING`, and startup hints.
 4. Validate that the manifest shape matches the local manifest schema.
