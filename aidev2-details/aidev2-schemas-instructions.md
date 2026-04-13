@@ -56,4 +56,5 @@ IDs are globally unique within their type prefix across pending and current fold
 - `contract_type` enum: only `["models_and_contracts"]`. The value `ui_contracts` is invalid.
 - `contract_refs.specific_ids` must use object form: `- id: MAC-NNNNNNN-short-title`. Bare strings are invalid.
 - Use `child_specifications` (not the obsolete `sub_mac_ids`) on MAC catalog entries and in `contract_refs`.
+- MAC catalog entries support an optional `nfr_refs` array listing NFR/GLOBAL IDs that constrain the contract's design. Populated during MAC authoring when the NFR alignment check finds relevant requirements.
 - The in-application manifest (`requirements-state.yaml`) sets `additionalProperties: false` — only declared fields are valid.

@@ -9,6 +9,18 @@ Module handling:
 - On updates (`action: update`), carry forward the existing `module` value unless the user explicitly changes it.
 - Module reassignment is a valid update reason — set the new value and the diff/implementation pipeline detects the change.
 
+## NFR Alignment (MAC authoring)
+
+Before writing or updating any MAC catalog entry:
+
+1. Read all NFR/GLOBAL files for the active implementation in both pending and current: `nfr-and-global-cr/nfr-and-global-cr-<IMPL_ID>.yaml`.
+2. Scan for NFRs whose `section` or `text` relates to the MAC's spec format or domain (e.g., database schemas → performance/indexing/retention NFRs; API contracts → error-format/response-time/security NFRs).
+3. For each relevant NFR, narrate: "NFR alignment: `<NFR-ID>` — <how MAC accounts for it>".
+4. If the MAC is a database schema (`spec_format: physical_database_schema` or `logical_database_schema`) and NFRs mention indexing, query performance, data retention, or encryption — incorporate those constraints into the schema design.
+5. Populate the `nfr_refs` field on the MAC catalog entry with the IDs of constraining NFRs found.
+6. If conflicting constraints exist, flag to the user before proceeding.
+7. If no NFRs exist or none relate, proceed without `nfr_refs` — this check is advisory.
+
 ## ID Uniqueness (mandatory before assigning any new ID)
 
 Sequence numbers must be globally unique within each type across the entire blueprint (pending + current). Before writing any new item:

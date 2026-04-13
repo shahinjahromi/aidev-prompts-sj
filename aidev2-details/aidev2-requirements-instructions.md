@@ -22,6 +22,19 @@ When the user requests creation or update of a model, contract, API contract, UI
 4. If the user also requests FRs referencing this contract, author them next using `contract_type: models_and_contracts` with the MAC ID.
 5. Models and contracts can be authored in isolation — without accompanying FRs. Do not require an FR to author a contract.
 
+### NFR Alignment Check
+
+When authoring or updating any MAC item, check existing NFR and GLOBAL requirements for constraints that apply to the contract's domain:
+
+1. Read all per-implementation NFR/GLOBAL files in both `01-pending-promotion/nfr-and-global-cr/` and `03-current/nfr-and-global-cr/`.
+2. Identify NFRs whose `section` or `text` relates to the MAC's domain — e.g., performance, security, data retention, error format, API standards, pagination, encryption.
+3. If relevant NFRs exist:
+   - Narrate: "NFR alignment: found `<NFR-ID>` — <brief relevance>" for each.
+   - Incorporate applicable constraints into the contract design (e.g., indexing strategy for performance NFRs, required fields for error-format NFRs, retention metadata for data-retention NFRs).
+   - Populate the optional `nfr_refs` field on the MAC catalog entry with the IDs of constraining NFRs.
+4. If a MAC design cannot satisfy an NFR constraint, flag the conflict to the user — do not silently ignore it.
+5. If no NFRs exist or none are relevant, proceed normally — this is an advisory check, not a hard gate.
+
 ### Design-First Order
 
 When authoring a mix of contract and FR items in a single session:
