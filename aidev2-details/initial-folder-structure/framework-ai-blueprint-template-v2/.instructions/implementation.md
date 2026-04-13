@@ -53,7 +53,7 @@ All prompt paths are relative to `../` (blueprint root). Shared prompts director
 
 **Also read before running:**
 - `01-requirements/03-current/models_and_contracts.yaml`
-- `01-requirements/03-current/nfr_and_global_cr.yaml`
+- `01-requirements/03-current/nfr-and-global-cr/nfr-and-global-cr-<IMPLEMENTATION_ID>.yaml`
 - `config.yaml → implementations.<IMPLEMENTATION_ID>.manifest_path`
 
 **Command:** Resolve `TOOLING_CMD` from `config.yaml → tooling_root`.
@@ -93,11 +93,11 @@ List the requirement IDs in each bucket so the developer has a clear view of sco
 **Also read before running:**
 - `<IMPLEMENTATION_ID>/01-delta-current/structured-diff.yaml`
 - `01-requirements/03-current/models_and_contracts.yaml`
-- `01-requirements/03-current/nfr_and_global_cr.yaml`
+- `01-requirements/03-current/nfr-and-global-cr/nfr-and-global-cr-<IMPLEMENTATION_ID>.yaml`
 - `config.yaml → implementations.<IMPLEMENTATION_ID>.manifest_path`
 
 **NFR-COD-* / GLOBAL-COD-* handling:**
-1. Read all NFRs and Global CRs from `01-requirements/03-current/nfr_and_global_cr.yaml`.
+1. Read all NFRs and Global CRs from `01-requirements/03-current/nfr-and-global-cr/nfr-and-global-cr-<IMPLEMENTATION_ID>.yaml`.
 2. Check the diff for NFR-COD items in `created` / `updated` / `removed`.
 3. Rules:
    - **New NFR-COD in diff (`created`):** plan a change entry; apply to all code written/modified; manifest after implementation.
@@ -152,7 +152,7 @@ Do NOT add requirement_ids to the manifest during planning. Code must exist firs
 - `<IMPLEMENTATION_ID>/02-plan-current/plan.yaml`
 - `<IMPLEMENTATION_ID>/01-delta-current/structured-diff.yaml`
 - `01-requirements/03-current/models_and_contracts.yaml`
-- `01-requirements/03-current/nfr_and_global_cr.yaml`
+- `01-requirements/03-current/nfr-and-global-cr/nfr-and-global-cr-<IMPLEMENTATION_ID>.yaml`
 - `config.yaml → implementations.<IMPLEMENTATION_ID>.manifest_path`
 
 If secrets are required: resolve `config.yaml → implementations.<IMPLEMENTATION_ID>.secrets_instructions_path` and follow that file before starting the application.

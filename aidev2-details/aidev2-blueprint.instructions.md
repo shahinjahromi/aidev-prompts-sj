@@ -31,10 +31,10 @@ All paths below are relative to `BLUEPRINT_ROOT`.
 - `REQ_PATH` = `01-requirements`
 - `PENDING` = `01-requirements/01-pending-promotion`
 - `PENDING_CONTRACTS` = `01-requirements/01-pending-promotion/models_and_contracts`
-- `PENDING_TECH_SELECTIONS_DIR` = `01-requirements/01-pending-promotion/technology_selection`
+- `PENDING_TECH_SELECTIONS_DIR` = `01-requirements/01-pending-promotion/technology-selection`
 - `CURRENT` = `01-requirements/03-current`
 - `CURRENT_CONTRACTS` = `01-requirements/03-current/models_and_contracts`
-- `CURRENT_TECH_SELECTIONS_DIR` = `01-requirements/03-current/technology_selection`
+- `CURRENT_TECH_SELECTIONS_DIR` = `01-requirements/03-current/technology-selection`
 - `CURRENT_MERGED` = `01-requirements/03-current/merged/merged_requirements.yaml`
 - `DIFF_ROOT` = `01-requirements/02-diff`
 - `IMPLEMENTATIONS_ROOT` = `02-implementation/01-implementations`
@@ -140,8 +140,8 @@ Top-level folders relative to `BLUEPRINT_ROOT`:
 Important requirement paths relative to `BLUEPRINT_ROOT`:
 - `01-requirements/control.yaml` -> requirements version state
 - `01-requirements/01-pending-promotion/functional_requirements.yaml`
-- `01-requirements/01-pending-promotion/nfr-and-global-cr/nfr_and_global_cr_<IMPLEMENTATION_ID>.yaml` -> per-implementation pending NFR file
-- `01-requirements/01-pending-promotion/technology-selection/technology_selections_<IMPLEMENTATION_ID>.yaml` -> per-implementation pending technology-selection mirror
+- `01-requirements/01-pending-promotion/nfr-and-global-cr/nfr-and-global-cr-<IMPLEMENTATION_ID>.yaml` -> per-implementation pending NFR file
+- `01-requirements/01-pending-promotion/technology-selection/technology-selection-<IMPLEMENTATION_ID>.yaml` -> per-implementation pending technology-selection file
 - `01-requirements/01-pending-promotion/models_and_contracts.yaml`
 - `01-requirements/01-pending-promotion/models_and_contracts/` -> pending contract spec files
 - `01-requirements/01-pending-promotion/structured-diff.yaml` -> diff summary for planning/execution
@@ -151,7 +151,7 @@ Important requirement paths relative to `BLUEPRINT_ROOT`:
 - `01-requirements/02-diff/contracts/<ID>.yaml`
 - `01-requirements/02-diff/ui_contracts/<ID>.yaml`
 - `01-requirements/03-current/*.yaml` -> canonical promoted artifacts
-- `01-requirements/03-current/technology-selection/technology_selections_<IMPLEMENTATION_ID>.yaml` -> per-implementation current technology-selection mirror
+- `01-requirements/03-current/technology-selection/technology-selection-<IMPLEMENTATION_ID>.yaml` -> per-implementation current technology-selection file
 - `01-requirements/03-current/models_and_contracts/` -> promoted contract specs
 - `01-requirements/03-current/merged/merged_requirements.yaml` -> merged requirement view
 

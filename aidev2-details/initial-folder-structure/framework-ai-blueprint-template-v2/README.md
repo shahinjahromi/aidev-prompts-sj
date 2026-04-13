@@ -120,13 +120,15 @@ Generic framework conventions (fixed tooling paths, requirements directory layou
 │   ├── manifest.yaml                    -- Requirements manifest
 │   ├── control.yaml                     -- Version management
 │   ├── 01-pending-promotion/            -- Staging area (empty YAML templates)
-│   │   ├── technology_selection/        -- Per-implementation pending TS mirrors
+│   │   ├── technology-selection/        -- Per-implementation pending TS files
+│   │   ├── nfr-and-global-cr/           -- Per-implementation pending NFR files
 │   │   ├── models_and_contracts/        -- Pending contract spec files
 │   │   └── *.yaml                       -- Per-type pending files
 │   ├── 02-diff/                         -- Version-stamped diffs from promotion
 │   └── 03-current/                      -- Canonical requirements (populated by promote)
 │       ├── *.yaml                       -- Grouped requirement files
-│       ├── technology_selection/        -- Per-implementation current TS mirrors
+│       ├── technology-selection/        -- Per-implementation current TS files
+│       ├── nfr-and-global-cr/           -- Per-implementation current NFR files
 │       ├── models_and_contracts/        -- Promoted contract spec files
 │       └── merged/merged_requirements.yaml
 ├── 02-implementation/

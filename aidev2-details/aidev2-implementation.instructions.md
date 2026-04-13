@@ -14,7 +14,7 @@ Do not read blueprint-local implementation instructions other than `.instruction
 - Code first, manifest second.
 - Only modify files required by the active diff and plan.
 - Existing NFRs and Global CRs constrain all new or changed code.
-- Current technology selections (canonical `03-current/technology_selection.yaml`, aligned with per-implementation mirrors under `03-current/technology-selection/`, and manifest baseline) constrain all new or changed code in every iteration; do not introduce stack/tool deviations unless requirements are explicitly updated first.
+- Current technology selections (per-implementation files under `03-current/technology-selection/technology-selection-<IMPL_ID>.yaml`, and manifest baseline) constrain all new or changed code in every iteration; do not introduce stack/tool deviations unless requirements are explicitly updated first.
 - DB schema contract changes are mandatory work in the same run.
 - Module reassignment (a requirement's `module` field changed between current and manifest baseline) triggers undo/redo logic: remove the requirement's contributions from the old module location, then re-implement under the new module.
 

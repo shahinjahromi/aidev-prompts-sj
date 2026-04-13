@@ -94,13 +94,12 @@ After promote completes, the developer MUST manually update the app manifest's `
 
 **Phase 1 — Analyse code for undeclared technologies:**
 1. Read the application codebase at `APP_ROOT` — package manifests (`package.json`, `go.mod`, `requirements.txt`, `pom.xml`, etc.), framework configs, Docker images, CI configs.
-2. Read `01-requirements/03-current/technology_selection.yaml`.
-3. Treat `01-requirements/03-current/technology_selection.yaml` as the authoritative TS file and keep the per-implementation mirror under `01-requirements/03-current/technology-selection/technology_selections_<IMPLEMENTATION_ID>.yaml` aligned with it.
+2. Read `01-requirements/03-current/technology-selection/technology-selection-<IMPLEMENTATION_ID>.yaml`.
+3. Treat `01-requirements/03-current/technology-selection/technology-selection-<IMPLEMENTATION_ID>.yaml` as the authoritative TS file for this implementation.
 4. Identify technologies or version changes present in code but missing from the TS file.
 4. For each new technology found:
-   - Add a new `TS-NNNNNN` entry directly to `01-requirements/03-current/technology_selection.yaml`.
+   - Add a new `TS-NNNNNN` entry directly to `01-requirements/03-current/technology-selection/technology-selection-<IMPLEMENTATION_ID>.yaml`.
    - Set `created_version` and `updated_version` to the current version from `01-requirements/control.yaml → current_version`.
-5. Refresh `01-requirements/03-current/technology-selection/technology_selections_<IMPLEMENTATION_ID>.yaml` from the updated current TS file.
 5. Add each new entry to the app manifest `requirement_baseline` (path from `config.yaml → implementations.<IMPLEMENTATION_ID>.manifest_path`).
 
 **Phase 2 — Sync backported requirements into diff directory:**
@@ -148,10 +147,10 @@ All files must conform to their JSON schema in `.schemas`.
 | Type | ID Pattern | Schema File | Target File in Pending |
 |------|-----------|-------------|------------------------|
 | functional_requirements | FR-NNNNNN | `functional_requirements.json` | `functional_requirements.yaml` |
-| nfr_and_global_cr | NFR-NNNNNN | `nfr_and_global_cr.json` | `nfr_and_global_cr.yaml` |
+| nfr_and_global_cr | NFR-NNNNNN | `nfr_and_global_cr.json` | `nfr-and-global-cr/nfr-and-global-cr-<IMPLEMENTATION_ID>.yaml` |
 | contracts_and_models | MAC-NNNNNN | `contracts/contracts_and_models.json` | `contracts_and_models.yaml` |
 | ui_contracts | UIC-NNNNNN | `contracts/ui_contracts.json` | `contracts_and_models/<file>.yaml` + catalog entry in `contracts_and_models.yaml` |
-| technology_selection | TS-NNNNNN | `technology_selection.json` | `technology_selection.yaml` (plus derived mirror in `technology_selection/technology_selections_<implementation_id>.yaml`) |
+| technology_selection | TS-NNNNNN | `technology_selection.json` | `technology-selection/technology-selection-<IMPLEMENTATION_ID>.yaml` |
 
 ### Requirement ID Patterns
 

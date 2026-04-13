@@ -16,14 +16,12 @@
 1. Read the application codebase at `APP_ROOT`:
    - Package manifests (`package.json`, `go.mod`, `requirements.txt`, `pom.xml`, etc.)
    - Framework configuration files, Docker images, CI configs.
-2. Read the current technology selection file:
-   - `01-requirements/03-current/technology_selection.yaml`
-   - The per-implementation mirror at `01-requirements/03-current/technology-selection/technology_selections_<IMPLEMENTATION_ID>.yaml` must be kept aligned with it.
+2. Read the current technology selection file for this implementation:
+   - `01-requirements/03-current/technology-selection/technology-selection-<IMPLEMENTATION_ID>.yaml`
 3. Compare: identify technologies or version changes present in code but missing from the technology selection file.
 4. For each new technology found:
-   - Add a new `TS-<slug>` entry directly to `01-requirements/03-current/technology_selection.yaml`.
+   - Add a new `TS-<slug>` entry directly to `01-requirements/03-current/technology-selection/technology-selection-<IMPLEMENTATION_ID>.yaml`.
    - Set `created_version` and `updated_version` to the current version from `control.yaml → current_version`.
-5. Refresh `01-requirements/03-current/technology-selection/technology_selections_<IMPLEMENTATION_ID>.yaml` after any update to the current TS file.
 5. Mark each new entry as implemented in the application manifest at `implementations.<IMPLEMENTATION_ID>.manifest_path` by adding it to `requirement_baseline`.
 
 ## Phase 2 — Sync backported requirements into diff directory

@@ -85,12 +85,12 @@ Must include planned write targets and explicitly state that app-specific conten
 
 Apply only needed updates, in place:
 
-0. Technology-selection folder normalization:
-- Keep the canonical stage files at `01-requirements/01-pending-promotion/technology_selection.yaml` and `01-requirements/03-current/technology_selection.yaml`.
-- Ensure stage-local mirror folders exist at `01-requirements/01-pending-promotion/technology-selection/` and `01-requirements/03-current/technology-selection/`.
-- Move any misplaced root-level mirror files into the appropriate stage-local folder.
-- Mirror naming must be `technology_selections_<IMPLEMENTATION_ID>.yaml`.
-- When a stage-root `technology_selection.yaml` exists, refresh the corresponding per-implementation mirror file(s) from that stage-root source.
+0. Technology-selection and NFR folder normalization:
+- There are NO flat aggregate files (`technology_selection.yaml`, `nfr_and_global_cr.yaml`) — only per-implementation files inside type-named subfolders.
+- Ensure subfolders exist: `01-requirements/01-pending-promotion/technology-selection/`, `01-requirements/01-pending-promotion/nfr-and-global-cr/`, `01-requirements/03-current/technology-selection/`, `01-requirements/03-current/nfr-and-global-cr/`.
+- Per-implementation file naming: `technology-selection-<IMPLEMENTATION_ID>.yaml` and `nfr-and-global-cr-<IMPLEMENTATION_ID>.yaml` (all dashes, no underscores).
+- Rename any existing underscore-named files (e.g. `technology_selection_<ID>.yaml` → `technology-selection-<ID>.yaml`; `nfr_and_global_cr_<ID>.yaml` → `nfr-and-global-cr-<ID>.yaml`).
+- If a flat aggregate file is found, migrate its content into the per-implementation file for this implementation ID and remove the flat file.
 
 1. Naming normalization:
 - `contracts_and_models` -> `models_and_contracts`

@@ -1,6 +1,6 @@
 # Default NFRs — canonical reference catalog
 #
-# These NFRs are seeded into 03-current/nfr_and_global_cr.yaml by the blueprint
+# These NFRs are seeded into 03-current/nfr-and-global-cr/nfr-and-global-cr-<IMPL_ID>.yaml by the blueprint
 # template. The setup script substitutes <<APP_STARTUP_SCRIPT>> and <<DATE>>.
 #
 # Review and customize each entry after blueprint setup:
@@ -11,7 +11,7 @@
 #
 # DO: keep both NFRs in every new blueprint unless explicitly unsuitable for the project.
 # DO NOT: delete an NFR without replacing it with a project-specific equivalent.
-# DO NOT: leave items: [] in nfr_and_global_cr.yaml for a blueprint with runnable code.
+# DO NOT: leave items: [] in nfr-and-global-cr-<IMPL_ID>.yaml for a blueprint with runnable code.
 # DO NOT: duplicate these IDs; reserve NFR-0000001 and NFR-0000002 for these defaults.
 
 schema_version: 1

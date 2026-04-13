@@ -19,7 +19,7 @@
 Generate an actionable plan from the structured diff. Every change must specify exactly what will be done and which files are in scope.
 
 ## NFR-COD-* handling
-1. Read all NFRs from `01-requirements/03-current/nfr_and_global_cr.yaml`.
+1. Read all NFRs from `01-requirements/03-current/nfr-and-global-cr/nfr-and-global-cr-<IMPLEMENTATION_ID>.yaml`.
 2. Check the diff for NFR-COD items in `created`/`updated`/`removed`.
 3. Include every NFR whose version ≤ manifest's `requirements_version_target`.
 

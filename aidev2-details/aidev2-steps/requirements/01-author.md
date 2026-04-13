@@ -15,18 +15,23 @@ Sequence numbers must be globally unique within each type across the entire blue
 
 1. Scan the relevant files for the type being authored:
    - `FR`: `functional_requirements.yaml` in pending + current
-   - `NFR` / `GLOBAL`: `nfr_and_global_cr.yaml` in pending + current
-   - `TS`: `technology_selection.yaml` in pending + current
+   - `NFR` / `GLOBAL`: `nfr-and-global-cr/nfr-and-global-cr-<IMPL_ID>.yaml` in pending + current
+   - `TS`: `technology-selection/technology-selection-<IMPL_ID>.yaml` in pending + current
    - `MAC`: `models_and_contracts.yaml` in pending + current
    - `UIC`: `models_and_contracts/ui_contracts.yaml` (and any other spec file) in pending + current
-   - `AC` / `AT`: all `functional_requirements.yaml` and `nfr_and_global_cr.yaml` in pending + current
+   - `AC` / `AT`: all `functional_requirements.yaml` and `nfr-and-global-cr/nfr-and-global-cr-<IMPL_ID>.yaml` in pending + current
 2. Collect all existing sequence numbers for that type.
 3. Set `next_seq = max(existing sequences) + 1` and use that for every new item.
 4. Never reuse a sequence number that exists anywhere, even if the short-title is different.
 
-Technology selection mirrors:
-- The authoritative TS files are the stage-root files `01-pending-promotion/technology_selection.yaml` and `03-current/technology_selection.yaml`.
-- Per-implementation mirrors under `01-pending-promotion/technology-selection/` and `03-current/technology-selection/` are derived outputs and must be refreshed after TS writes; do not treat mirror files as the source of truth for authoring.
+NFR and technology selection files:
+- NFR and TS requirements live in per-implementation-id files under their type subfolder: `nfr-and-global-cr/nfr-and-global-cr-<IMPL_ID>.yaml` and `technology-selection/technology-selection-<IMPL_ID>.yaml`.
+- No flat aggregate files exist at the stage root. Read and write the per-implementation file directly.
+
+Environment variable naming:
+- Specify exact env var names (e.g. `DATABASE_URL`, not "the DB env var").
+- Module-specific vars use `<MODULE>_<VAR_NAME>` prefix in UPPERCASE (e.g. `PAYMENTS_STRIPE_KEY`, `AUTH_JWT_SECRET`).
+- Global vars have no module prefix.
 
 ## Contract References (`contract_refs`)
 
