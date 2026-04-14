@@ -31,6 +31,7 @@ handoff:
     max_sequences: <map of type->number, optional>
     standing_constraints: <list of NFR/GLOBAL one-line summaries, optional>
     config_cache_path: <session memory path if written, optional>
+    log_file_path: <absolute path to the pipeline activity log file, optional>
   timing:
     started_at: <ISO-8601 timestamp>
     ended_at: <ISO-8601 timestamp>

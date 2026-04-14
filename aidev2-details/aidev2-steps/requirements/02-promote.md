@@ -3,6 +3,14 @@ Inputs: TOOLING_CMD, REQ_PATH, IMPLEMENTATION_ID, APP_ROOT.
 Action: run promote command; summarize promoted counts.
 Reminder: developer updates app manifest iteration_id manually afterward.
 
+## Script-First Execution (REQ-042)
+This step is **mechanical**. The agent SHALL:
+1. Run `ai-tooling.sh promote` via terminal — the Python script handles all YAML merging, version bumping, diff rebuilding, and TS mirror syncing.
+2. Read only the **script stdout/stderr and exit code** for narration and handoff.
+3. Do NOT read pending-promotion YAML files, current YAML files, or control.yaml to replicate promote logic.
+4. Do NOT open or parse any YAML inputs that the promote script already processes.
+5. After promote completes, if the next step needs current state, rely on the script having updated `03-current/` — do not re-read inputs.
+
 ## Narration
 - On entry: `[RQ-02] Promote started at <timestamp>`
 - Before script: `[RQ-02] Script start: ai-tooling.sh promote`

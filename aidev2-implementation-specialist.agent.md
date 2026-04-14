@@ -55,10 +55,29 @@ Own only:
 
 7. **Populate handoff errors:** Fill `errors[]` with every error encountered. Set `was_unexpected: true` for unplanned issues.
 
+## Read Avoidance (REQ-042, REQ-045)
+
+- Consume `cached_data` from the dispatcher before reading any YAML file. If requirement data, plan data, config paths, or implementation_id are in `cached_data`, use them.
+- Do not re-read current-requirements YAML if the plan.yaml or structured diff already contains the requirement details you need.
+- When running `ai-tooling.sh apply` for IM-10, read only stdout/stderr — do not re-read the manifest to verify the script's output.
+
 ## Constraints
 
 - Do not author or promote requirements.
 - Do not generate or run acceptance tests.
 - Do not expand scope beyond approved plan requirements.
+
+## Activity Log (REQ-046)
+
+If `LOG_FILE` is provided in the invocation, append all activity to it using `echo "<line>" >> "$LOG_FILE"` (or heredoc for multi-line). Every entry must be prefixed with `[<YYYY-MM-DD HH:MM:SS>][implementation]`.
+
+Log:
+- Task start/end with timestamps
+- Per-requirement progress: `[req] <REQ-ID> starting`, `[req] <REQ-ID> done (<N>s)`
+- Every narration line (file edits, build results, fix attempts)
+- Tool call summaries: `[tool] read_file <path>`, `[tool] replace_string_in_file <path>`, `[tool] run_in_terminal <command-summary>`
+- Decision reasoning: `[thinking] <why you chose this implementation approach>`
+- Script stdout/stderr summaries (first+last 20 lines if >40 lines)
+- Handoff summary at stage end: `[handoff] status=<s> reqs_implemented=<n> files_changed=<n> errors=<n>`
 
 Return exactly one `handoff` payload using the shared contract.

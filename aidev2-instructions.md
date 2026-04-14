@@ -86,3 +86,10 @@ Agents must minimise YAML I/O round-trips:
 - Cache parsed YAML in working memory for the session. Re-read only files that were written.
 - Use `aidev2-config-cache.md` (from `/07-aidev2-instructions-cache`) for pre-computed sequences, paths, and standing constraints.
 - Forward `cached_data` through the handoff contract so downstream specialists avoid re-parsing.
+- **Script-first for mechanical steps (REQ-042).** Promote, diff, merge, apply, and verify-execution steps must run via Python tooling scripts. Do not parse input YAML that the scripts already process. Read only script stdout/stderr and output artifacts.
+- **Use summarize-diff (REQ-043).** After running `ai-tooling.sh diff`, run `ai-tooling.sh summarize-diff` to get counts and IDs as plain text instead of parsing structured-diff.yaml.
+- **Consume cached_data before file reads (REQ-045).** When the dispatcher provides `cached_data` from prior stages, use it. Do not re-read YAML files for data already available in `cached_data` or script output.
+
+## Pipeline Activity Log
+
+Every pipeline run produces a log file at `BLUEPRINT_ROOT/.aidev/logs/YYYY-MM-DD-HH-MM-SS-aidev2.log` (REQ-046). The dispatcher creates the file and passes `LOG_FILE` to every specialist via `pipeline_context`. All agents and subagents must append timestamped entries for every action: tool calls, script invocations, decisions/thinking, narration lines, errors, and handoff summaries. Use `echo "<line>" >> "$LOG_FILE"` to append. The log is append-only — never truncate or overwrite.

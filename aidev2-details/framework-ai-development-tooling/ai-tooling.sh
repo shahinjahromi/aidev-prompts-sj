@@ -5,7 +5,7 @@ ROOT="/media/psf/z-work-ai-enablement/projects/ai-development-tooling"
 
 if [ $# -lt 1 ]; then
   echo "Usage: ai-tooling.sh <action> [args]"
-  echo "Actions: bootstrap delta plan apply merge update-merged refresh-merged diff promote sync-diff all"
+  echo "Actions: bootstrap delta plan apply merge update-merged refresh-merged diff promote sync-diff summarize-diff all"
   exit 1
 fi
 
@@ -36,6 +36,9 @@ case "$action" in
     ;;
   sync-diff)
     python3 "$ROOT/sync_diff_from_current.py" "$@"
+    ;;
+  summarize-diff)
+    python3 "$ROOT/summarize_diff.py" "$@"
     ;;
   all)
     # all means delta + plan + merge + diff

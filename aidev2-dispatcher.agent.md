@@ -77,9 +77,62 @@ Derive each row from the `timing` and `errors` fields of the corresponding hando
 
 ## Context Optimization
 
+### Pipeline Activity Log (REQ-046)
+
+At pipeline start, before invoking the first specialist:
+1. Compute `LOG_TIMESTAMP` as `YYYY-MM-DD-HH-MM-SS` from the current datetime (no colons, no dots).
+2. Create log directory `BLUEPRINT_ROOT/.aidev/logs/` if it does not exist.
+3. Create log file `BLUEPRINT_ROOT/.aidev/logs/<LOG_TIMESTAMP>-aidev2.log`.
+4. Write the first line: `[<timestamp>][dispatcher] [PIPELINE START] implementation_id=<ID> stages=<list>`.
+5. Store the absolute log file path as `LOG_FILE` in `pipeline_context`.
+6. Pass `LOG_FILE` to every specialist in their invocation prompt.
+
+**Logging rules for the dispatcher:**
+- Before each specialist invocation, append: `[<timestamp>][dispatcher] --- STAGE START: <stage> ---`
+- After each specialist returns, append: `[<timestamp>][dispatcher] --- STAGE END: <stage> (elapsed: <N>s, status: <status>) ---`
+- Log any errors from the handoff: `[<timestamp>][dispatcher] [ERROR] <stage>: <message>` or `[<timestamp>][dispatcher] [UNEXPECTED] <stage>: <message>`
+- Log routing decisions: `[<timestamp>][dispatcher] [decision] Routing to <specialist> because <reason>`
+- At pipeline end, append the full pipeline summary table.
+- Write final line: `[<timestamp>][dispatcher] [PIPELINE END] total_elapsed=<N>s total_errors=<N>`
+- Include the log file path in the final handoff's `artifacts_written`.
+
+**Append method:** Use terminal command `echo "<line>" >> "<LOG_FILE>"` for each log entry (or a multi-line heredoc for batch entries). The log must be plain text, append-only.
+
 - Never pass full prompt files or full instruction files to specialists.
 - Pass only lane-specific intent, step tokens, implementation id, requirement ids, and prior stage outputs.
 - Keep routing deterministic when step tokens are explicit.
 - Forward `cached_data` from the previous handoff to the next specialist. This avoids re-reading YAML files that a prior stage already parsed.
 - If the session cache (`/memories/session/aidev2-config-cache.md`) exists, reference it in the specialist prompt so it can skip IM-00 / RQ-01 discovery overhead.
 - When running a full pipeline, warm the cache before the first specialist if it is not already populated.
+
+### Pipeline Context Accumulation (REQ-044)
+
+Maintain a `pipeline_context` object that grows across the pipeline. After each specialist returns:
+1. Merge the specialist's `cached_data` into `pipeline_context`.
+2. Include `pipeline_context` in the next specialist's invocation.
+3. This ensures no specialist re-reads YAML files already parsed and forwarded by a prior specialist.
+
+When a specialist is skipped (via `from-*` override), discard any pre-built prompt for that stage.
+
+### Specialist Pre-warming (REQ-044)
+
+Before the current specialist completes, pre-build the invocation prompt for the **next** specialist in the pipeline sequence:
+1. The next specialist's prompt shall include: implementation_id, requirement_ids, cached_data (from pipeline_context so far), instruction file paths, and step file paths.
+2. When the current specialist returns its handoff, merge its `cached_data` into pipeline_context and finalize the next specialist's prompt.
+3. This eliminates re-discovery of paths and instruction files at each specialist handoff boundary.
+
+The sequence map for pre-building:
+- While **requirements** runs → pre-build prompt for **planning** (files: implementation pipeline, blueprint policy, IM-01 Diff, IM-02 Plan)
+- While **planning** runs → pre-build prompt for **implementation** (files: implementation pipeline, IM-03 Execute, IM-04 Extract, IM-05 Fix)
+- While **implementation** runs → pre-build prompt for **validation** (files: implementation pipeline)
+- While **validation** runs → pre-build prompt for **testing** (files: implementation pipeline, IM-06 Create Tests, IM-07 Run Tests)
+
+### Script-First Directive (REQ-042)
+
+When constructing prompts for specialists that include mechanical steps (IM-01 Diff, RQ-02 Promote), include this directive:
+> Mechanical steps (promote, diff, merge, apply, verify-execution) MUST be executed by running the Python tooling script via terminal. Do NOT parse input YAML files that the scripts already process. Read only script stdout/stderr and output artifacts for narration and handoff data. Use `ai-tooling.sh summarize-diff` after `ai-tooling.sh diff` to get counts and IDs without parsing structured-diff.yaml.
+
+### No Redundant Reads Directive (REQ-045)
+
+Include in every specialist prompt:
+> Consume data from `cached_data` and script output before reading any YAML file. Do not read current-requirements YAML during planning or implementation if the structured diff already contains the requirement snapshots you need.

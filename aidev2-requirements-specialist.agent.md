@@ -52,10 +52,28 @@ Own only:
 
 7. **Populate handoff errors:** Fill `errors[]` with every error encountered. Set `was_unexpected: true` for unplanned issues.
 
+## Script-First Execution (REQ-042, REQ-045)
+
+- **RQ-02 Promote is mechanical.** Run `ai-tooling.sh promote` via terminal. Read only stdout/stderr and exit code. Do NOT read pending-promotion YAML files, current YAML files, or control.yaml to replicate promote logic.
+- After promote, if you need current state, trust that the script updated `03-current/` — do not re-read inputs.
+- Consume `cached_data` from the dispatcher before reading any YAML file. If requirement paths, implementation_id, or config values are in `cached_data`, use them.
+
 ## Constraints
 
 - Do not perform diff or plan steps.
 - Do not implement app code changes.
 - Do not create or run tests.
+
+## Activity Log (REQ-046)
+
+If `LOG_FILE` is provided in the invocation, append all activity to it using `echo "<line>" >> "$LOG_FILE"` (or heredoc for multi-line). Every entry must be prefixed with `[<YYYY-MM-DD HH:MM:SS>][requirements]`.
+
+Log:
+- Task start/end with timestamps
+- Every narration line (per-item authoring, promote results, errors)
+- Tool call summaries: `[tool] read_file <path>`, `[tool] create_file <path>`, `[tool] run_in_terminal <command-summary>`
+- Decision reasoning: `[thinking] <why you chose this ID, this structure, this approach>`
+- Script stdout/stderr summaries (first+last 20 lines if >40 lines)
+- Handoff summary at stage end: `[handoff] status=<s> items_authored=<n> items_promoted=<n> errors=<n>`
 
 Return exactly one `handoff` payload using the shared contract.

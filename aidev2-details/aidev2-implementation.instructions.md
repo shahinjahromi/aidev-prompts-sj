@@ -60,6 +60,9 @@ Reading YAML files individually is a significant I/O cost. Apply these rules thr
 2. **Read implementation YAML in one batch.** When entering IM-03 Plan, read `structured-diff.yaml`, any existing `plan.yaml`, `paths.yaml`, and `results.yaml` together — not one-at-a-time.
 3. **Re-read only on write.** After writing any YAML file, refresh only that file in cache.
 4. **Module-scoped file reads.** When the run targets a specific module, limit source-code file reads to: (a) the module's own folder, (b) shared entry points (routing, DI/dependency injection, main/bootstrap, middleware), and (c) files referenced in the structured diff.
+5. **Consume cached_data first (REQ-045).** If the dispatcher provides `cached_data` containing requirement data, config paths, or implementation_id, use those values. Do not re-read YAML files for data already available in `cached_data`.
+6. **Script-first for mechanical steps (REQ-042).** IM-01 Diff and IM-10 Update Manifest are mechanical — execute them via `ai-tooling.sh` scripts. Read only script stdout/stderr and output artifacts. Do not parse input YAML that the scripts already process.
+7. **Use summarize-diff (REQ-043).** After running `ai-tooling.sh diff`, run `ai-tooling.sh summarize-diff` to get counts and IDs as plain text. Parse structured-diff.yaml only if you need full requirement snapshots for plan construction.
 
 ## IM-00 Pre-Step Verification
 

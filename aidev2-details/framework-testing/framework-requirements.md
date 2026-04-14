@@ -985,6 +985,131 @@ Based on findings above, the following gaps are not covered by existing REQs:
 
 ---
 
+### REQ-042 Script-first execution for mechanical pipeline steps
+
+#### Acceptance Criteria
+- AC-042: Steps that perform deterministic, mechanical operations — specifically promote (RQ-02), diff (IM-01), merge, apply, and verify-execution — shall be executed by running the corresponding Python tooling script via terminal command rather than having the AI agent parse and manipulate YAML directly.
+- The agent's role for these steps is limited to: (1) constructing the correct command, (2) running it, (3) reading the script's stdout/stderr and exit code, (4) reading the output artifact (structured-diff.yaml, control.yaml, etc.) to extract summary counts and IDs for narration and handoff.
+- The agent shall NOT read input YAML files (pending-promotion docs, current docs, manifest) solely to replicate logic already implemented in the Python tooling.
+- Agents may still read YAML output artifacts after script execution to extract summary data needed for plan construction or handoff population.
+
+#### Acceptance Test — AT-042 Verify script-first execution for mechanical steps
+- Precondition: A pipeline run that includes promote and diff steps.
+- Steps:
+  1. Execute the pipeline and capture agent behavior during RQ-02 (promote) and IM-01 (diff).
+  2. Verify the agent invokes `ai-tooling.sh promote` and `ai-tooling.sh diff` via terminal commands.
+  3. Verify the agent does NOT read individual pending-promotion YAML files to replicate promote logic.
+  4. Verify the agent reads the output artifact (structured-diff.yaml) after the script completes.
+  5. Verify the handoff payload contains summary counts derived from the output artifact, not from agent-side YAML parsing.
+- Expected:
+  - Mechanical steps use script execution, not AI-driven YAML parsing.
+  - Agent reads only output artifacts, not input YAML for mechanical steps.
+
+---
+
+### REQ-043 Diff summary script provides structured text output
+
+#### Acceptance Criteria
+- AC-043: The Python tooling shall include a `summarize_diff.py` script (invocable via `ai-tooling.sh summarize-diff`) that reads a structured-diff.yaml file and outputs a plain-text summary to stdout.
+- The summary shall include: diff metadata (implementation_id, base_version, target_version), counts for created/updated/removed requirements and MAC items, technology selection entry count, and a list of affected requirement IDs.
+- For updated entries, if the `module` field changed between old and new, the summary shall flag it as `module_changed`.
+- This summary output replaces the need for agents to parse the structured-diff.yaml themselves when they only need counts and IDs.
+
+#### Acceptance Test — AT-043 Verify diff summary script
+- Precondition: A structured-diff.yaml file exists for an implementation.
+- Steps:
+  1. Run `ai-tooling.sh summarize-diff -r <req-path> --implementation-id <id>`.
+  2. Capture stdout.
+  3. Verify the output contains implementation_id, base_version, target_version.
+  4. Verify created/updated/removed counts and ID lists are present.
+  5. Verify module_changed flags appear for entries where the module changed.
+- Expected:
+  - Script exits 0 and produces a structured plain-text summary.
+  - All counts and IDs match the structured-diff.yaml content.
+
+---
+
+### REQ-044 Dispatcher pre-warms next specialist context during current specialist execution
+
+#### Acceptance Criteria
+- AC-044: When the dispatcher knows the next specialist in the pipeline sequence (e.g., after requirements, the next is planning), it shall include a `prefetch_context` hint in the specialist invocation prompt that lists the instruction files and step files the NEXT specialist will need.
+- The dispatcher shall prepare the next specialist's invocation prompt (with all known inputs: implementation_id, requirement_ids, cached_data, instruction file paths) before the current specialist completes, so that upon receiving the current specialist's handoff, it can immediately dispatch the next specialist without re-reading instructions or re-discovering paths.
+- The dispatcher shall maintain a `pipeline_context` accumulator that grows with each handoff's `cached_data`, avoiding redundant re-reads across the entire pipeline.
+- Pre-built prompts for specialists that are skipped (via `from-*` overrides) shall be discarded without execution.
+
+#### Acceptance Test — AT-044 Verify dispatcher pre-warms next specialist
+- Precondition: A full pipeline run is executed.
+- Steps:
+  1. Execute the full pipeline and observe dispatcher behavior between specialist invocations.
+  2. Verify the dispatcher maintains a `pipeline_context` accumulator across stages.
+  3. Verify the dispatcher includes `cached_data` from the previous handoff in the next specialist's invocation.
+  4. Verify no specialist re-reads YAML files that were already parsed and forwarded via `cached_data`.
+  5. Verify that skipped stages do not trigger unnecessary file reads.
+- Expected:
+  - Each specialist receives `cached_data` from all prior stages.
+  - No redundant YAML file reads occur across the pipeline.
+
+---
+
+### REQ-045 Agents shall not read YAML for data already available in script output or cached_data
+
+#### Acceptance Criteria
+- AC-045: When a pipeline step produces structured output (script stdout, output YAML artifact), agents shall use that output as the source of truth rather than re-reading the input YAML files.
+- When `cached_data` from a prior handoff contains information needed by the current stage (e.g., requirement IDs, standing constraints, config paths), the agent shall consume it from `cached_data` rather than re-reading files.
+- Agents shall not read `01-requirements/03-current/` YAML files during the planning or implementation stage if the structured diff already contains the full requirement snapshots needed.
+- The only exception is when the agent needs data not present in the diff or cached_data (e.g., reading a specific source code file for implementation).
+
+#### Acceptance Test — AT-045 Verify agents avoid redundant YAML reads
+- Precondition: A pipeline run that passes through planning and implementation stages.
+- Steps:
+  1. Execute the pipeline with cached_data flowing from requirements → planning → implementation.
+  2. Monitor file read operations during the planning stage.
+  3. Verify the planning agent uses structured-diff.yaml (script output) for requirement data, not raw current YAML.
+  4. Verify the implementation agent uses plan.yaml and cached_data, not re-reading current requirements.
+  5. Verify any read of current YAML is for data not available in diff or cached_data (document the reason).
+- Expected:
+  - No redundant reads of current requirement YAML during planning or implementation.
+  - cached_data is consumed before falling back to file reads.
+
+---
+
+### REQ-046 Pipeline activity log file
+
+#### Acceptance Criteria
+- AC-046: Every pipeline run (full or partial) shall produce a plain-text log file named `YYYY-MM-DD-HH-MM-SS-aidev2.log` where the timestamp is the ISO-8601-safe datetime (no colons, no dots) of the pipeline start.
+- The log file shall be written to `BLUEPRINT_ROOT/.aidev/logs/`. The directory shall be created if it does not exist.
+- The dispatcher shall create the log file at pipeline start and pass the absolute path (`LOG_FILE`) to every specialist in `pipeline_context`.
+- Every specialist (agent and subagent) shall append entries to `LOG_FILE` throughout execution. Logged entries must include:
+  - Stage start/end with timestamps and elapsed time
+  - Every narration line emitted (task lifecycle, script lifecycle, per-requirement progress)
+  - Every tool call description (file reads, file writes, searches, terminal commands) with timestamps
+  - Every error and unexpected issue with full context
+  - Decision reasoning and thinking summaries — when the agent decides what to do and why, log the rationale
+  - Script invocations with command, exit code, elapsed time, and stdout/stderr summary (first and last 20 lines if output exceeds 40 lines)
+  - Handoff payload summary (stage, status, counts, errors count) at stage end
+- Log entries shall be timestamped with `[YYYY-MM-DD HH:MM:SS]` prefix and tagged with the stage name: `[2026-04-14 09:15:32][requirements]`.
+- The log shall be append-only during the pipeline run. No agent may truncate or overwrite prior entries.
+- At pipeline end, the dispatcher shall append the pipeline summary table to the log file.
+- The log file path shall be included in the final handoff under `artifacts_written`.
+
+#### Acceptance Test — AT-046 Verify pipeline activity log
+- Precondition: A full pipeline run completes (pass or fail).
+- Steps:
+  1. Verify `BLUEPRINT_ROOT/.aidev/logs/` contains a file matching `????-??-??-??-??-??-aidev2.log`.
+  2. Verify the first line contains `[PIPELINE START]` with a timestamp.
+  3. Verify each stage has `STAGE START` and `STAGE END` entries with matching stage names.
+  4. Verify at least one script invocation entry exists with command, exit code, and elapsed time.
+  5. Verify at least one thinking/decision entry exists (tagged `[thinking]` or `[decision]`).
+  6. Verify errors (if any) appear with `[ERROR]` or `[UNEXPECTED]` tags.
+  7. Verify the last section contains the pipeline summary table.
+  8. Verify the log file path appears in the final handoff's `artifacts_written`.
+  9. Verify all timestamps are monotonically non-decreasing.
+- Expected:
+  - A single contiguous log file captures the full pipeline activity.
+  - All agent and subagent actions are traceable in the log.
+
+---
+
 ## Traceability Matrix
 - REQ-001 -> AC-001 -> AT-001
 - REQ-002 -> AC-002 -> AT-002
@@ -1027,6 +1152,11 @@ Based on findings above, the following gaps are not covered by existing REQs:
 - REQ-039 -> AC-039 -> AT-039
 - REQ-040 -> AC-040 -> AT-040
 - REQ-041 -> AC-041 -> AT-041
+- REQ-042 -> AC-042 -> AT-042
+- REQ-043 -> AC-043 -> AT-043
+- REQ-044 -> AC-044 -> AT-044
+- REQ-045 -> AC-045 -> AT-045
+- REQ-046 -> AC-046 -> AT-046
 
 ## Notes
 - This specification is intentionally strict on implementation-id-specific preset files and merged-field parity, including module, to prevent silent schema drift during setup automation.
@@ -1061,3 +1191,8 @@ Based on findings above, the following gaps are not covered by existing REQs:
 - AC-039/AT-039 enforce error narration: every error must be narrated immediately with the step token and context, and recorded in the handoff `errors[]` array.
 - AC-040/AT-040 enforce bold unexpected issues: unplanned errors must be narrated in **bold** (`**UNEXPECTED: ...**`); known validation failures must not use bold.
 - AC-041/AT-041 enforce the dispatcher pipeline summary table: after the final specialist, a table with Stage, Status, Elapsed, Errors, Unexpected columns and a TOTAL row must be emitted.
+- AC-042/AT-042 enforce script-first execution for mechanical pipeline steps: promote, diff, merge, apply, and verify-execution steps must run via Python tooling scripts; agents must not parse input YAML to replicate script logic.
+- AC-043/AT-043 enforce diff summary script availability: `summarize_diff.py` (via `ai-tooling.sh summarize-diff`) produces a plain-text summary with counts, IDs, and module_changed flags, replacing agent-side structured-diff.yaml parsing.
+- AC-044/AT-044 enforce dispatcher pre-warming: the dispatcher must accumulate `pipeline_context` across stages, pre-build next specialist prompts before current specialist completes, and include `cached_data` to prevent redundant file reads.
+- AC-045/AT-045 enforce no redundant YAML reads: agents must consume script output and `cached_data` before falling back to file reads; reading current-requirements YAML during planning or implementation is forbidden when the data is available in the structured diff or cached_data.
+- AC-046/AT-046 enforce pipeline activity logging: every run must produce a `YYYY-MM-DD-HH-MM-SS-aidev2.log` file in `BLUEPRINT_ROOT/.aidev/logs/` capturing all agent/subagent activity, thinking, tool calls, script invocations, errors, and the pipeline summary table.

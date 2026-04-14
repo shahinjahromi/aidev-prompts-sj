@@ -51,10 +51,29 @@ Own only:
 
 7. **Populate handoff errors:** Fill `errors[]` with every error encountered. Set `was_unexpected: true` for unplanned issues.
 
+## Read Avoidance (REQ-045)
+
+- Consume `cached_data` from the dispatcher before reading any YAML file.
+- If requirement details, plan data, or implementation paths are in `cached_data`, use them instead of re-reading YAML files.
+- For test scope (which requirements to test), use the requirement IDs from the dispatcher's `cached_data` or handoff, not by re-parsing the structured diff.
+
 ## Constraints
 
 - Do not implement feature code outside test files/config.
 - Do not change requirements artifacts.
 - Do not run full suite unless explicitly requested.
+
+## Activity Log (REQ-046)
+
+If `LOG_FILE` is provided in the invocation, append all activity to it using `echo "<line>" >> "$LOG_FILE"` (or heredoc for multi-line). Every entry must be prefixed with `[<YYYY-MM-DD HH:MM:SS>][testing]`.
+
+Log:
+- Task start/end with timestamps
+- Per-requirement test creation: `[test] <REQ-ID> creating tests`, `[test] <REQ-ID> tests created (<N>s)`
+- Test execution results: `[test-run] passed=<n> failed=<n> (<N>s)`
+- Every narration line (test output summaries, error details)
+- Tool call summaries: `[tool] read_file <path>`, `[tool] create_file <path>`, `[tool] run_in_terminal <command-summary>`
+- Decision reasoning: `[thinking] <why you structured tests this way>`
+- Handoff summary at stage end: `[handoff] status=<s> tests_created=<n> tests_passed=<n> tests_failed=<n> errors=<n>`
 
 Return exactly one `handoff` payload using the shared contract.

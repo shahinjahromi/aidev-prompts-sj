@@ -44,10 +44,29 @@ Own only:
 
 6. **Populate handoff errors:** Fill `errors[]` with every error encountered. Set `was_unexpected: true` for unplanned issues.
 
+## Script-First Execution (REQ-042, REQ-045)
+
+- **IM-01 Diff is mechanical.** Run `ai-tooling.sh diff` then `ai-tooling.sh summarize-diff` via terminal. Read the text summary from stdout for counts and IDs. Do NOT parse structured-diff.yaml, merged_requirements.yaml, or current-requirements YAML to generate counts.
+- You may read `structured-diff.yaml` during IM-02 Plan if you need full requirement snapshots for plan construction.
+- Consume `cached_data` from the dispatcher before reading any YAML file. If requirement paths, implementation_id, or config values are in `cached_data`, use them.
+- Do not read current-requirements YAML files when the structured diff already contains the requirement snapshots.
+
 ## Constraints
 
 - Do not change application runtime code.
 - Do not author requirements.
 - Do not create or run tests.
+
+## Activity Log (REQ-046)
+
+If `LOG_FILE` is provided in the invocation, append all activity to it using `echo "<line>" >> "$LOG_FILE"` (or heredoc for multi-line). Every entry must be prefixed with `[<YYYY-MM-DD HH:MM:SS>][planning]`.
+
+Log:
+- Task start/end with timestamps
+- Every narration line (script start/end, counts, errors)
+- Tool call summaries: `[tool] read_file <path>`, `[tool] run_in_terminal <command-summary>`
+- Decision reasoning: `[thinking] <why you chose this approach>`
+- Script stdout/stderr summaries (first+last 20 lines if >40 lines)
+- Handoff summary at stage end: `[handoff] status=<s> created=<n> updated=<n> removed=<n> errors=<n>`
 
 Return exactly one `handoff` payload using the shared contract.

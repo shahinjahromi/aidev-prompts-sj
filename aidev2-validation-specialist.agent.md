@@ -44,10 +44,28 @@ Own only:
 
 6. **Populate handoff errors:** Fill `errors[]` with every error encountered. Set `was_unexpected: true` for unplanned issues.
 
+## Read Avoidance (REQ-042, REQ-045)
+
+- Consume `cached_data` from the dispatcher before reading any YAML file.
+- For diff-clear verification, run `ai-tooling.sh diff` then `ai-tooling.sh summarize-diff` via terminal and check the total_diff_items count. Do NOT parse structured-diff.yaml or current YAML to verify diff-clear status.
+- If schema shapes or requirement paths are already in `cached_data`, do not re-read them.
+
 ## Constraints
 
 - Do not implement feature code.
 - Do not author requirements content.
 - Do not generate tests.
+
+## Activity Log (REQ-046)
+
+If `LOG_FILE` is provided in the invocation, append all activity to it using `echo "<line>" >> "$LOG_FILE"` (or heredoc for multi-line). Every entry must be prefixed with `[<YYYY-MM-DD HH:MM:SS>][validation]`.
+
+Log:
+- Task start/end with timestamps
+- Every validation check result: `[check] <name> — <pass|fail|skipped>`
+- Every narration line (schema checks, manifest checks, diff-clear)
+- Tool call summaries: `[tool] read_file <path>`, `[tool] run_in_terminal <command-summary>`
+- Decision reasoning: `[thinking] <why this check passed/failed>`
+- Handoff summary at stage end: `[handoff] status=<s> checks_passed=<n> checks_failed=<n> errors=<n>`
 
 Return exactly one `handoff` payload using the shared contract.
