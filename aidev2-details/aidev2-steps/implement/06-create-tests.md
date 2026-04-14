@@ -16,3 +16,11 @@ UI testing details (when UI is in scope):
 API testing details:
 - Keep the existing API output format unchanged.
 - Preserve current request/response logging style and payload/response detail reporting.
+
+## Narration
+- On entry: `[IM-08] Create tests started at <timestamp>`
+- Per requirement: `[IM-08] Requirement <REQ-ID> — creating tests`
+- Per requirement done: `[IM-08] Requirement <REQ-ID> — tests created (<N>s)`
+- On error: `[IM-08] ERROR: Test creation failed — <details>`
+- On unexpected: `[IM-08] **UNEXPECTED: <details>**`
+- On exit: `[IM-08] Create tests completed at <timestamp> (elapsed: <N>s) — <N> test files written`

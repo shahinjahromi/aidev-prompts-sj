@@ -85,3 +85,11 @@ Example:
 ```
 
 When the user asks to "remove", "delete", or "clean up" requirements from current, always author `action: delete` items in pending rather than physically removing lines from existing files.
+
+## Narration
+- On entry: `[RQ-01] Author started at <timestamp>`
+- Per item: `[RQ-01] Authoring <TYPE>-<ID> — <short-title>`
+- Per item done: `[RQ-01] Wrote <TYPE>-<ID>`
+- On error: `[RQ-01] ERROR: Authoring failed — <details>`
+- On unexpected: `[RQ-01] **UNEXPECTED: <details>**`
+- On exit: `[RQ-01] Author completed at <timestamp> (elapsed: <N>s) — <N> items authored`

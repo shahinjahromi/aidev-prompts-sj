@@ -43,6 +43,38 @@ After each specialist returns:
 - Stop immediately on `status: blocked` or `status: fail` and report blockers.
 - Pass only `requirement_ids`, `step_tokens`, key checks, and required artifact paths to the next specialist.
 
+## Narration Protocol
+
+Before and after every specialist invocation, and at pipeline completion, the dispatcher must emit structured narration:
+
+### Stage Boundaries
+1. Before invoking each specialist, emit: `--- STAGE START: <stage> at <ISO-8601 timestamp> ---`
+2. After each specialist returns, emit: `--- STAGE END: <stage> at <ISO-8601 timestamp> (elapsed: <N>s) ---`
+
+### Error Narration
+3. If the handoff contains `errors`, iterate and narrate each one:
+   - Normal errors: `[<stage>] ERROR: <message>`
+   - Unexpected errors (`was_unexpected: true`): `[<stage>] **UNEXPECTED: <message>**`
+4. If `status: blocked` or `status: fail`, emit a **bold** summary: `**BLOCKED: <summary of blockers>**`
+
+### Pipeline Summary
+5. After the final specialist completes (or on early termination), emit a pipeline summary table:
+
+```
+--- PIPELINE SUMMARY ---
+| Stage          | Status  | Elapsed | Errors | Unexpected |
+|----------------|---------|---------|--------|------------|
+| requirements   | pass    | 12s     | 0      | 0          |
+| planning       | pass    | 8s      | 0      | 0          |
+| implementation | pass    | 45s     | 1      | 0          |
+| validation     | pass    | 3s      | 0      | 0          |
+| testing        | pass    | 22s     | 0      | 0          |
+| validation     | pass    | 2s      | 0      | 0          |
+| TOTAL          |         | 92s     | 1      | 0          |
+```
+
+Derive each row from the `timing` and `errors` fields of the corresponding handoff payload. If a stage was skipped (e.g. `from-*` override), show status as `skipped` with `0s` elapsed.
+
 ## Context Optimization
 
 - Never pass full prompt files or full instruction files to specialists.

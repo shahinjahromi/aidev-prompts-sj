@@ -28,6 +28,30 @@ All YAML written by agents during the implementation pipeline must follow these 
 - DB schema contract changes are mandatory work in the same run.
 - Module reassignment (a requirement's `module` field changed between current and manifest baseline) triggers undo/redo logic: remove the requirement's contributions from the old module location, then re-implement under the new module.
 
+## Narration Standards
+
+All implementation steps (IM-00 through IM-09) must follow these narration rules.
+
+### Task Boundaries
+- Emit `[IM-<NN>] Started at <ISO-8601 timestamp>` at the beginning of each step.
+- Emit `[IM-<NN>] Completed at <ISO-8601 timestamp> (elapsed: <N>s)` at the end of each step.
+- If a step is skipped, emit `[IM-<NN>] Skipped: <reason>`.
+
+### Script Invocations
+- Before running any terminal command: `[IM-<NN>] Script start: <command-summary>`
+- After completion: `[IM-<NN>] Script end: <command-summary> (exit: <code>, elapsed: <N>s)`
+- If exit code != 0: `[IM-<NN>] ERROR: <command-summary> failed with exit code <code>`
+
+### Error and Unexpected Issue Narration
+- Known validation failures (diff not clear, manifest shape mismatch) are narrated as: `[IM-<NN>] ERROR: <description>`
+- Unplanned failures (file not found, tool crash, unknown schema field, timeout) are narrated in **bold**: `[IM-<NN>] **UNEXPECTED: <description>**`
+- Every error must include the step token and enough context to diagnose without re-reading logs.
+
+### Per-Requirement Progress
+- Before starting implementation of a requirement: `[IM-04] Requirement <REQ-ID> — starting`
+- After completing: `[IM-04] Requirement <REQ-ID> — done (<N>s)`
+- If a requirement encounters an error: `[IM-04] Requirement <REQ-ID> — **ERROR: <description>**`
+
 ## YAML Read Efficiency
 
 Reading YAML files individually is a significant I/O cost. Apply these rules throughout the implementation pipeline:

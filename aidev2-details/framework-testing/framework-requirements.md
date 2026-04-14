@@ -275,6 +275,8 @@ This document defines acceptance criteria and acceptance tests for the framework
 - The narration shall be concise — one sentence or less per step — and shall not pad output with unnecessary explanation.
 - The narration shall accurately describe the action being taken, not a generic progress message.
 - Steps that produce no observable side-effect (pure reads used only for internal decisions) are exempt, but any step that writes, deletes, or invokes another tool must be narrated.
+- Narration lines for errors must include the step token (e.g. `IM-04`, `RQ-01`) and enough context to diagnose without re-reading logs.
+- Unexpected issues (unplanned crashes, missing files, schema mismatches, tool timeouts, retries) must be narrated in **bold** Markdown formatting: `**UNEXPECTED: <description>**`.
 
 #### Acceptance Test — AT-013 Verify per-step narration in prompts
 - Precondition: A representative prompt (e.g. the diff or implementation prompt) is executed in a controlled session.
@@ -284,9 +286,13 @@ This document defines acceptance criteria and acceptance tests for the framework
   3. For each write, delete, or tool-invocation step performed, check that a corresponding narration line appears in the output before or immediately after that step.
   4. Verify each narration line is one sentence or fewer.
   5. Verify no narration line is a generic placeholder (e.g. "Processing…" without context).
+  6. If any errors occurred, verify they include the step token and are narrated immediately.
+  7. If any unexpected issues occurred, verify they are rendered in **bold**.
 - Expected:
   - Every side-effecting step has a matching narration line in the output.
   - All narration lines are concise and accurately describe the action taken.
+  - Error narration includes step tokens.
+  - Unexpected issues appear in **bold**.
 
 ---
 
@@ -868,6 +874,117 @@ Based on findings above, the following gaps are not covered by existing REQs:
 
 ---
 
+### REQ-037 Subagent timing narration with task start/end and elapsed time
+
+#### Acceptance Criteria
+- AC-037: Every specialist agent (requirements, planning, implementation, validation, testing) shall emit a task-start narration line with an ISO-8601 timestamp at the beginning of its run and a task-end narration line with an ISO-8601 timestamp and elapsed time at the end.
+- The narration format shall be: `[<stage>] Task started at <ISO-8601>` and `[<stage>] Task completed at <ISO-8601> (elapsed: <N>s)`.
+- The handoff payload returned by every specialist shall include a `timing` block containing `started_at`, `ended_at`, and `elapsed_seconds`.
+
+#### Acceptance Test — AT-037 Verify subagent timing narration
+- Precondition: A full pipeline or single-specialist run is executed in a controlled session.
+- Steps:
+  1. Execute the pipeline against a known input set.
+  2. Capture all output emitted by each specialist.
+  3. For each specialist that ran, verify a task-start line with an ISO-8601 timestamp appears at the beginning of its output.
+  4. Verify a task-end line with an ISO-8601 timestamp and elapsed time in seconds appears at the end.
+  5. Parse the returned handoff payload and verify `timing.started_at`, `timing.ended_at`, and `timing.elapsed_seconds` are present and consistent with the narrated lines.
+- Expected:
+  - Every specialist emits task-start and task-end narration lines.
+  - Handoff `timing` block is populated with valid values.
+
+---
+
+### REQ-038 Script lifecycle narration for every terminal command
+
+#### Acceptance Criteria
+- AC-038: Every terminal command or script invocation executed by any specialist or step shall be narrated with a start line before execution and an end line after execution.
+- The start format shall be: `[<step>] Script start: <command-summary>`.
+- The end format shall be: `[<step>] Script end: <command-summary> (exit: <code>, elapsed: <N>s)`.
+- Script invocations shall be recorded in the handoff `timing.script_invocations[]` array with `command_summary`, `started_at`, `ended_at`, `elapsed_seconds`, and `exit_code`.
+
+#### Acceptance Test — AT-038 Verify script lifecycle narration
+- Precondition: A pipeline run that includes at least one terminal command (e.g. diff, promote, test run) is executed.
+- Steps:
+  1. Execute the pipeline against a known input set.
+  2. Identify all terminal commands invoked during the run.
+  3. For each command, verify a script-start narration line appears before execution.
+  4. Verify a script-end narration line with exit code and elapsed time appears after execution.
+  5. Parse the handoff payload and verify `timing.script_invocations[]` contains a matching entry for each command.
+- Expected:
+  - Every terminal command has matching start and end narration lines.
+  - `timing.script_invocations[]` is populated with valid entries.
+
+---
+
+### REQ-039 Error narration for all failures with step token and context
+
+#### Acceptance Criteria
+- AC-039: Every error encountered during any specialist run — tool failures, script non-zero exits, validation failures, blocked handoffs — shall be narrated immediately with the step token and enough context to diagnose.
+- The error format shall be: `[<step>] ERROR: <concise description of what failed and why>`.
+- All errors shall be recorded in the handoff `errors[]` array with `step`, `message`, `severity` (error or warning), and `was_unexpected` (true or false).
+- `errors` may be an empty list when no errors occurred.
+
+#### Acceptance Test — AT-039 Verify error narration
+- Precondition: A pipeline run encounters at least one error (intentionally injected or natural).
+- Steps:
+  1. Execute the pipeline with a known error condition (e.g. missing file, invalid YAML).
+  2. Verify an error narration line appears immediately after the failure.
+  3. Verify the narration includes the step token (e.g. `IM-04`, `RQ-01`).
+  4. Parse the handoff payload and verify `errors[]` contains a matching entry.
+  5. Verify `severity` and `was_unexpected` are set correctly.
+- Expected:
+  - Every error has a corresponding narration line with step token.
+  - Handoff `errors[]` is populated with valid entries.
+
+---
+
+### REQ-040 Unexpected issues narrated in bold
+
+#### Acceptance Criteria
+- AC-040: Unplanned errors — crashes, missing files not anticipated by the plan, schema mismatches, tool timeouts, retries, and fallback paths — shall be narrated in **bold** Markdown formatting.
+- The format shall be: `[<step>] **UNEXPECTED: <description>**`.
+- In the handoff `errors[]` entry, `was_unexpected` shall be set to `true` for these errors.
+- Known validation failures (e.g. diff not clear, manifest shape mismatch at a gate) are not unexpected and shall use the standard `ERROR` format without bold.
+
+#### Acceptance Test — AT-040 Verify bold unexpected issue narration
+- Precondition: A pipeline run encounters an unplanned error (e.g. tool timeout, missing file not in plan).
+- Steps:
+  1. Execute the pipeline with a condition that triggers an unexpected error.
+  2. Verify the narration line for that error uses **bold** Markdown: `**UNEXPECTED: ...**`.
+  3. Verify that known validation failures in the same run are NOT rendered in bold.
+  4. Parse the handoff payload and verify the unexpected error has `was_unexpected: true` and the known failure has `was_unexpected: false`.
+- Expected:
+  - Unexpected issues are in **bold**; known failures are not.
+  - Handoff `was_unexpected` flags are correct.
+
+---
+
+### REQ-041 Dispatcher emits pipeline summary table after final specialist
+
+#### Acceptance Criteria
+- AC-041: After the final specialist completes (or on early termination due to blocked/fail), the dispatcher shall emit a pipeline summary table.
+- The table shall include columns: Stage, Status, Elapsed, Errors, Unexpected.
+- Each row shall be derived from the `timing` and `errors` fields of the corresponding handoff payload.
+- Skipped stages (due to `from-*` overrides) shall appear with status `skipped` and `0s` elapsed.
+- A TOTAL row shall sum elapsed time, error count, and unexpected count across all stages.
+
+#### Acceptance Test — AT-041 Verify pipeline summary table
+- Precondition: A full pipeline run (or partial with `from-*` override) is executed.
+- Steps:
+  1. Execute the pipeline against a known input set.
+  2. Capture the final output from the dispatcher.
+  3. Verify a pipeline summary table is emitted after the last specialist.
+  4. Verify the table contains one row per stage that ran, plus any skipped stages.
+  5. Verify elapsed times, error counts, and unexpected counts match the individual handoff payloads.
+  6. Verify a TOTAL row is present with correct sums.
+- Expected:
+  - Pipeline summary table is emitted.
+  - All values are consistent with individual handoff payloads.
+  - TOTAL row sums are correct.
+
+---
+
 ## Traceability Matrix
 - REQ-001 -> AC-001 -> AT-001
 - REQ-002 -> AC-002 -> AT-002
@@ -905,6 +1022,11 @@ Based on findings above, the following gaps are not covered by existing REQs:
 - REQ-034 -> AC-034 -> AT-034
 - REQ-035 -> AC-035 -> AT-035
 - REQ-036 -> AC-036 -> AT-036
+- REQ-037 -> AC-037 -> AT-037
+- REQ-038 -> AC-038 -> AT-038
+- REQ-039 -> AC-039 -> AT-039
+- REQ-040 -> AC-040 -> AT-040
+- REQ-041 -> AC-041 -> AT-041
 
 ## Notes
 - This specification is intentionally strict on implementation-id-specific preset files and merged-field parity, including module, to prevent silent schema drift during setup automation.
@@ -934,3 +1056,8 @@ Based on findings above, the following gaps are not covered by existing REQs:
 - AC-033/AT-033 enforce that the requirements state file (implementation manifest) is located at `.aidev/requirements/requirements-state.yaml` in the app repo; the legacy `manifests/requirements-manifest.yaml` path is forbidden.
 - AC-034/AT-034 enforce design-first authoring: models and contracts are first-class authoring targets; MAC catalog entries and spec files must be created/updated when requested, with or without accompanying FRs.
 - AC-035/AT-035 enforce DB schema migration artifacts: every physical_database_schema change must produce both a full resulting schema file and a companion `-migration` file before the run is considered complete.
+- AC-037/AT-037 enforce subagent timing narration: every specialist must emit task-start/task-end with ISO-8601 timestamps and elapsed time, and populate `timing` in the handoff payload.
+- AC-038/AT-038 enforce script lifecycle narration: every terminal command must have start/end narration with command summary, exit code, elapsed time, and a matching `timing.script_invocations[]` entry.
+- AC-039/AT-039 enforce error narration: every error must be narrated immediately with the step token and context, and recorded in the handoff `errors[]` array.
+- AC-040/AT-040 enforce bold unexpected issues: unplanned errors must be narrated in **bold** (`**UNEXPECTED: ...**`); known validation failures must not use bold.
+- AC-041/AT-041 enforce the dispatcher pipeline summary table: after the final specialist, a table with Stage, Status, Elapsed, Errors, Unexpected columns and a TOTAL row must be emitted.

@@ -27,6 +27,34 @@ Own only:
 - interface extraction
 - startup and build fixes required by the implemented scope
 
+## Narration Rules
+
+1. **Task lifecycle:** At the start of the run, emit:
+   `[implementation] Task started at <ISO-8601 timestamp>`
+   At the end, emit:
+   `[implementation] Task completed at <ISO-8601 timestamp> (elapsed: <N>s)`
+
+2. **Script lifecycle:** Before every terminal command, emit:
+   `[implementation] Script start: <command-summary>`
+   After the command returns, emit:
+   `[implementation] Script end: <command-summary> (exit: <code>, elapsed: <N>s)`
+
+3. **Error narration:** When any tool call, script, or validation fails, immediately emit:
+   `[implementation] ERROR: <concise description of what failed and why>`
+   Include the step token (e.g. `IM-04`, `IM-05`) for traceability.
+
+4. **Unexpected issues in bold:** When an error is unplanned (unexpected crash, missing file, schema mismatch, tool timeout, or retry), narrate in **bold**:
+   `[implementation] **UNEXPECTED: <description>**`
+
+5. **Per-requirement narration:**
+   - Before starting a requirement: `[implementation] Requirement <REQ-ID> — starting`
+   - After completing: `[implementation] Requirement <REQ-ID> — done (<N>s)`
+   - On error: `[implementation] Requirement <REQ-ID> — **ERROR: <description>**`
+
+6. **Populate handoff timing:** Fill `timing.started_at`, `timing.ended_at`, `timing.elapsed_seconds`, and `timing.script_invocations[]` in the handoff payload.
+
+7. **Populate handoff errors:** Fill `errors[]` with every error encountered. Set `was_unexpected: true` for unplanned issues.
+
 ## Constraints
 
 - Do not author or promote requirements.

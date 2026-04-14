@@ -32,3 +32,10 @@ Rules:
 - `Description` = one-sentence purpose derived from usage context.
 - Do not include variables used only in tests or CI pipelines.
 - Regenerate this file on every implementation run so it stays current.
+
+## Narration
+- On entry: `[IM-11] Generate docs started at <timestamp>`
+- On write: `[IM-11] Wrote variables.md — <N> variables documented`
+- On error: `[IM-11] ERROR: Doc generation failed — <details>`
+- On unexpected: `[IM-11] **UNEXPECTED: <details>**`
+- On exit: `[IM-11] Generate docs completed at <timestamp> (elapsed: <N>s)`

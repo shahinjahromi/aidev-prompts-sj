@@ -15,3 +15,10 @@ Module-reassignment planning:
   2. **Redo scope** — describe the implementation of the requirement under the NEW module, including new file locations, import changes, and module registration.
 - If the old module would become empty after removing the requirement's contributions, note it for potential cleanup.
 - Module reassignment steps appear before normal update steps for the same requirement.
+
+## Narration
+- On entry: `[IM-02] Plan started at <timestamp>`
+- On reading inputs: `[IM-02] Reading structured-diff, current requirements, manifest`
+- On error: `[IM-02] ERROR: <description>`
+- On unexpected: `[IM-02] **UNEXPECTED: <details>**`
+- On exit: `[IM-02] Plan completed at <timestamp> (elapsed: <N>s) — <N> requirements planned`

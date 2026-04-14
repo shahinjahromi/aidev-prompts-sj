@@ -15,3 +15,12 @@ Artifact location rule:
 API execution/reporting details:
 - Keep existing API output format unchanged.
 - Continue reporting request/response details in the current format.
+
+## Narration
+- On entry: `[IM-09] Run tests started at <timestamp>`
+- Before test script: `[IM-09] Script start: <playwright-command>`
+- After test script: `[IM-09] Script end: <playwright-command> (exit: <code>, elapsed: <N>s)`
+- On test results: `[IM-09] Test run complete — passed: N, failed: N`
+- On error: `[IM-09] ERROR: Test run failed — <details>`
+- On unexpected: `[IM-09] **UNEXPECTED: <details>**`
+- On exit: `[IM-09] Run tests completed at <timestamp> (elapsed: <N>s)`

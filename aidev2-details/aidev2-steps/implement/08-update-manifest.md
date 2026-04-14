@@ -20,3 +20,12 @@ After all requirements are implemented, the diff is clear, and tests pass:
 ```
 
 This step is **mandatory**. The pipeline is not complete if `requirements_version_implemented` still equals `0.0.0` or differs from `requirements_version_target` after a successful implementation run.
+
+## Narration
+- On entry: `[IM-10] Update manifest started at <timestamp>`
+- Before script (if using tooling): `[IM-10] Script start: ai-tooling.sh apply`
+- After script: `[IM-10] Script end: ai-tooling.sh apply (exit: <code>, elapsed: <N>s)`
+- On write: `[IM-10] Updated manifest — <N> entries written, version: <version>`
+- On error: `[IM-10] ERROR: Manifest update failed — <details>`
+- On unexpected: `[IM-10] **UNEXPECTED: <details>**`
+- On exit: `[IM-10] Update manifest completed at <timestamp> (elapsed: <N>s)`

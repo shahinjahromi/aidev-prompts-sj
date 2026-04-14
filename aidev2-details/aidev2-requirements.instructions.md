@@ -172,3 +172,30 @@ When a MAC catalog entry in `models_and_contracts.yaml` wraps a spec file that d
 - When new child items are added to a spec file, update the parent MAC entry's `child_specifications` accordingly.
 - The `child_specifications` on the MAC catalog entry is the authoritative list of children for `child_specifications: all` resolution.
 - Single-item spec files (e.g., a MAC that wraps exactly one API contract schema) do not require `child_specifications` on the catalog entry.
+
+---
+
+## Narration Standards
+
+All requirements steps (RQ-01 through RQ-03) must follow these narration rules.
+
+### Task Boundaries
+- Emit `[RQ-<NN>] Started at <ISO-8601 timestamp>` at the beginning of each step.
+- Emit `[RQ-<NN>] Completed at <ISO-8601 timestamp> (elapsed: <N>s)` at the end of each step.
+- If a step is skipped, emit `[RQ-<NN>] Skipped: <reason>`.
+
+### Script Invocations
+- Before running any terminal command: `[RQ-<NN>] Script start: <command-summary>`
+- After completion: `[RQ-<NN>] Script end: <command-summary> (exit: <code>, elapsed: <N>s)`
+- If exit code != 0: `[RQ-<NN>] ERROR: <command-summary> failed with exit code <code>`
+
+### Per-Item Narration
+- Before authoring each artifact: `[RQ-01] Authoring <TYPE>-<ID> — <short-title>`
+- After writing: `[RQ-01] Wrote <TYPE>-<ID>`
+- Before promoting: `[RQ-02] Promoting <count> items`
+- After promoting: `[RQ-02] Promoted <count> items (<N>s)`
+
+### Error and Unexpected Issue Narration
+- Known validation failures (schema mismatch, ID collision) are narrated as: `[RQ-<NN>] ERROR: <description>`
+- Unplanned failures (file not found, tool crash, timeout) are narrated in **bold**: `[RQ-<NN>] **UNEXPECTED: <description>**`
+- Every error must include the step token and enough context to diagnose without re-reading logs.
