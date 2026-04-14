@@ -21,8 +21,6 @@ from common import (
     get_app_manifest,
     get_artifact_doc_path,
     get_diff_files,
-    grouped_current_doc_path,
-    is_grouped_requirement_type,
     iter_pending_promotion_doc_paths,
     merged_path,
     now_iso,
@@ -208,21 +206,10 @@ def rebuild_requirement_diffs(requirements_path: str) -> None:
             os.makedirs(p, exist_ok=True)
 
     for req_type, bucket in DIFF_BUCKETS_BY_ARTIFACT_TYPE.items():
-        sources: List[str] = []
-        if is_grouped_requirement_type(req_type):
-            from common import GROUPED_REQUIREMENT_REL_DIRS
-            grouped_dir = os.path.join(
-                requirements_path, CURRENT_DIR,
-                GROUPED_REQUIREMENT_REL_DIRS[req_type],
-            )
-            if os.path.isdir(grouped_dir):
-                sources = sorted(glob.glob(os.path.join(grouped_dir, "*.yaml")))
-        else:
-            flat = get_artifact_doc_path(requirements_path, req_type, create_dirs=False)
-            if os.path.exists(flat):
-                sources = [flat]
-        for src in sources:
-            for req in extract_requirements_from_yaml(src):
+        src = get_artifact_doc_path(requirements_path, req_type, create_dirs=False)
+        if not os.path.exists(src):
+            continue
+        for req in extract_requirements_from_yaml(src):
             effective_bucket = bucket or pick_bucket(req.get("type", "functional"))
             rid = req["requirement_id"]
             out = os.path.join(requirements_path, DIFF_DIR, effective_bucket, f"{rid}.yaml")
@@ -297,20 +284,6 @@ def main() -> None:
                 promoted_ids.extend(ids)
             pending_doc["items"] = []
             write_yaml(pfp, pending_doc)
-            continue
-
-        # Grouped requirement types (nfr_and_global_cr, technology_selection) use
-        # per-implementation-id files inside a subfolder rather than a single flat artifact.
-        if is_grouped_requirement_type(req_type):
-            target_fp = grouped_current_doc_path(
-                args.requirements_path, req_type, base, create_dirs=True
-            )
-            write_yaml(target_fp, pending_doc)
-            promoted_counts[req_type] = promoted_counts.get(req_type, 0) + 1
-            for it in pending_doc.get("items", []) or pending_doc.get("requirements", []) or []:
-                rid = it.get("id") or it.get("requirement_id")
-                if rid:
-                    promoted_ids.append(str(rid))
             continue
 
         target_fp = get_artifact_doc_path(args.requirements_path, req_type, create_dirs=True)

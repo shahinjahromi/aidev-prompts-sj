@@ -37,7 +37,7 @@ Run ranges like `02-07` to skip diff if it already exists.
   02-implementation-mapping/      ← cross-cutting mapping files
 03-test-results/<impl-id>/        ← acceptance test outputs
 .instructions/
-  config.yaml               ← app identity, impl mapping, variables
+  config.yaml               ← app identity, impl mapping, tooling root, variables
   codebase-context.yaml     ← optional tech/port hints for AI
 ```
 
@@ -63,18 +63,8 @@ Per-stack NFR and technology selections live in:
 
 ```
 aidev2-details/preset-requirements/
-  nfr-and-global-cr-by-core-stack/<stack>/nfr-and-global-cr-<impl-id>.yaml
-  tech-selections-by-core-stack/<stack>/technology-selection-<impl-id>.yaml
+  nfr_and_global_cr_by_core_stack/<stack>/nfr_and_global_cr_<impl-id>.yaml
+  tech_selections_by-core-stack/<stack>/technology_selection_<impl-id>.yaml
 ```
 
 Copy the placeholder template file for your implementation ID when setting up a new implementation.
-
-## Execution Optimization Strategy
-
-The following rules govern how the framework executes for speed and output quality. These are prescriptive — they describe what the framework does.
-
-- **Agent routing**: The dispatcher agent routes each pipeline stage to its specialist subagent (requirements-specialist, planning-specialist, implementation-specialist, validation-specialist, testing-specialist). Specialist agents do not re-route to each other — they execute their scoped stage and return a single handoff payload to the dispatcher.
-- **Subagent communication pattern**: The dispatcher invokes a specialist via `runSubagent`. The specialist executes its full stage and returns exactly one structured `handoff` payload message. The dispatcher reads that payload and either continues to the next stage (on `status: pass`) or stops and reports blockers to the user (on `status: blocked` or `status: fail`). The dispatcher shall not pass full prompt or instruction file contents as input — only `requirement_ids`, `step_tokens`, artifact paths, and key check results.
-- **Stage narration**: The dispatcher emits a visible progress line before and after each specialist invocation (`▶ Stage N/M` before, `✔`/`✘ Stage N/M` after). Specialists emit milestone progress lines (`▷`) as they process each requirement or check. Both layers are additive to the per-action narration required by REQ-013.
-- **Plan-before-execute gate**: The diff artifact must exist and be non-empty before planning begins. The plan artifact must exist and have been reviewed before execution begins. The dispatcher enforces both gates and stops the pipeline if either is not satisfied.
-- **Read efficiency**: Agents shall use targeted file reads and exact-match searches when the file path is already known. Semantic search shall not be used when a path is deterministic. Broad workspace scans are prohibited when a targeted read would suffice.

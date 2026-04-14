@@ -25,9 +25,9 @@ Do not delete or reset application-specific artifacts, including:
 - test outputs in `03-test-results/**`
 - update history, notes, and other existing project documents
 
-**MANDATORY** — Never run destructive git commands. No exceptions.
-**MANDATORY** — Never remove files outside the target blueprint root. No exceptions.
-**MANDATORY** — Never delete obsolete v1 prompt/instruction files — report them to the user for manual removal (see Phase 6).
+Never run destructive git commands.
+Never remove files outside the target blueprint root.
+Never delete obsolete v1 prompt/instruction files — only notify the user to review and remove them.
 
 ## Phase 1 - Detect and Validate Blueprint Root
 
@@ -40,51 +40,40 @@ If not found, ask user for absolute blueprint path.
 
 ## Phase 2 - Baseline Inventory (Read-only)
 
-Run each sub-phase in order. Report results per sub-phase. If a sub-phase finds zero issues, report "clean" and proceed immediately to the next.
-
-### 2a — File structure and naming conventions
-
-Inspect:
+Inspect and summarize:
 - Existing requirement type files in pending/current
-- Technology-selection mirror folders and files under pending/current; flag any misplaced root-level technology-selection folders
+- Existing stage-local technology-selection mirror folders and files under pending/current, plus any misplaced root-level technology-selection folders
 - Contract catalog filename and contract-spec folder names
 - Presence of old/new naming conventions:
   - `contracts_and_models` vs `models_and_contracts`
   - `data_and_api_contracts` vs `models_and_contracts`
   - `DAC-` vs `MAC-`
   - `dac_contract_logical_id` vs `mac_contract_logical_id`
-
-Early exit: if all files already use `models_and_contracts` / `MAC-` / dash-named folders, report "naming: clean" and skip to 2b.
-
-### 2b — ID format and uniqueness
-
-Inspect:
-- ID format compliance for: `FR-*`, `NFR-*`, `TS-*`, `MAC-*`, `UIC-*`, `AC-*`, `AT-*`, `CONTRACT-*`
-- **ID uniqueness violations**: for each type prefix, collect all sequence numbers across pending + current; flag any sequence number used by more than one item (duplicates must be renumbered in Phase 4)
-
-Early exit: if all IDs match `<TYPE>-<7-digit>-<short-title>` and no duplicates exist, report "IDs: clean" and skip to 2c.
-
-### 2c — Contract reference structure
-
-Scan `contract_refs` in all requirement files for:
-- `contract_type: ui_contracts` — obsolete; must become `contract_type: models_and_contracts` with MAC ID and `child_specifications`
-- bare strings in `specific_ids` (e.g. `- MAC-0000001-foo`) — must be object form `- id: MAC-0000001-foo`
-- `sub_mac_ids` field — obsolete; must be renamed to `child_specifications`
-- MAC entries in `models_and_contracts.yaml` wrapping multi-item spec files but missing `child_specifications`
-
-Early exit: if no `contract_refs` exist in any requirement file, report "contract_refs: not present" and skip to 2d.
-
-### 2d — Manifest and v1 artifact compliance
-
-Inspect:
-- App manifest: locate via `config.yaml → implementations.<IMPLEMENTATION_ID>.manifest_path`; **flag if `manifest_path` still points to `manifests/requirements-manifest.yaml`** — migration target is `.aidev/requirements/requirements-state.yaml`; check whether each `requirement_baseline` entry has `e2e_test_status`, `implementation_initial_date`, `implementation_last_date`
+- ID format compliance and outliers for:
+  - requirement IDs (`FR-*`, `NFR-*`)
+  - technology IDs (`TS-*`)
+  - models/contracts IDs (`MAC-*`)
+  - UI contract IDs (`UIC-*`)
+  - acceptance IDs (`AC-*`, `AT-*`)
+  - contract logical IDs (`CONTRACT-*`)
+- **ID uniqueness violations**: for each type prefix (`FR`, `NFR`, `TS`, `MAC`, `UIC`, `AC`, `AT`), collect all sequence numbers across pending + current; flag any sequence number used by more than one item (duplicate sequences must be renumbered in Phase 4).
+- **Contract reference structure issues**: scan `contract_refs` in all requirement files for:
+  - `contract_type: ui_contracts` — obsolete; must be consolidated into `contract_type: models_and_contracts` with MAC ID and `child_specifications`
+  - bare strings in `specific_ids` (e.g. `- MAC-0000001-foo`) — must be object form `- id: MAC-0000001-foo`
+  - `sub_mac_ids` field — obsolete name; must be renamed to `child_specifications`
+  - MAC entries in `models_and_contracts.yaml` that wrap multi-item spec files but are missing `child_specifications`
+- Prompt/instruction references under:
+  - `github-config/`
+  - `02-implementation/00-prompts/`
+  - `.instructions/`
+  - `instructions/`
 - Obsolete v1 prompt/instruction artifacts (superseded by user-level aidev2 prompts):
   - `02-implementation/00-prompts/` — v1 implementation step prompts, replaced by `aidev2-steps/implement/`
-  - `github-config/aidev-*.prompt.md` — v1 framework prompts
-  - `github-config/aidev-framework.instructions.md` — v1 framework instructions
+  - `github-config/aidev-*.prompt.md` — v1 framework prompts, replaced by `.github/prompts/aidev2-*.prompt.md` wrappers
+  - `github-config/aidev-framework.instructions.md` — v1 framework instructions, replaced by user-level `aidev2-*.instructions.md`
   - `instructions/` — v1 documentation folder
   Note: `.instructions/config.yaml` and `.instructions/codebase-context.yaml` are NOT obsolete — aidev2 reads both.
-- Prompt/instruction references under: `github-config/`, `02-implementation/00-prompts/`, `.instructions/`, `instructions/`
+- App manifest compliance: locate via `config.yaml → implementations.<IMPLEMENTATION_ID>.manifest_path`; **flag if `manifest_path` still points to `manifests/requirements-manifest.yaml`** — migration target is `.aidev/requirements/requirements-state.yaml`; check whether each `requirement_baseline` entry has `e2e_test_status`, `implementation_initial_date`, `implementation_last_date`
 
 ## Phase 3 - Write Targets
 
@@ -96,12 +85,12 @@ Must include planned write targets and explicitly state that app-specific conten
 
 Apply only needed updates, in place:
 
-0. Technology-selection and NFR folder normalization:
-- There are NO flat aggregate files (`technology_selection.yaml`, `nfr_and_global_cr.yaml`) — only per-implementation files inside type-named subfolders.
-- Ensure subfolders exist: `01-requirements/01-pending-promotion/technology-selection/`, `01-requirements/01-pending-promotion/nfr-and-global-cr/`, `01-requirements/03-current/technology-selection/`, `01-requirements/03-current/nfr-and-global-cr/`.
-- Per-implementation file naming: `technology-selection-<IMPLEMENTATION_ID>.yaml` and `nfr-and-global-cr-<IMPLEMENTATION_ID>.yaml` (all dashes, no underscores).
-- Rename any existing underscore-named files (e.g. `technology_selection_<ID>.yaml` → `technology-selection-<ID>.yaml`; `nfr_and_global_cr_<ID>.yaml` → `nfr-and-global-cr-<ID>.yaml`).
-- If a flat aggregate file is found, migrate its content into the per-implementation file for this implementation ID and remove the flat file.
+0. Technology-selection folder normalization:
+- Keep the canonical stage files at `01-requirements/01-pending-promotion/technology_selection.yaml` and `01-requirements/03-current/technology_selection.yaml`.
+- Ensure stage-local mirror folders exist at `01-requirements/01-pending-promotion/technology-selection/` and `01-requirements/03-current/technology-selection/`.
+- Move any misplaced root-level mirror files into the appropriate stage-local folder.
+- Mirror naming must be `technology_selections_<IMPLEMENTATION_ID>.yaml`.
+- When a stage-root `technology_selection.yaml` exists, refresh the corresponding per-implementation mirror file(s) from that stage-root source.
 
 1. Naming normalization:
 - `contracts_and_models` -> `models_and_contracts`

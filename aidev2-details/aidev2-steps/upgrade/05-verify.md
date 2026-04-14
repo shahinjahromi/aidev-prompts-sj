@@ -3,7 +3,7 @@
 Verify:
 - old naming tokens are removed or intentionally retained only for compatibility notes
 - expected new files/folders exist and are referenced correctly
-- stage-local type folders exist (`nfr-and-global-cr/`, `technology-selection/`) under both pending and current; per-implementation files use dash naming (`nfr-and-global-cr-<IMPLEMENTATION_ID>.yaml`, `technology-selection-<IMPLEMENTATION_ID>.yaml`); no flat aggregate files (`nfr_and_global_cr.yaml`, `technology_selection.yaml`) remain at the stage root
+- stage-local technology-selection mirror folders exist under pending/current as applicable, mirror files use `technology_selections_<IMPLEMENTATION_ID>.yaml`, and no active mirror file remains under a misplaced root-level `technology/` folder
 - pending/current requirement artifacts remain intact after transform
 - UI contract references resolve correctly after rename operations
 - all applicable IDs use `<TYPE>-<7-digit-sequence>-<short-title>` format with valid references after normalization
@@ -32,4 +32,4 @@ Manifest verification:
 - **confirm `manifest_path` in `.instructions/config.yaml` references `.aidev/requirements/requirements-state.yaml`** — not the old `manifests/requirements-manifest.yaml` path
 - confirm every `requirement_baseline` entry in the manifest has `e2e_test_status` set to one of `NOT_TESTED`, `PASSED`, or `FAILED`
 - confirm all `requirement_id` values in the manifest match normalized IDs in scope
-- validate overall manifest shape against the local schema at `{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/aidev2-schemas/requirements_manifest.json`
+- validate overall manifest shape against the local schema at `/home/parallels/.config/Code/User/prompts/aidev2-schemas/requirements_manifest.json`

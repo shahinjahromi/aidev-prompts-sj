@@ -4,7 +4,7 @@ Base:
 - REQ={SPECS_ROOT}/01-requirements
 - APP={APP_ROOT}
 - IMPL=<<IMPLEMENTATION_ID>>
-- TOOL={{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/framework-ai-development-tooling/ai-tooling.sh
+- TOOL={TOOLING_ROOT}/ai-tooling.sh
 
 promote
 - Command: "$TOOL" promote -r "$REQ" -a "$APP" --implementation-id "$IMPL"

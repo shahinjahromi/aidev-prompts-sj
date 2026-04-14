@@ -22,19 +22,6 @@ When the user requests creation or update of a model, contract, API contract, UI
 4. If the user also requests FRs referencing this contract, author them next using `contract_type: models_and_contracts` with the MAC ID.
 5. Models and contracts can be authored in isolation — without accompanying FRs. Do not require an FR to author a contract.
 
-### NFR Alignment Check
-
-When authoring or updating any MAC item, check existing NFR and GLOBAL requirements for constraints that apply to the contract's domain:
-
-1. Read all per-implementation NFR/GLOBAL files in both `01-pending-promotion/nfr-and-global-cr/` and `03-current/nfr-and-global-cr/`.
-2. Identify NFRs whose `section` or `text` relates to the MAC's domain — e.g., performance, security, data retention, error format, API standards, pagination, encryption.
-3. If relevant NFRs exist:
-   - Narrate: "NFR alignment: found `<NFR-ID>` — <brief relevance>" for each.
-   - Incorporate applicable constraints into the contract design (e.g., indexing strategy for performance NFRs, required fields for error-format NFRs, retention metadata for data-retention NFRs).
-   - Populate the optional `nfr_refs` field on the MAC catalog entry with the IDs of constraining NFRs.
-4. If a MAC design cannot satisfy an NFR constraint, flag the conflict to the user — do not silently ignore it.
-5. If no NFRs exist or none are relevant, proceed normally — this is an advisory check, not a hard gate.
-
 ### Design-First Order
 
 When authoring a mix of contract and FR items in a single session:
@@ -75,12 +62,12 @@ Sequence numbers must be **globally unique within each requirement type** across
 | Type prefix | Files to scan |
 |---|---|
 | `FR` | `pending: functional_requirements.yaml`, `current: functional_requirements.yaml` |
-| `NFR` | `pending: nfr-and-global-cr/nfr-and-global-cr-<IMPL_ID>.yaml`, `current: nfr-and-global-cr/nfr-and-global-cr-<IMPL_ID>.yaml` |
-| `TS` | `pending: technology-selection/technology-selection-<IMPL_ID>.yaml`, `current: technology-selection/technology-selection-<IMPL_ID>.yaml` |
+| `NFR` | `pending: nfr_and_global_cr.yaml`, `current: nfr_and_global_cr.yaml` |
+| `TS` | `pending: technology_selection.yaml`, `current: technology_selection.yaml` |
 | `MAC` | `pending: models_and_contracts.yaml`, `current: models_and_contracts.yaml` |
 | `UIC` | `pending: models_and_contracts/ui_contracts.yaml` (and any other spec file), `current: models_and_contracts/ui_contracts.yaml` |
-| `AC` | All `functional_requirements.yaml`, `nfr-and-global-cr/nfr-and-global-cr-<IMPL_ID>.yaml` files in pending + current |
-| `AT` | All `functional_requirements.yaml`, `nfr-and-global-cr/nfr-and-global-cr-<IMPL_ID>.yaml` files in pending + current |
+| `AC` | All `functional_requirements.yaml`, `nfr_and_global_cr.yaml` files in pending + current |
+| `AT` | All `functional_requirements.yaml`, `nfr_and_global_cr.yaml` files in pending + current |
 
 ### Before authoring any new item
 
@@ -91,79 +78,22 @@ Sequence numbers must be **globally unique within each requirement type** across
 
 ---
 
----
+## Post-Write Technology Selection Mirrors
 
-## Environment Variable Naming
+The canonical stage files remain:
+- `01-requirements/01-pending-promotion/technology_selection.yaml`
+- `01-requirements/03-current/technology_selection.yaml`
 
-When authoring requirements or acceptance tests that reference environment variables:
-
-- Specify the **exact environment variable name** — never use vague descriptions like "the database connection env var". Use the actual name: e.g. `FAKEBANK_OMB_WEB_DATABASE_URL`, `AUTH_JWT_SECRET`, `REDIS_PORT`.
-- If the variable is **specific to a module**, prefix it with the module name in UPPERCASE followed by underscore: `<MODULE>_<VAR_NAME>`. Examples: `PAYMENTS_STRIPE_KEY`, `AUTH_JWT_SECRET`, `NOTIFICATIONS_SMTP_HOST`.
-- **Global or shared** env vars (not module-specific) must use the **app identifier prefix**: `<APP_IDENTIFIER>_<VAR_NAME>`. Derive the prefix from `config.yaml → identity.app_identifier`: uppercase all characters, replace every `-` with `_`, append trailing `_`. Example: `app_identifier: fakebank-omb-web` → prefix `FAKEBANK_OMB_WEB_` → `FAKEBANK_OMB_WEB_DATABASE_URL`, `FAKEBANK_OMB_WEB_LOG_LEVEL`.
-- **Exception — well-known universal env vars** whose meaning is standard and unambiguous may omit the app identifier prefix: `PORT`, `HOME`, `PATH`, `TZ`.
-- In acceptance criteria and acceptance tests, reference env vars by their exact name inside backticks.
-- **Existing requirements are not retroactively renamed.** The app identifier prefix applies to newly authored env vars only.
-
----
-
-## Environment Variable Documentation
-
-When requirements introduce or reference new environment variables, the agent must maintain an env var documentation file at `<APP_ROOT>/aidev/docs/env-variable-instructions.md`.
-
-- **Create** the file (and the `aidev/docs/` directory) if it does not exist.
-- **Append** new env var entries; **update** existing entries if their definition changes.
-- Each entry must document:
-  - **Name** — exact variable name (e.g. `<APP_IDENTIFIER>_DATABASE_URL`)
-  - **Module scope** — module name or `default` for non-module vars
-  - **Description** — one-line purpose
-  - **Format / type** — e.g. URL, integer, boolean, comma-separated list
-  - **Sensitivity** — `secret` or `non-secret`
-  - **Default value** — if any, or "none"
-  - **Required / optional**
-- Use a consistent markdown table or definition-list format.
-- This file lives in the **application repo** (`APP_ROOT`), not the blueprint.
-
----
-
-## Concrete Test Data in Acceptance Tests
-
-Acceptance tests must include concrete input data and expected output data where the result is deterministic. Vague steps like "submit the form" or "verify success" are insufficient — they force the implementation agent to guess payloads and assertions.
-
-### API endpoint ATs
-- Include: HTTP method, path, example request body (JSON), expected status code, and expected response body shape with key fields.
-- Example step: `POST /api/auth/login with body {"email": "user@example.com", "password": "Test1234!"} → expect 200 with {"token": "<string>", "expires_in": 3600}`
-
-### Form / UI action ATs
-- Include: field names with example values, the action (click, submit), and expected outcome (redirect URL, success message, state change).
-- This is advisory when the AT is purely visual and covered by screenshot assertions.
-
-### Data query ATs
-- Include: query parameters or filter values and expected result shape/count.
-
-### Deterministic vs. non-deterministic values
-- **Deterministic** (status codes, error codes, redirect paths, cookie names, fixed field values): use exact literals.
-- **Non-deterministic** (generated IDs, timestamps, tokens, session values): describe the expected type/shape — e.g. `"id": "<string UUID>"`, `"created_at": "<ISO 8601 timestamp>"`.
-
-### Scope
-- This rule applies to newly authored ATs. Existing ATs are not retroactively rewritten.
-- AC `scenarios` (Given/When/Then) should also use concrete values where applicable.
-
----
-
-## Per-Implementation NFR and Technology Selection Files
-
-NFR and technology selection requirements live exclusively in per-implementation-id files inside their type folders.
-
-- **Pending NFR**: `01-requirements/01-pending-promotion/nfr-and-global-cr/nfr-and-global-cr-<IMPL_ID>.yaml`
-- **Current NFR**: `01-requirements/03-current/nfr-and-global-cr/nfr-and-global-cr-<IMPL_ID>.yaml`
-- **Pending TS**: `01-requirements/01-pending-promotion/technology-selection/technology-selection-<IMPL_ID>.yaml`
-- **Current TS**: `01-requirements/03-current/technology-selection/technology-selection-<IMPL_ID>.yaml`
+Per-implementation mirror files must live under stage-local subfolders:
+- `01-requirements/01-pending-promotion/technology-selection/technology_selections_<implementation_id>.yaml`
+- `01-requirements/03-current/technology-selection/technology_selections_<implementation_id>.yaml`
 
 Rules:
-1. **No flat aggregate files** (`nfr_and_global_cr.yaml`, `technology_selection.yaml` at the stage root) — these do not exist; the per-implementation files are the only authoritative source.
-2. When authoring NFR or TS items, read and write the per-implementation-id file for the active implementation directly.
-3. ID uniqueness scanning (see above) covers all per-implementation files across both pending and current.
-4. After promote, the current per-implementation file is updated; no separate mirror or aggregate step is needed.
+1. Treat the stage-root `technology_selection.yaml` file as the authoritative source for that stage.
+2. After any write that changes pending technology selections, refresh the pending per-implementation mirror file for each affected implementation.
+3. After any write that changes current technology selections, refresh the current per-implementation mirror file for each affected implementation.
+4. Mirror file naming must use the lowercase prefix `technology_selections_` and the exact implementation id.
+5. Mirror files must contain only the entries applicable to that implementation, with `implementation_id` / `implementation_ids` stripped from the mirrored entries.
 
 ---
 

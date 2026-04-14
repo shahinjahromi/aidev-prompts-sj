@@ -22,11 +22,11 @@
       "properties": {
         "id": {
           "type": "string",
-          "pattern": "^UIC-[0-9]{7}(-[a-z0-9-]+)?(-v[0-9]+)?$"
+          "pattern": "^UIC-[0-9]{6}(-v[0-9]+)?$"
         },
         "replaces_id": {
           "type": "string",
-          "pattern": "^UIC-[0-9]{7}(-[a-z0-9-]+)?(-v[0-9]+)?$"
+          "pattern": "^UIC-[0-9]{6}(-v[0-9]+)?$"
         },
         "title": {
           "type": "string",
@@ -53,7 +53,7 @@
         },
         "parent_uic_id": {
           "type": "string",
-          "pattern": "^UIC-[0-9]{7}(-[a-z0-9-]+)?(-v[0-9]+)?$",
+          "pattern": "^UIC-[0-9]{6}(-v[0-9]+)?$",
           "description": "Parent screen UIC id when this item is a section, dialog, or child surface of another screen."
         },
         "page_section_id": {
@@ -90,7 +90,7 @@
         },
         "related_uic_ids": {
           "type": "array",
-          "items": { "type": "string", "pattern": "^UIC-[0-9]{7}(-[a-z0-9-]+)?(-v[0-9]+)?$" },
+          "items": { "type": "string", "pattern": "^UIC-[0-9]{6}(-v[0-9]+)?$" },
           "description": "Other UI contracts closely related to this one (e.g. sibling tabs, sub-sections)."
         },
         "notes": {

@@ -1,4 +1,4 @@
-# Framework Requirements, Acceptance Criteria, and Tests
+# Framework Requirements
 
 ## Test Configuration
 - App name: test-framework-temp
@@ -9,49 +9,39 @@
 - App repo under test: test-framework-temp-goimp
 
 ## Scope
-This document defines requirements, acceptance criteria, and acceptance tests for the framework setup flow and generated blueprint structure.
-
-### Setup & Blueprint Structure
+This document defines acceptance criteria and acceptance tests for the framework setup flow and generated blueprint structure, with explicit coverage for:
 - NFR and technology stack preset folder creation
 - Implementation-id-specific artifact expectations
+- Merged requirements field parity with originals, including module
+- Go core stack runtime validation using a hello-world execution test
+- Prompt naming convention enforcing execution order via `aidev2-NN-` prefix
+- Process overview file discoverable by AI and a README pointing to it
 - Preset seeding destination (pending-promotion, not current) at setup time
 - Add-implementation-to-existing-blueprint setup mode
-- No `github-config` folder in the generated blueprint
-- Framework template's `initial-folder-structure` lives under `aidev2-details/`
-
-### Requirements & Contracts
-- Design-first authoring: models and contracts are first-class authoring targets alongside functional requirements
-- Contract references use `contract_type: models_and_contracts` and MAC ID object form only; `sub_mac_ids` is obsolete
-- MAC catalog `child_specifications` kept in sync with spec file child IDs at all times
-- Requirement IDs globally unique per type across pending and current (`next_seq = max + 1` rule)
-- Per-implementation technology selection and NFR files are the canonical source in their respective folders; no flat aggregate files exist
-- NFR and technology selection live in per-implementation-id folders (`nfr-and-global-cr/`, `technology-selection/`) under both pending-promotion and current; flat aggregate files (`nfr_and_global_cr.yaml`, `technology_selection.yaml`) do not exist
-- Requirements state file located at `.aidev/requirements/requirements-state.yaml` relative to app root
-
-### Prompt & Agent Design
-- Prompt naming convention enforcing execution order via `aidev2-NN-` prefix
-- Process instructions file named `aidev2-instructions.md`; README named `aidev2-readme.md` pointing to it
 - Prompt efficiency and minimal redundancy requirements
 - Execution optimization strategy documentation (agent routing, communication, gates, read efficiency)
-- Dispatcher enforces handoff contract; pipeline stops immediately on blocked or fail status
-- Framework prompt and instruction files contain no technology- or language-specific instructions; such content belongs exclusively in preset NFR, technology selection, and global requirement files
-- Framework-predetermined folder names use only dashes (no underscores)
-
-### Implementation Pipeline
-- Merged requirements field parity with originals, including module
-- Module reassignment triggers undo/redo; both old and new module locations must build after the change
-- DB alignment gate mandatory when diff contains physical_database_schema entries
-- DB physical schema changes produce both a full resulting schema file and a companion `-migration` file
-
-### Testing
 - Playwright as the standard e2e test framework for web-based implementations; one test per UIC ID; UI vs API test projects
 - All test artifacts confined to `03-test-results/<IMPLEMENTATION_ID>`; none written inside `06-e2e-tests/`
 - Screenshots captured for every visited screen state in UI tests and included as run artifacts
 - Default test run scope is partial; full suite only on explicit user request
 - Test output file naming convention: `<timestamp>-<REQ_ID>-<partial|full>.<ext>`
-
-### Runtime Validation
-- Go core stack runtime validation using a hello-world execution test
+- Module reassignment triggers undo/redo; both old and new module locations must build after the change
+- DB alignment gate mandatory when diff contains physical_database_schema entries
+- Dispatcher enforces handoff contract; pipeline stops immediately on blocked or fail status
+- Requirement IDs globally unique per type across pending and current (`next_seq = max + 1` rule)
+- Per-implementation technology selection and NFR files are the canonical source in their respective folders; no flat aggregate files exist
+- No `github-config` folder in the generated blueprint
+- Framework prompt and instruction files contain no technology- or language-specific instructions; such content belongs exclusively in preset NFR, technology selection, and global requirement files
+- NFR and technology selection live in per-implementation-id folders (`nfr-and-global-cr/`, `technology-selection/`) under both pending-promotion and current; flat aggregate files (`nfr_and_global_cr.yaml`, `technology_selection.yaml`) do not exist
+- Contract references use `contract_type: models_and_contracts` and MAC ID object form only; `sub_mac_ids` is obsolete
+- MAC catalog `child_specifications` kept in sync with spec file child IDs at all times
+- Requirements state file located at `.aidev/requirements/requirements-state.yaml` relative to app root
+- Design-first authoring: models and contracts are first-class authoring targets alongside functional requirements
+- DB physical schema changes produce both a full resulting schema file and a companion `-migration` file
+- Process instructions file named `aidev2-instructions.md`; README named `aidev2-readme.md` pointing to it
+- Framework template's `initial-folder-structure` lives under `aidev2-details/`
+- Implementation pipeline includes explicit manifest update step (IM-10) that records implemented requirement IDs in `requirements-state.yaml` and sets `requirements_version_implemented`
+- Implementation pipeline generates `.aidev/docs/variables.md` listing all runtime environment variables in a Markdown table
 
 ## Requirements
 
@@ -92,14 +82,14 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 
 #### Acceptance Criteria
 - AC-003: The user prompts folder shall contain a core-stack subfolder for Go NFR presets at `aidev2-details/preset-requirements/nfr-and-global-cr-by-core-stack/go`.
-- The folder shall hold implementation-specific NFR files named `nfr-and-global-cr-<implementation-id>.yaml`, one per registered implementation.
-- A placeholder template file (`nfr-and-global-cr-[implementation-id].yaml`) shall also reside in this folder to serve as a copy-source for new implementations.
+- The folder shall hold implementation-specific NFR files named `nfr_and_global_cr_<implementation_id>.yaml`, one per registered implementation.
+- A placeholder template file (`nfr_and_global_cr-[implementation id].yaml`) shall also reside in this folder to serve as a copy-source for new implementations.
 
 #### Acceptance Test — AT-003 Verify Go NFR preset folder
 - Steps:
   1. Locate the user prompts root (e.g. `~/.config/Code/User/prompts` or Windows equivalent).
   2. Check that `aidev2-details/preset-requirements/nfr-and-global-cr-by-core-stack/go` exists.
-  3. Verify at least one implementation-specific file matching `nfr-and-global-cr-<impl-id>.yaml` is present.
+  3. Verify at least one implementation-specific file matching `nfr_and_global_cr_<impl-id>.yaml` is present.
 - Expected:
   - Directory exists.
   - At least one implementation-specific NFR file exists inside it.
@@ -109,15 +99,15 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 ### REQ-004 Core-stack technology selection preset folder exists
 
 #### Acceptance Criteria
-- AC-004: The user prompts folder shall contain a core-stack subfolder for Go technology selection presets at `aidev2-details/preset-requirements/tech-selections-by-core-stack/go`.
-- The folder shall hold implementation-specific technology selection files named `technology-selection-<implementation-id>.yaml`, one per registered implementation.
-- A placeholder template file (`technology-selection-[implementation-id].yaml`) shall also reside in this folder to serve as a copy-source for new implementations.
+- AC-004: The user prompts folder shall contain a core-stack subfolder for Go technology selection presets at `aidev2-details/preset-requirements/tech_selections_by-core-stack/go`.
+- The folder shall hold implementation-specific technology selection files named `technology_selection_<implementation_id>.yaml`, one per registered implementation.
+- A placeholder template file (`technology_selection_[implementation_id].yaml`) shall also reside in this folder to serve as a copy-source for new implementations.
 
 #### Acceptance Test — AT-004 Verify Go tech-stack preset folder
 - Steps:
   1. Locate the user prompts root.
-  2. Check that `aidev2-details/preset-requirements/tech-selections-by-core-stack/go` exists.
-  3. Verify at least one implementation-specific file matching `technology-selection-<impl-id>.yaml` is present.
+  2. Check that `aidev2-details/preset-requirements/tech_selections_by-core-stack/go` exists.
+  3. Verify at least one implementation-specific file matching `technology_selection_<impl-id>.yaml` is present.
 - Expected:
   - Directory exists.
   - At least one implementation-specific technology selection file exists inside it.
@@ -128,14 +118,14 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 
 #### Acceptance Criteria
 - AC-005: The go tech selection preset shall include an implementation-id-specific file.
-- Expected file pattern: technology-selection-<implementation-id>.yaml resolved to concrete id.
-- The placeholder file `technology-selection-[implementation-id].yaml` serves as a reusable template for new implementations and may remain alongside impl-specific files.
+- Expected file pattern: technology_selection_<implementation_id>.yaml resolved to concrete id.
+- The placeholder file `technology_selection_[implementation_id].yaml` serves as a reusable template for new implementations and may remain alongside impl-specific files.
 
 #### Acceptance Test — AT-005 Verify implementation-id-specific tech selection file
 - Steps:
   1. Resolve effective implementation id: test-framework-temp-goimp.
-  2. Check for technology-selection-test-framework-temp-goimp.yaml in the Go tech folder.
-  3. Check whether placeholder file technology-selection-[implementation-id].yaml is still present (it may remain as template).
+  2. Check for technology_selection_test-framework-temp-goimp.yaml in the Go tech folder.
+  3. Check whether placeholder file technology_selection_[implementation_id].yaml is still present (it may remain as template).
 - Expected:
   - Implementation-specific file exists.
   - Placeholder template file may remain; its presence does not constitute a failure.
@@ -146,13 +136,13 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 
 #### Acceptance Criteria
 - AC-006: The go NFR preset shall include an implementation-id-specific file.
-- Expected file pattern: nfr-and-global-cr-<implementation-id>.yaml resolved to concrete id.
-- The placeholder file `nfr-and-global-cr-[implementation-id].yaml` serves as a reusable template for new implementations and may remain alongside impl-specific files.
+- Expected file pattern: nfr_and_global_cr_<implementation_id>.yaml resolved to concrete id.
+- The placeholder file `nfr_and_global_cr-[implementation id].yaml` serves as a reusable template for new implementations and may remain alongside impl-specific files.
 
 #### Acceptance Test — AT-006 Verify implementation-id-specific NFR file
 - Steps:
   1. Resolve effective implementation id: test-framework-temp-goimp.
-  2. Check for nfr-and-global-cr-test-framework-temp-goimp.yaml in the Go NFR folder.
+  2. Check for nfr_and_global_cr_test-framework-temp-goimp.yaml in the Go NFR folder.
 - Expected:
   - Implementation-specific file exists.
   - Placeholder template file may remain; its presence does not constitute a failure.
@@ -301,11 +291,13 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 
 ---
 
+---
+
 ### REQ-014 Setup seeds core-stack presets into pending-promotion, not directly into current
 
 #### Acceptance Criteria
 - AC-014: When `--core-stack` is provided and matching preset files exist in the user prompts preset folder, setup shall copy them into `01-requirements/01-pending-promotion/nfr-and-global-cr/` and `01-requirements/01-pending-promotion/technology-selection/` respectively.
-- The seeded files shall be named `nfr-and-global-cr-<implementation-id>.yaml` and `technology-selection-<implementation-id>.yaml`.
+- The seeded files shall be named `nfr_and_global_cr_<implementation_id>.yaml` and `technology_selection_<implementation_id>.yaml`.
 - Presets shall NOT be written directly into `01-requirements/03-current/`; they must enter the blueprint via the promote step.
 - If no `--core-stack` is provided or no preset file exists for the given stack, setup shall skip seeding without error.
 
@@ -313,8 +305,8 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 - Precondition: User prompts folder contains Go preset templates; setup is run with `--core-stack go`.
 - Steps:
   1. Run setup with app slug test-framework-temp, impl suffix goimp, and `--core-stack go`.
-  2. Check that `01-requirements/01-pending-promotion/technology-selection/technology-selection-test-framework-temp-goimp.yaml` exists in the blueprint.
-  3. Check that `01-requirements/01-pending-promotion/nfr-and-global-cr/nfr-and-global-cr-test-framework-temp-goimp.yaml` exists in the blueprint.
+  2. Check that `01-requirements/01-pending-promotion/technology-selection/technology_selection_test-framework-temp-goimp.yaml` exists in the blueprint.
+  3. Check that `01-requirements/01-pending-promotion/nfr-and-global-cr/nfr_and_global_cr_test-framework-temp-goimp.yaml` exists in the blueprint.
   4. Verify neither file was written into `01-requirements/03-current/`.
 - Expected:
   - Both preset files exist under `01-pending-promotion/`.
@@ -574,11 +566,11 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 - The new sequence number shall be `max(existing sequence numbers for that type) + 1`. No sequence number may be reused, even if the short-title is different from the existing holder.
 - Scan scope per type prefix:
   - `FR`: `functional_requirements.yaml` in pending + current
-  - `NFR` / `GLOBAL`: `nfr-and-global-cr/nfr-and-global-cr-<IMPL_ID>.yaml` in pending + current
-  - `TS`: `technology-selection/technology-selection-<IMPL_ID>.yaml` in pending + current
+  - `NFR` / `GLOBAL`: `nfr_and_global_cr.yaml` in pending + current
+  - `TS`: `technology_selection.yaml` in pending + current
   - `MAC`: `models_and_contracts.yaml` in pending + current
   - `UIC`: `models_and_contracts/ui_contracts.yaml` (and any other spec file) in pending + current
-  - `AC` / `AT`: all `functional_requirements.yaml` and `nfr-and-global-cr/nfr-and-global-cr-<IMPL_ID>.yaml` in pending + current
+  - `AC` / `AT`: all `functional_requirements.yaml` and `nfr_and_global_cr.yaml` in pending + current
 - This rule applies to every authoring operation regardless of run context.
 
 #### Acceptance Test — AT-026 Verify global ID uniqueness enforcement
@@ -599,8 +591,8 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 
 #### Acceptance Criteria
 - AC-027: `nfr-and-global-cr` and `technology-selection` requirements shall reside exclusively in per-implementation-id files inside their respective type folders, under both `01-requirements/01-pending-promotion/` and `01-requirements/03-current/`.
-- The pending folder structure shall be `01-requirements/01-pending-promotion/nfr-and-global-cr/nfr-and-global-cr-<implementation-id>.yaml` and `01-requirements/01-pending-promotion/technology-selection/technology-selection-<implementation-id>.yaml`.
-- The current folder structure shall be `01-requirements/03-current/nfr-and-global-cr/nfr-and-global-cr-<implementation-id>.yaml` and `01-requirements/03-current/technology-selection/technology-selection-<implementation-id>.yaml`.
+- The pending folder structure shall be `01-requirements/01-pending-promotion/nfr-and-global-cr/<nfr_and_global_cr_<implementation_id>.yaml>` and `01-requirements/01-pending-promotion/technology-selection/technology_selection_<implementation_id>.yaml`.
+- The current folder structure shall be `01-requirements/03-current/nfr-and-global-cr/nfr_and_global_cr_<implementation_id>.yaml` and `01-requirements/03-current/technology-selection/technology_selection_<implementation_id>.yaml`.
 - No flat `nfr_and_global_cr.yaml` or `technology_selection.yaml` file shall exist at the `01-pending-promotion/` or `03-current/` directory level.
 - These per-implementation files are the sole authoritative source; they are never treated as derived outputs or mirrors.
 - After promote, the current folder shall contain an updated per-implementation file for each promoted pending file.
@@ -612,8 +604,8 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
   2. Verify `01-requirements/01-pending-promotion/technology-selection/` directory exists.
   3. Verify NO `nfr_and_global_cr.yaml` file exists at the `01-pending-promotion/` level.
   4. Verify NO `technology_selection.yaml` file exists at the `01-pending-promotion/` level.
-  5. After promote: verify `01-requirements/03-current/nfr-and-global-cr/nfr-and-global-cr-<implementation-id>.yaml` exists.
-  6. After promote: verify `01-requirements/03-current/technology-selection/technology-selection-<implementation-id>.yaml` exists.
+  5. After promote: verify `01-requirements/03-current/nfr-and-global-cr/nfr_and_global_cr_<implementation_id>.yaml` exists.
+  6. After promote: verify `01-requirements/03-current/technology-selection/technology_selection_<implementation_id>.yaml` exists.
   7. Verify NO `nfr_and_global_cr.yaml` or `technology_selection.yaml` flat file exists at the `03-current/` level.
 - Expected:
   - Both type folders exist in pending-promotion and current.
@@ -634,7 +626,7 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 #### Acceptance Test — AT-028 Verify contract_refs structure in authored requirements
 - Precondition: At least one FR requirement with contract references exists in pending or current.
 - Steps:
-  1. Read all `contract_refs` entries across `functional_requirements.yaml`, `nfr-and-global-cr/nfr-and-global-cr-<IMPL_ID>.yaml` in pending and current.
+  1. Read all `contract_refs` entries across `functional_requirements.yaml`, `nfr_and_global_cr.yaml` in pending and current.
   2. Verify every `contract_refs` entry uses `contract_type: models_and_contracts`.
   3. Verify every `specific_ids` entry is in object form (`- id: MAC-XXXXXXX-...`), not a bare string.
   4. Verify no entry uses the field name `sub_mac_ids`.
@@ -690,7 +682,7 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 
 #### Acceptance Criteria
 - AC-031: Top-level prompt files, agent files, and instruction files under `aidev2-details/` that are part of the framework itself shall contain no technology- or language-specific instructions (e.g. Go-specific module layout rules, JavaScript/TypeScript patterns, Python conventions, specific library APIs or version constraints).
-- Technology- and language-specific instructions belong exclusively in preset files: `aidev2-details/preset-requirements/nfr-and-global-cr-by-core-stack/<stack>/`, `aidev2-details/preset-requirements/tech-selections-by-core-stack/<stack>/`, and similar preset locations.
+- Technology- and language-specific instructions belong exclusively in preset files: `aidev2-details/preset-requirements/nfr-and-global-cr-by-core-stack/<stack>/`, `aidev2-details/preset-requirements/tech_selections_by-core-stack/<stack>/`, and similar preset locations.
 - An instruction or prompt file "belongs to the framework" if it applies to all implementations regardless of technology stack. A preset file scoped to a named technology stack is not a framework file for this requirement.
 
 #### Acceptance Test — AT-031 Verify no technology-specific content in framework instruction files
@@ -801,95 +793,130 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 
 ---
 
-### REQ-036 Dispatcher narrates stage transitions with requirement counts and pass/fail summaries
+### REQ-036 Implementation pipeline updates app manifest with implemented requirements
 
 #### Acceptance Criteria
-- AC-036: Before invoking each specialist subagent, the dispatcher shall emit a visible stage-start line in the format: `▶ Stage N/M: <stage-name> — routing to <specialist-name> (<count> requirements in scope)`.
-- After each specialist returns with `status: pass`, the dispatcher shall emit: `✔ Stage N/M: <stage-name> — passed (<summary from handoff>)`. If the handoff includes `milestones`, the dispatcher shall include milestone labels in the summary.
-- After each specialist returns with `status: blocked` or `status: fail`, the dispatcher shall emit: `✘ Stage N/M: <stage-name> — <status>: <first blocker or summary>`.
-- After the full pipeline completes successfully, the dispatcher shall emit: `✔ Pipeline complete — <total artifacts written> artifacts, <total checks passed> checks passed`.
-- N/M counts reflect the total stages that will execute in this run, not always 6/6.
-- Stage narration is additive to per-action narration (REQ-013) — it does not replace it.
+- AC-036: The implementation pipeline shall include an explicit manifest-update step (IM-10) that runs after implementation is complete and the diff is clear.
+- For every requirement ID in the structured diff's `created` and `updated` lists, the step shall add or update a `requirement_baseline` entry in `APP_ROOT/.aidev/requirements/requirements-state.yaml` with `requirement_id` and `pinned_version` set to `requirements_version_target`.
+- For every MAC ID in the `models_and_contracts_diff` `created` and `updated` lists, the step shall add a baseline entry.
+- For items in the `removed` list, the step shall remove them from `requirement_baseline`.
+- The step shall set `requirements_version_implemented` equal to `requirements_version_target`.
+- The pipeline shall not be considered complete if `requirements_version_implemented` still equals `0.0.0` or differs from `requirements_version_target`.
 
-#### Acceptance Test — AT-036 Verify dispatcher stage narration
-- Precondition: A full pipeline run (at least 2 stages) is initiated on a blueprint with requirements in scope.
+#### Acceptance Test — AT-036 Verify manifest update after implementation
+- Precondition: A full pipeline run (promote → diff → plan → execute → fix → tests) has been completed successfully.
 - Steps:
-  1. Initiate a multi-stage pipeline run.
-  2. Capture all output emitted by the dispatcher.
-  3. Verify a `▶ Stage N/M` line appears before each specialist invocation.
-  4. Verify a `✔ Stage N/M` or `✘ Stage N/M` line appears after each specialist returns.
-  5. Verify N/M counts are consistent with the total stages executed.
-  6. If the pipeline completes, verify a `✔ Pipeline complete` summary line appears.
+  1. Read `APP_ROOT/.aidev/requirements/requirements-state.yaml` after the pipeline completes.
+  2. Verify `requirements_version_implemented` equals `requirements_version_target`.
+  3. Verify `requirement_baseline` contains an entry for every requirement ID from the structured diff's `created` and `updated` lists.
+  4. Verify `requirement_baseline` contains entries for every MAC ID from `models_and_contracts_diff.created` and `models_and_contracts_diff.updated`.
+  5. Verify no removed requirement IDs remain in `requirement_baseline`.
+  6. Verify each baseline entry has a `pinned_version` matching `requirements_version_target`.
 - Expected:
-  - Every specialist invocation is bracketed by stage-start and stage-result narration.
-  - N/M counts are accurate and consistent.
-  - Pipeline completion summary appears on success.
+  - `requirements_version_implemented` matches `requirements_version_target`.
+  - All implemented requirement and MAC IDs are present in `requirement_baseline`.
+  - No removed IDs remain.
 
 ---
 
-### REQ-037 Specialists narrate milestone progress through requirement sets
+### REQ-037 Implementation pipeline generates `.aidev/docs/variables.md` with all environment variables
 
 #### Acceptance Criteria
-- AC-037: Each specialist agent shall emit `▷`-prefixed milestone progress lines as it processes each item (requirement, diff entry, plan item, check, or test) during its stage.
-- The milestone format shall be: `▷ <Action> <N/M>: <item-id> <optional-title>...` where N is the current item number and M is the total count.
-- When a specialist processes multiple items, the handoff payload shall include a `milestones` list with `label` and `count` per processed item. The `milestones` field is optional and may be omitted when processing a single item.
-- Milestone narration is additive to per-action narration (REQ-013) — it does not replace it.
+- AC-037: The implementation pipeline shall include a docs generation step (IM-11) that produces `APP_ROOT/.aidev/docs/variables.md`.
+- The file shall contain a Markdown table with columns: Variable, Required, Default, Description.
+- The table shall list every environment variable the application reads at runtime, sourced from env-reading calls in code, config files, and startup scripts.
+- Variables shall be sorted alphabetically.
+- `Required` shall be "Yes" if the app fails to start without it, "No" if a default exists.
+- `Default` shall show the fallback value from code, or be empty if none.
+- `Description` shall be a one-sentence explanation of the variable's purpose.
+- The file shall not include variables used only in tests or CI pipelines.
+- The file shall be regenerated on every implementation run to stay current.
 
-#### Acceptance Test — AT-037 Verify specialist milestone narration
-- Precondition: A specialist is invoked with at least 2 items in scope (e.g. implementation specialist with 2 requirements).
+#### Acceptance Test — AT-037 Verify variables.md generation
+- Precondition: A full pipeline run has completed on an app that reads environment variables.
 - Steps:
-  1. Invoke the specialist and capture all output.
-  2. Verify `▷` milestone lines appear for each item processed.
-  3. Verify each milestone line includes a count in N/M format.
-  4. Verify the specialist's handoff payload includes a `milestones` list with matching entries.
-  5. Verify milestone lines are distinct from per-action narration lines (writes, deletes).
+  1. Verify `APP_ROOT/.aidev/docs/variables.md` exists after the pipeline completes.
+  2. Verify the file contains a Markdown table with the four required columns.
+  3. Cross-reference the table with actual env-reading calls in the application source code.
+  4. Verify every `os.Getenv`, `process.env`, `os.environ`, or equivalent call has a corresponding row.
+  5. Verify variables are sorted alphabetically.
+  6. Verify the Required and Default columns are accurate.
 - Expected:
-  - Every processed item has a matching `▷` milestone line in output.
-  - N/M counts are accurate and sequential.
-  - Handoff payload includes `milestones` when multiple items are processed.
+  - `variables.md` exists and contains a complete, accurate, alphabetically sorted table.
+  - No env-reading call in the codebase is missing from the table.
+  - Required/Default values match the code.
 
 ---
 
-### REQ-038 Grouped requirement filenames must contain the exact implementation_id
-
-#### Acceptance Criteria
-- AC-038: Every per-implementation-id YAML file inside a grouped requirement folder (`nfr-and-global-cr/`, `technology-selection/`) shall include the exact `implementation_id` value (from `.instructions/config.yaml`) as a suffix in its filename.
-- The filename pattern shall be `<folder-name>-<implementation_id>.yaml` (e.g. `nfr-and-global-cr-fakebank-omb-bff-web-go.yaml`).
-- Omitting any segment of the implementation_id (e.g. dropping `-bff-`) is a conformance violation.
-
-#### Acceptance Test — AT-038 Verify grouped filenames match implementation_id
-- Precondition: A blueprint has at least one file in `01-pending-promotion/nfr-and-global-cr/` or `01-pending-promotion/technology-selection/`.
-- Steps:
-  1. Read the `implementation_id` from `.instructions/config.yaml`.
-  2. List all YAML files in each grouped requirement folder (both pending-promotion and current).
-  3. For each file, verify the filename ends with `-<implementation_id>.yaml`.
-- Expected:
-  - Every grouped requirement file's basename ends with the exact implementation_id.
-
 ---
 
-### REQ-039 Python tooling shall correctly promote and diff grouped requirement types
+## Framework Testing Findings — fakebank-omb-bff-web-ai-blueprint Run
 
-#### Acceptance Criteria
-- AC-039: The Python tooling (`promote_changes.py`, `common.py`) shall handle grouped requirement types (`nfr_and_global_cr`, `technology_selection`) correctly:
-  - Promotion shall copy each grouped file to `03-current/<grouped-dir>/<same-filename>` rather than merging into a flat artifact file.
-  - Diff regeneration (`rebuild_requirement_diffs`) shall iterate all YAML files inside grouped current directories and create per-requirement diff entries.
-  - `get_diff_files` shall include the `nfr-and-global-cr` diff bucket in its scan.
-  - `DIFF_BUCKETS_BY_ARTIFACT_TYPE` and `REQUIREMENT_TYPE_TO_ARTIFACT` shall contain entries for `nfr_and_global_cr`.
-  - The `technology_selection_mirror_path` function shall use dash-separated naming (`technology-selection-<id>.yaml`) consistent with REQ-032.
+_Date: 2025-07-14_
+_Blueprint: fakebank-omb-bff-web-ai-blueprint_
+_Implementation: fakebank-omb-bff-web-go_
 
-#### Acceptance Test — AT-039 Verify tooling grouped-file handling
-- Precondition: A blueprint has an `nfr_and_global_cr` file in `01-pending-promotion/nfr-and-global-cr/`.
-- Steps:
-  1. Run `promote_changes.py` against the blueprint.
-  2. Verify the file appears in `03-current/nfr-and-global-cr/` with the same filename.
-  3. Verify no flat `03-current/nfr_and_global_cr.yaml` file was created.
-  4. Verify diff files were generated in `02-diff/nfr-and-global-cr/` for each requirement in the grouped file.
-  5. Verify `technology_selection_mirror_path` returns a path ending in `technology-selection-<id>.yaml` (dashes, not underscores).
-- Expected:
-  - Grouped files are promoted to matching grouped directories under 03-current.
-  - Diff regeneration covers all requirements in grouped files.
-  - Mirror path naming conforms to REQ-032.
+### Issues Found and Fixed
+
+#### FINDING-001: Deployed tooling `MANIFEST_REL_PATH` stale (REQ-033 violation)
+- **Symptom**: `common.py` in `framework-ai-development-tooling/` used `manifests/requirements-manifest.yaml` instead of `.aidev/requirements/requirements-state.yaml`.
+- **Root Cause**: Deployed tooling was out of sync with the template version under `aidev2-details/initial-folder-structure/`.
+- **Fix**: Updated `MANIFEST_REL_PATH` in `framework-ai-development-tooling/common.py` to `".aidev/requirements/requirements-state.yaml"`.
+- **REQ Impact**: REQ-033 (requirements state file path) was already correct in the requirements doc; the tooling simply hadn't been updated.
+
+#### FINDING-002: `CHANGES_REL_PATH` pointed to wrong file
+- **Symptom**: `common.py` set `CHANGES_REL_PATH = f"{PENDING_PROMOTION_DIR}/_control.yaml"` which resolved to `01-requirements/01-pending-promotion/_control.yaml`. The actual file is `control.yaml` at blueprint root.
+- **Root Cause**: Path was never updated when the control file location changed.
+- **Fix**: Changed `CHANGES_REL_PATH` to `"control.yaml"`.
+
+#### FINDING-003: Promote script did not handle per-implementation grouped files (REQ-027 violation)
+- **Symptom**: Running promote on a blueprint with per-implementation NFR and TS files (in `nfr-and-global-cr/` and `technology-selection/` subfolders under pending-promotion) caused errors because the script expected flat files only.
+- **Root Cause**: `promote_changes.py` only handled flat YAML files at the pending-promotion level; it had no logic for grouped subdirectories.
+- **Fix**: (a) Added `GROUPED_REQUIREMENT_REL_DIRS` mapping in `common.py`. (b) Added helper functions `is_grouped_pending_file`, `grouped_current_target_path`, `iter_grouped_current_files`. (c) Updated `promote_changes.py` main loop to detect grouped files and copy them to corresponding current subfolders. (d) Updated `rebuild_requirement_diffs` to include items from per-implementation grouped folders.
+
+#### FINDING-004: Missing `nfr_and_global_cr` in `DIFF_BUCKETS_BY_ARTIFACT_TYPE`
+- **Symptom**: After promote, the structured diff generation skipped NFR/Global CR items because no diff bucket was mapped for that type.
+- **Fix**: Added `"nfr_and_global_cr": "nfr-and-global-cr"` to `DIFF_BUCKETS_BY_ARTIFACT_TYPE` in `common.py`.
+
+#### FINDING-005: `.sql` extension missing from `promote_contract_spec_files`
+- **Symptom**: SQL schema spec files (`.sql`) under `models_and_contracts/` were not being promoted to current because the extension was not in the allowed list.
+- **Fix**: Added `.sql` (along with `.prisma` and `.graphql`) to the extension list in `promote_contract_spec_files`.
+
+#### FINDING-006: `generate_merged` did not include per-implementation grouped files (REQ-007 violation)
+- **Symptom**: The merged requirements file only contained functional_requirements and models_and_contracts but omitted NFR/Global CR and technology selection items.
+- **Fix**: Updated `generate_merged` in `common.py` to iterate grouped current folders and include their items in the merged output, preserving all fields including `module`.
+
+#### FINDING-007: YAML parse errors from unquoted JSON in list items
+- **Symptom**: Both `functional_requirements.yaml` and NFR file had list items containing `{key: value}` syntax that YAML parsed as inline mappings instead of strings.
+- **Root Cause**: Requirement authoring did not quote list items containing curly braces.
+- **Fix**: Quoted the affected list items with double quotes.
+- **New Guidance**: Authoring agents should ensure that list item strings containing `{` or `}` are always quoted.
+
+#### FINDING-008: `iter_pending_promotion_doc_paths` included `.gitkeep` files
+- **Symptom**: The promote script tried to process `.gitkeep` placeholder files as YAML documents, causing parse errors.
+- **Fix**: Added a skip condition for `.gitkeep` files in `iter_pending_promotion_doc_paths`.
+
+#### FINDING-009: Implementation pipeline had no manifest update step — `requirements-state.yaml` left empty (new REQ-036)
+- **Symptom**: After a full pipeline run, `APP_ROOT/.aidev/requirements/requirements-state.yaml` still had `requirements_version_implemented: 0.0.0` and empty `requirement_baseline: []`. No requirement IDs were recorded as implemented.
+- **Root Cause**: The implementation instructions (IM-00 through IM-09) had no explicit step to update the app manifest with implemented requirements. `apply_delta_to_app.py` existed in tooling but was never invoked because no instruction step referenced it.
+- **Fix**: Added **IM-10 Update App Manifest** to `aidev2-implementation.instructions.md` and created `08-update-manifest.md` step file. The implementation specialist agent now references both new step files.
+- **REQ Impact**: Created REQ-036 to enforce this going forward.
+
+#### FINDING-010: No framework step to generate `.aidev/docs/variables.md` (new REQ-037)
+- **Symptom**: After implementation, there was no documentation of required environment variables in the app repo.
+- **Root Cause**: No step existed in the pipeline to generate app documentation.
+- **Fix**: Added **IM-11 Generate App Docs** to `aidev2-implementation.instructions.md` and created `09-generate-docs.md` step file.
+- **REQ Impact**: Created REQ-037 to enforce this going forward.
+
+### New Requirement Candidates
+
+Based on findings above, the following gaps were not covered by existing REQs (items 4-5 are now covered by REQ-036 and REQ-037):
+
+1. **Tooling sync with template**: Deployed tooling under `framework-ai-development-tooling/` shall match the template version under `aidev2-details/initial-folder-structure/framework-ai-development-tooling/`. There is currently no REQ enforcing this.
+2. **YAML authoring safety for list items**: Authoring agents shall quote any list item string that contains `{` or `}` to prevent YAML parser misinterpretation. No existing REQ covers YAML authoring safety.
+3. **Promote script grouped file support**: REQ-027 defines the folder structure but does not explicitly require the promote tooling to handle grouped subdirectories. The requirement could be strengthened.
+4. ~~App manifest update after implementation~~ — now covered by REQ-036.
+5. ~~Environment variables documentation~~ — now covered by REQ-037.
 
 ---
 
@@ -931,8 +958,6 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 - REQ-035 -> AC-035 -> AT-035
 - REQ-036 -> AC-036 -> AT-036
 - REQ-037 -> AC-037 -> AT-037
-- REQ-038 -> AC-038 -> AT-038
-- REQ-039 -> AC-039 -> AT-039
 
 ## Notes
 - This specification is intentionally strict on implementation-id-specific preset files and merged-field parity, including module, to prevent silent schema drift during setup automation.
@@ -962,7 +987,5 @@ This document defines requirements, acceptance criteria, and acceptance tests fo
 - AC-033/AT-033 enforce that the requirements state file (implementation manifest) is located at `.aidev/requirements/requirements-state.yaml` in the app repo; the legacy `manifests/requirements-manifest.yaml` path is forbidden.
 - AC-034/AT-034 enforce design-first authoring: models and contracts are first-class authoring targets; MAC catalog entries and spec files must be created/updated when requested, with or without accompanying FRs.
 - AC-035/AT-035 enforce DB schema migration artifacts: every physical_database_schema change must produce both a full resulting schema file and a companion `-migration` file before the run is considered complete.
-- AC-036/AT-036 enforce dispatcher stage narration: the dispatcher must emit `▶ Stage N/M` before and `✔`/`✘ Stage N/M` after every specialist invocation, plus a pipeline-complete summary.
-- AC-037/AT-037 enforce specialist milestone narration: specialists must emit `▷` milestone lines for each processed item and populate the handoff `milestones` list when processing multiple items.
-- AC-038/AT-038 enforce that grouped requirement filenames (NFR, technology selection) contain the exact implementation_id; truncated or partial implementation_id suffixes are forbidden.
-- AC-039/AT-039 enforce that Python tooling correctly promotes grouped files to folder-based current paths, regenerates diffs from grouped current directories, and uses dash-separated mirror path naming per REQ-032.
+- AC-036/AT-036 enforce that the implementation pipeline updates the app manifest (`requirements-state.yaml`) with all implemented requirement IDs and sets `requirements_version_implemented` equal to `requirements_version_target`; the pipeline is not complete if the manifest is still empty.
+- AC-037/AT-037 enforce that the implementation pipeline generates `.aidev/docs/variables.md` with a complete, alphabetically sorted Markdown table of all runtime environment variables including Required, Default, and Description columns.

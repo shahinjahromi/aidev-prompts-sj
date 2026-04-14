@@ -14,4 +14,3 @@ UI testing details (when UI is in scope):
 API testing details:
 - Keep the existing API output format unchanged.
 - Preserve current request/response logging style and payload/response detail reporting.
-- When AT steps contain concrete request/response data (JSON bodies, status codes, field values), use those exact values in Playwright test assertions. Do not substitute, simplify, or omit data specified in the AT.

@@ -25,14 +25,14 @@ layout:
         purpose: Version management only (iteration_id, current_version, next_version).
       - pattern: 01-pending-promotion/**/*.yaml
         purpose: Pending requirement artifacts awaiting promotion.
-      - pattern: 01-pending-promotion/technology-selection/technology-selection-<implementation-id>.yaml
-        purpose: Per-implementation pending technology-selection files. One file per implementation ID.
+      - pattern: 01-pending-promotion/technology-selection/technology_selections_<implementation_id>.yaml
+        purpose: Per-implementation pending technology-selection mirror files derived from the stage-root technology_selection.yaml.
       - pattern: 02-diff/<bucket>/<REQUIREMENT_ID>.yaml
         purpose: Per-requirement diff history files. One file per requirement, named by ID inside a type bucket (functional/, nfr-and-global-cr/, technology-selection/, contracts/, ui_contracts/). Enables direct filename lookup for full change history including removals.
       - pattern: 03-current/**/*.yaml
         purpose: Current grouped requirement artifacts.
-      - pattern: 03-current/technology-selection/technology-selection-<implementation-id>.yaml
-        purpose: Per-implementation current technology-selection files. One file per implementation ID.
+      - pattern: 03-current/technology-selection/technology_selections_<implementation_id>.yaml
+        purpose: Per-implementation current technology-selection mirror files derived from the stage-root technology_selection.yaml.
       - pattern: 03-current/merged/*.yaml
         purpose: Generated merged requirement outputs.
   - folder: 02-implementation

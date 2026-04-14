@@ -1,20 +1,17 @@
 ## Step 4 - Transform In Place
 
-Normalize technology-selection and NFR layout:
-- **No flat aggregate files**: ensure no `technology_selection.yaml` or `nfr_and_global_cr.yaml` file exists at the `01-pending-promotion/` or `03-current/` root level — these are obsolete.
-- Ensure stage-local type folders exist: `01-requirements/01-pending-promotion/nfr-and-global-cr/`, `01-requirements/01-pending-promotion/technology-selection/`, `01-requirements/03-current/nfr-and-global-cr/`, `01-requirements/03-current/technology-selection/`.
-- For each implementation, ensure per-implementation files exist: `nfr-and-global-cr-<IMPLEMENTATION_ID>.yaml` and `technology-selection-<IMPLEMENTATION_ID>.yaml` inside the appropriate type folders.
-- Rename any existing per-implementation files that use underscore naming to use dashes:
-  - `nfr_and_global_cr_<IMPL>.yaml` → `nfr-and-global-cr-<IMPL>.yaml`
-  - `technology_selection_<IMPL>.yaml` or `technology_selections_<IMPL>.yaml` → `technology-selection-<IMPL>.yaml`
-- If a flat aggregate file (`technology_selection.yaml` or `nfr_and_global_cr.yaml`) exists, migrate its entries into the appropriate per-implementation file and delete the flat file.
+Normalize technology-selection mirror layout:
+- Keep canonical stage files at `01-requirements/01-pending-promotion/technology_selection.yaml` and `01-requirements/03-current/technology_selection.yaml`.
+- Ensure stage-local mirror folders exist at `01-requirements/01-pending-promotion/technology-selection/` and `01-requirements/03-current/technology-selection/`.
+- Move any misplaced root-level mirror files into the matching stage-local `technology-selection/` folder.
+- Refresh per-implementation mirror filenames as `technology_selections_<IMPLEMENTATION_ID>.yaml` from the authoritative stage-root `technology_selection.yaml` file for that stage.
 
 Perform in-place naming upgrades for pending/current requirements and contracts:
 - `contracts_and_models` -> `models_and_contracts`
 - `data_and_api_contracts` -> `models_and_contracts`
 - `DAC-` -> `MAC-`
 - `dac_contract_logical_id` -> `mac_contract_logical_id`
-- `non_functional_requirements.yaml` -> `nfr-and-global-cr-<IMPL>.yaml` (rename files in `01-pending-promotion/nfr-and-global-cr/`, `03-current/nfr-and-global-cr/`; move if needed; update `type: non_functional_requirements` -> `type: nfr_and_global_cr` inside the file)
+- `non_functional_requirements.yaml` -> `nfr_and_global_cr.yaml` (rename files in `01-pending-promotion/`, `03-current/`, `02-implementation-mapping/`; update `type: non_functional_requirements` -> `type: nfr_and_global_cr` inside the file)
 - `02-diff/non_functional/` -> `02-diff/nfr-and-global-cr/` (rename diff bucket directory if present)
 
 Perform in-place ID format normalization:

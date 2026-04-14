@@ -74,27 +74,11 @@
               "graphql_sdl_yaml",
               "logical_database_schema",
               "physical_database_schema",
-              "domain_model",
-              "ui_contracts"
+              "domain_model"
             ]
           },
           "spec_path": {
             "type": "string"
-          },
-          "child_specifications": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "When this MAC entry wraps a spec file that defines multiple items (e.g. ui_contracts.yaml with many UIC entries), list all child IDs here. Must be kept in sync with the referenced spec file."
-          },
-          "nfr_refs": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "pattern": "^(NFR|GLOBAL)-[0-9]{7}-[a-z0-9-]+(-v[0-9]+)?$"
-            },
-            "description": "IDs of NFR or GLOBAL requirements that constrain this contract's design. Populated during MAC authoring when the NFR alignment check finds relevant requirements."
           }
         },
         "allOf": [

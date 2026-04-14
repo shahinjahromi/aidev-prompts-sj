@@ -50,7 +50,6 @@ GROUPED_REQUIREMENT_REL_DIRS: Dict[str, str] = {
 DIFF_BUCKETS_BY_ARTIFACT_TYPE = {
     "functional_requirements": "functional",
     "non_functional_requirements": "non_functional",
-    "nfr_and_global_cr": "nfr-and-global-cr",
     "acceptance_tests": "acceptance_tests",
     "acceptance_criteria": "acceptance_criteria",
     "technology_selection": "technology_selection",
@@ -62,7 +61,6 @@ DIFF_BUCKETS_BY_ARTIFACT_TYPE = {
 REQUIREMENT_TYPE_TO_ARTIFACT = {
     "functional_requirements": "functional_requirements",
     "non_functional_requirements": "non_functional_requirements",
-    "nfr_and_global_cr": "nfr_and_global_cr",
     "data_and_api_contracts": "data_and_api_contracts",
     "data_contracts": "data_and_api_contracts",
     "models_and_contracts": "models_and_contracts",
@@ -141,22 +139,6 @@ def iter_artifact_doc_paths(requirements_path: str) -> List[str]:
 
 def grouped_rel_dir_for_requirement_type(requirement_type: str) -> str:
     return GROUPED_REQUIREMENT_REL_DIRS.get(requirement_type, requirement_type)
-
-
-def is_grouped_requirement_type(requirement_type: str) -> bool:
-    """True if this requirement type uses per-implementation-id files inside a grouped folder."""
-    return requirement_type in GROUPED_REQUIREMENT_REL_DIRS
-
-
-def grouped_current_doc_path(
-    requirements_path: str, requirement_type: str, source_basename: str, create_dirs: bool = False
-) -> str:
-    """Return the 03-current path for a grouped requirement file, preserving the source filename."""
-    folder = GROUPED_REQUIREMENT_REL_DIRS.get(requirement_type, requirement_type)
-    out_dir = os.path.join(requirements_path, CURRENT_DIR, folder)
-    if create_dirs:
-        os.makedirs(out_dir, exist_ok=True)
-    return os.path.join(out_dir, source_basename)
 
 
 def pending_promotion_doc_path(
@@ -284,7 +266,7 @@ def technology_selection_mirror_path(
         requirements_path,
         stage_dir,
         "technology-selection",
-        f"technology-selection-{implementation_id}.yaml",
+        f"technology_selections_{implementation_id}.yaml",
     )
     if create_dirs:
         os.makedirs(os.path.dirname(fp), exist_ok=True)
@@ -627,7 +609,6 @@ def get_diff_files(requirements_path: str) -> List[str]:
     for pat in [
         os.path.join(requirements_path, DIFF_DIR, "functional", "*.yaml"),
         os.path.join(requirements_path, DIFF_DIR, "non_functional", "*.yaml"),
-        os.path.join(requirements_path, DIFF_DIR, "nfr-and-global-cr", "*.yaml"),
         os.path.join(requirements_path, DIFF_DIR, "acceptance_tests", "*.yaml"),
         os.path.join(requirements_path, DIFF_DIR, "acceptance_criteria", "*.yaml"),
         os.path.join(requirements_path, DIFF_DIR, "technology_selection", "*.yaml"),

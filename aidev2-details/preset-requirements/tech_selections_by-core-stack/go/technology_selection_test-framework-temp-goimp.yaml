@@ -1,0 +1,115 @@
+schema_version: 1
+type: technology_selection
+generated_at: "2026-04-11"
+entries:
+
+- id: TS-0000001-go-runtime
+  category: runtime
+  capability: >
+    Provide the compiled, statically typed runtime and standard library for
+    all server-side logic, HTTP handling, and toolchain execution.
+  name: Go
+  version: "1.24"
+  description: >
+    Use Go 1.24 (latest stable) for its strong standard library, native
+    concurrency model, small binary footprint, fast compilation, and
+    first-class support for building reliable HTTP services. Go's built-in
+    `net/http`, `context`, and `errors` packages combined with its strict
+    type system and explicit error handling make it the right choice for a
+    secure, maintainable banking BFF.
+  constraints:
+  - All source files must be formatted with `gofmt` / `goimports` without exception.
+  - Use Go modules (`go.mod` / `go.sum`). Pin all dependency versions. Never use `replace`
+    directives pointing to local file paths in production builds.
+  - The Go version in `go.mod` must match the version used in CI and the build container.
+  - Avoid `init()` functions except for package-level registration patterns that cannot
+    be expressed otherwise; document any use with a comment explaining why.
+  - Use `context.Context` as the first parameter on all functions that perform I/O or
+    call external services.
+  created_version: 1.0.1
+  updated_version: 1.0.1
+
+- id: TS-0000002-chi-web-framework
+  category: web_framework
+  capability: >
+    Provide HTTP routing, middleware chaining, URL parameter extraction,
+    and sub-router composition for all API endpoints.
+  name: go-chi/chi
+  version: "5.2.1"
+  description: >
+    Use Chi v5 as the HTTP router. Chi is lightweight (zero external
+    dependencies beyond the Go stdlib), idiomatic, and production-battle-tested.
+    It provides composable middleware chaining, named URL parameters, sub-router
+    mounting aligned with the module URL path convention, and a clean API that
+    keeps handler code readable. Chi's `r.Route("/module", ...)` pattern
+    directly supports GLOBAL-0000001 module-based URL topology.
+  constraints:
+  - Route groups must be registered via `r.Route("/<module_name>", ...)` to
+    satisfy GLOBAL-0000001. Never register routes at the root router without
+    a module-name prefix.
+  - Middleware must be applied via `r.Use(...)` at the router or sub-router
+    level — never inline inside individual handler functions.
+  - Security middleware (auth, CORS, request size limits, security headers)
+    must be applied at the outermost router level so they run on every request.
+  - The router must not be a global variable; inject it through the application
+    wiring so it is testable.
+  - Use `chi.URLParam(r, "paramName")` for URL parameter extraction; never
+    parse URL paths manually.
+  created_version: 1.0.1
+  updated_version: 1.0.1
+
+- id: TS-0000003-session-management-scs
+  category: session_management
+  capability: >
+    Provide secure, server-side HTTP session management with pluggable
+    storage backends, automatic session lifecycle handling, and protection
+    against session fixation and hijacking.
+  name: alexedwards/scs
+  version: "2.8.0"
+  description: >
+    Use `alexedwards/scs` v2 as the session management library. SCS is the
+    most mature, actively maintained, and security-forward session library
+    in the Go ecosystem. It stores session data server-side (cookie contains
+    only a session token, never payload data), supports Redis, PostgreSQL,
+    and in-memory backends with a clean interface, automatically rotates
+    session tokens on privilege escalation to prevent session fixation, and
+    enforces configurable idle and absolute session lifetimes. Its API is
+    idiomatic Go and integrates directly with Chi middleware chains. Unlike
+    `gorilla/sessions`, SCS does not serialize session data into the cookie,
+    removing a class of deserialization vulnerabilities. The session token
+    cookie must be configured as `HttpOnly`, `Secure`, and `SameSite=Lax`
+    (or `Strict` for same-domain-only flows).
+  constraints:
+  - Session data must never be stored in the cookie body. Use server-side
+    storage (Redis in production, in-memory for local dev). The cookie carries
+    only the session token (a random, unguessable identifier).
+  - >-
+    Session cookies must be configured with `HttpOnly: true`, `Secure: true`
+    (enforced in production), and `SameSite: scs.SameSiteLaxMode` or
+    `scs.SameSiteStrictMode`.
+  - Rotate the session token immediately after any authentication event
+    (login, privilege escalation) using `sessionManager.RenewToken(ctx)` to
+    prevent session fixation attacks.
+  - Set an explicit `IdleTimeout` (e.g., 30 minutes) and `Lifetime` (e.g.,
+    8 hours maximum absolute session duration) on the session manager.
+  - The session manager instance must be injected as a dependency — never
+    used as a package-level global.
+  - Session storage backend must be configurable via environment variables;
+    never hard-code connection strings.
+  created_version: 1.0.1
+  updated_version: 1.0.1
+
+# migration-notes (preserved from prior artifact text)
+# update structure so technology selections are in
+# technology-selection/technology-selection-<implementateion_id>.yaml and
+# everything should support using this file depending on the implementation id
+# selected
+# change the names of the prompts directly visible with forward slash to always
+# start with two digits and a dash in the order they are typically first
+# executed
+# setup should take instructions new and add-implementation id, core stack.
+# then the technology selection will be copied from a template into the path as
+# described before for the implementation id. if no core stack then nothing
+# copied
+# manifest-template.yaml if used should be embedded in the aidev2 local user
+# prompt framework, not in any app specific blueprint

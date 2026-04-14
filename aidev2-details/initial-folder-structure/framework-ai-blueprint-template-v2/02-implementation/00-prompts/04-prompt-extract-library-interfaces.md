@@ -11,7 +11,7 @@ Extract public types and method signatures from libraries in the app root (resol
 
 Use the shared extractor script appropriate for the implementation stack
 (see `02-implementation/01-implementations/<IMPLEMENTATION_ID>/ai-app-hints.yaml` for the stack).
-Resolve `TOOLING_ROOT` from `{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/framework-ai-development-tooling`.
+Resolve `TOOLING_ROOT` from `config.yaml → tooling_root`.
 ```
 python3 "<TOOLING_ROOT>/interface-extractors/extract-nodejs-library-interfaces.py" \
   --project-root <APP_ROOT> \

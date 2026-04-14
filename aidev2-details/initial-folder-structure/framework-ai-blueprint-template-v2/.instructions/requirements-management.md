@@ -63,7 +63,7 @@ Required when authoring FR, NFR, MAC, or UIC — skip for TS only:
 1. Verify pending directory (`01-requirements/01-pending-promotion/`) has content (non-empty).
 2. Confirm the developer has reviewed the pending files before proceeding.
 
-**Action (Script):** Resolve `TOOLING_CMD` from `{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/framework-ai-development-tooling/ai-tooling.sh`.
+**Action (Script):** Resolve `TOOLING_CMD` from `config.yaml → tooling_root`.
 ```
 "$TOOLING_CMD" promote -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "<IMPLEMENTATION_ID>"
 ```
@@ -94,12 +94,13 @@ After promote completes, the developer MUST manually update the app manifest's `
 
 **Phase 1 — Analyse code for undeclared technologies:**
 1. Read the application codebase at `APP_ROOT` — package manifests (`package.json`, `go.mod`, `requirements.txt`, `pom.xml`, etc.), framework configs, Docker images, CI configs.
-2. Read `01-requirements/03-current/technology-selection/technology-selection-<IMPLEMENTATION_ID>.yaml`.
-3. Treat `01-requirements/03-current/technology-selection/technology-selection-<IMPLEMENTATION_ID>.yaml` as the authoritative TS file for this implementation.
+2. Read `01-requirements/03-current/technology_selection.yaml`.
+3. Treat `01-requirements/03-current/technology_selection.yaml` as the authoritative TS file and keep the per-implementation mirror under `01-requirements/03-current/technology-selection/technology_selections_<IMPLEMENTATION_ID>.yaml` aligned with it.
 4. Identify technologies or version changes present in code but missing from the TS file.
 4. For each new technology found:
-   - Add a new `TS-NNNNNN` entry directly to `01-requirements/03-current/technology-selection/technology-selection-<IMPLEMENTATION_ID>.yaml`.
+   - Add a new `TS-NNNNNN` entry directly to `01-requirements/03-current/technology_selection.yaml`.
    - Set `created_version` and `updated_version` to the current version from `01-requirements/control.yaml → current_version`.
+5. Refresh `01-requirements/03-current/technology-selection/technology_selections_<IMPLEMENTATION_ID>.yaml` from the updated current TS file.
 5. Add each new entry to the app manifest `requirement_baseline` (path from `config.yaml → implementations.<IMPLEMENTATION_ID>.manifest_path`).
 
 **Phase 2 — Sync backported requirements into diff directory:**
@@ -147,10 +148,10 @@ All files must conform to their JSON schema in `.schemas`.
 | Type | ID Pattern | Schema File | Target File in Pending |
 |------|-----------|-------------|------------------------|
 | functional_requirements | FR-NNNNNN | `functional_requirements.json` | `functional_requirements.yaml` |
-| nfr_and_global_cr | NFR-NNNNNN | `nfr_and_global_cr.json` | `nfr-and-global-cr/nfr-and-global-cr-<IMPLEMENTATION_ID>.yaml` |
+| nfr_and_global_cr | NFR-NNNNNN | `nfr_and_global_cr.json` | `nfr_and_global_cr.yaml` |
 | contracts_and_models | MAC-NNNNNN | `contracts/contracts_and_models.json` | `contracts_and_models.yaml` |
 | ui_contracts | UIC-NNNNNN | `contracts/ui_contracts.json` | `contracts_and_models/<file>.yaml` + catalog entry in `contracts_and_models.yaml` |
-| technology_selection | TS-NNNNNN | `technology_selection.json` | `technology-selection/technology-selection-<IMPLEMENTATION_ID>.yaml` |
+| technology_selection | TS-NNNNNN | `technology_selection.json` | `technology_selection.yaml` (plus derived mirror in `technology_selection/technology_selections_<implementation_id>.yaml`) |
 
 ### Requirement ID Patterns
 
@@ -178,7 +179,6 @@ IDs are 6-digit zero-padded. Numbers are never reused after deletion.
    - `selection: specific_ids` + explicit `specific_ids` list.
 6. **UI contracts are screen-only models.** Describe only what the user sees and does: screens, fields, formats, labels, actions, states, validation messages, navigation. MUST NOT include backend details.
 7. **Include detailed design decisions.** Requirements MUST include explicit design decisions — such as chosen patterns, data-flow approaches, error-handling strategies, naming conventions, component structures, and algorithmic choices — rather than leaving them open to interpretation. Detailed design decisions reduce variability in generative AI output and produce more consistent, deterministic implementations. When multiple valid approaches exist, state the selected approach and the rationale. Ambiguous or under-specified requirements lead to non-reproducible code generation.
-8. **Include concrete test data.** Acceptance tests MUST include concrete input data and expected output data where the result is deterministic. For API tests: HTTP method, path, example request body, expected status code, expected response shape/key fields. For form/UI tests: field values and expected outcome. For non-deterministic values (timestamps, generated IDs), describe the expected type/shape rather than a literal. Concrete test data enables the implementation agent to write precise assertions without guessing.
 
 ---
 

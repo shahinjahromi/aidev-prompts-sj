@@ -120,15 +120,13 @@ Generic framework conventions (fixed tooling paths, requirements directory layou
 │   ├── manifest.yaml                    -- Requirements manifest
 │   ├── control.yaml                     -- Version management
 │   ├── 01-pending-promotion/            -- Staging area (empty YAML templates)
-│   │   ├── technology-selection/        -- Per-implementation pending TS files
-│   │   ├── nfr-and-global-cr/           -- Per-implementation pending NFR files
+│   │   ├── technology_selection/        -- Per-implementation pending TS mirrors
 │   │   ├── models_and_contracts/        -- Pending contract spec files
 │   │   └── *.yaml                       -- Per-type pending files
 │   ├── 02-diff/                         -- Version-stamped diffs from promotion
 │   └── 03-current/                      -- Canonical requirements (populated by promote)
 │       ├── *.yaml                       -- Grouped requirement files
-│       ├── technology-selection/        -- Per-implementation current TS files
-│       ├── nfr-and-global-cr/           -- Per-implementation current NFR files
+│       ├── technology_selection/        -- Per-implementation current TS mirrors
 │       ├── models_and_contracts/        -- Promoted contract spec files
 │       └── merged/merged_requirements.yaml
 ├── 02-implementation/
@@ -170,10 +168,10 @@ See `instructions/explanation.txt` for the full detailed guide.
 
 ## Tooling
 
-All commands use the shared tooling from the user prompts folder:
+All commands use the shared tooling. Resolve the path from `config.yaml → tooling_root`:
 
 ```
-{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/framework-ai-development-tooling/ai-tooling.sh
+<config.yaml → tooling_root>/ai-tooling.sh
 ```
 
 This tooling is application-agnostic. The specs repo provides the application-specific context while the tooling provides the pipeline logic.

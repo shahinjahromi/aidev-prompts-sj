@@ -10,18 +10,17 @@ Do not read blueprint-local implementation instructions other than `.instruction
 
 ## Core Rules
 
-- Use the local schema bundle at `{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/aidev2-schemas`.
+- Use the local schema bundle at `/home/parallels/.config/Code/User/prompts/aidev2-schemas`.
 - Code first, manifest second.
 - Only modify files required by the active diff and plan.
 - Existing NFRs and Global CRs constrain all new or changed code.
-- Current technology selections (per-implementation files under `03-current/technology-selection/technology-selection-<IMPL_ID>.yaml`, and manifest baseline) constrain all new or changed code in every iteration; do not introduce stack/tool deviations unless requirements are explicitly updated first.
+- Current technology selections (canonical `03-current/technology_selection.yaml`, aligned with per-implementation mirrors under `03-current/technology-selection/`, and manifest baseline) constrain all new or changed code in every iteration; do not introduce stack/tool deviations unless requirements are explicitly updated first.
 - DB schema contract changes are mandatory work in the same run.
 - Module reassignment (a requirement's `module` field changed between current and manifest baseline) triggers undo/redo logic: remove the requirement's contributions from the old module location, then re-implement under the new module.
-- If `<APP_ROOT>/aidev/docs/env-variable-instructions.md` exists, read it before planning or executing steps that reference environment variables. Use it to resolve exact variable names, expected formats, and sensitivity levels.
 
 ## IM-00 Pre-Step Verification
 
-1. Read `BLUEPRINT_ROOT/.instructions/config.yaml` (if present) — extract `IMPLEMENTATION_ID`, `APP_ROOT`, `STARTUP_HINT`, `APP_TEST_STARTUP_HINT`, `MANIFEST`, and DB contract alignment settings. Resolve `TOOLING_CMD` and `AI_TOOLING` from the user prompts folder per **Tooling Discovery** in `aidev2-blueprint-instructions.md`.
+1. Read `BLUEPRINT_ROOT/.instructions/config.yaml` (if present) — extract `IMPLEMENTATION_ID`, `APP_ROOT`, `STARTUP_HINT`, `APP_TEST_STARTUP_HINT`, `MANIFEST`, `TOOLING_CMD`, and DB contract alignment settings. See **Config Resolution** in `aidev2-blueprint.instructions.md`.
 2. Resolve `IMPLEMENTATION_ID`.
 3. Resolve `APP_ROOT`, `MANIFEST`, `IMPL_ROOT`, `TOOLING_CMD`, `AI_TOOLING`, and startup hints.
 4. Validate that the manifest shape matches the local manifest schema.
@@ -154,10 +153,6 @@ When generating or updating `playwright.config.ts`:
 - Run API tests with: `TEST_MODE=api npx playwright test --project=api`
 Use requirement AC/AT content to drive coverage.
 
-Concrete AT data:
-- When AT steps include concrete request bodies, expected status codes, and expected response fields, translate them directly into test assertions — use the exact values specified in the AT.
-- For non-deterministic values described by type/shape in the AT (e.g. `"<string UUID>"`), assert the type or format rather than a literal match.
-
 UI-specific requirements:
 - if UI is in scope, include UI contract acceptance tests for all relevant `ui_contracts` items and linked AC/AT entries
 - when a requirement references multiple UIC IDs, generate and execute separate UI tests for each referenced UIC ID
@@ -206,3 +201,21 @@ Apply the same suffix to all output files from the same run (HTML, JSON, etc.).
 - For API test runs, keep existing output format unchanged, including request/response reporting style.
 
 Do not modify application code in this step unless the user explicitly switches back to execute/fix.
+
+## IM-10 Update App Manifest
+
+After all requirements are implemented, the diff is clear, and tests pass, update the app manifest at `APP_ROOT/.aidev/requirements/requirements-state.yaml`:
+
+1. For every requirement ID in the structured diff's `created` and `updated` lists, add or update a `requirement_baseline` entry with `requirement_id` and `pinned_version` set to `requirements_version_target`.
+2. For every MAC ID in the `models_and_contracts_diff` `created` and `updated` lists, add a baseline entry.
+3. For items in the `removed` list, remove them from `requirement_baseline`.
+4. Set `requirements_version_implemented` to the value of `requirements_version_target`.
+5. Write the updated manifest.
+
+This step is mandatory. The pipeline is not complete if `requirements_version_implemented` still equals `0.0.0` or differs from `requirements_version_target`.
+
+## IM-11 Generate App Docs
+
+After the manifest is updated, generate `APP_ROOT/.aidev/docs/variables.md` listing every environment variable the application reads at runtime in a Markdown table with columns: Variable, Required, Default, Description.
+
+Source the list from all env-reading calls in code (`os.Getenv`, `process.env`, etc.), config files, and startup scripts. Sort alphabetically. Regenerate on every implementation run.

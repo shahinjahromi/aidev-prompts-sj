@@ -58,7 +58,7 @@
           },
           "contract_refs": {
             "type": "array",
-            "description": "References to MAC catalog entries. All contracts (including UI contracts) are referenced through their parent MAC entry using contract_type: models_and_contracts.",
+            "description": "References to MAC or UIC catalog entries. When referencing a MAC whose spec file contains many items, list the referenced item IDs in sub_mac_ids.",
             "items": {
               "type": "object",
               "required": [
@@ -69,7 +69,8 @@
                 "contract_type": {
                   "type": "string",
                   "enum": [
-                    "models_and_contracts"
+                    "models_and_contracts",
+                    "ui_contracts"
                   ]
                 },
                 "selection": {
@@ -81,7 +82,7 @@
                 },
                 "specific_ids": {
                   "type": "array",
-                  "description": "MAC references when selection is 'specific_ids'. Each entry uses either 'id' or 'logical_id' and may include 'child_specifications'.",
+                  "description": "MAC or UIC references when selection is 'specific_ids'. Each entry uses either 'id' or 'logical_id' and may include 'sub_mac_ids'.",
                   "items": {
                     "type": "object",
                     "properties": {
@@ -94,12 +95,12 @@
                         "pattern": "^[a-z0-9-]+$",
                         "description": "Stable MAC logical identifier. The authoring workflow resolves this to the latest matching MAC ID."
                       },
-                      "child_specifications": {
+                      "sub_mac_ids": {
                         "type": "array",
                         "items": {
                           "type": "string"
                         },
-                        "description": "When this MAC entry's spec file contains many named sub-items (e.g. UIC IDs in ui_contracts.yaml, endpoint IDs in an OpenAPI spec), list every sub-item ID this requirement depends on here. Use 'all' as a single-element array to reference all children."
+                        "description": "When this MAC entry's spec file contains many named sub-items (e.g. UIC IDs in ui_contracts.yaml, endpoint IDs in an OpenAPI spec), list every sub-item ID this requirement depends on here."
                       }
                     },
                     "anyOf": [

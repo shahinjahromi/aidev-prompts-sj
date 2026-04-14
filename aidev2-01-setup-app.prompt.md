@@ -20,19 +20,13 @@ Parse the user's message loosely to extract:
 - `APP_SLUG`
 - `IMPL_SUFFIX`
 - `OUTPUT_DIR` (default: ask the user; suggest the active workspace root if available)
-- `CORE_STACK` (optional) — if the user mentions a stack or language (e.g. go, node, angular, python), capture it
 
-Ask for missing required values.
-
-If `CORE_STACK` was not mentioned, ask whether a core stack should be used.
-List available stacks by checking subfolder names under `{{VSCODE_USER_PROMPTS_FOLDER}}/aidev2-details/preset-requirements/nfr-and-global-cr-by-core-stack/`.
-If the user declines or says none, leave `CORE_STACK` empty.
+Ask for missing values.
 
 Needed values:
 - `APP_SLUG`
 - `IMPL_SUFFIX`
 - `OUTPUT_DIR`
-- `CORE_STACK` (optional — when set, seeds NFR and technology selection presets into the new blueprint)
 
 Convert app names to kebab-case.
 Do not proceed until all values are confirmed.
@@ -52,9 +46,7 @@ Use `vscode_askQuestions` to confirm creation of both folders.
 
 ## Step 4 — Run Setup Script
 
-Build the command from the collected values.
-
-Base command (always included):
+Run exactly:
 
 ```bash
 bash "${FRAMEWORK_ROOT}/setup/setup-for-user-prompts.sh" \
@@ -64,28 +56,12 @@ bash "${FRAMEWORK_ROOT}/setup/setup-for-user-prompts.sh" \
   --workspace-root "${OUTPUT_DIR}"
 ```
 
-If `CORE_STACK` is set, append `--core-stack "${CORE_STACK}"` to the command:
-
-```bash
-bash "${FRAMEWORK_ROOT}/setup/setup-for-user-prompts.sh" \
-  --output-dir "${OUTPUT_DIR}" \
-  --app-slug "${APP_SLUG}" \
-  --impl-suffix "${IMPL_SUFFIX}" \
-  --workspace-root "${OUTPUT_DIR}" \
-  --core-stack "${CORE_STACK}"
-```
-
 ## Step 5 — Report Results
 
 Summarize:
 - blueprint path
 - app repo path
 - implementation id
-
-If `CORE_STACK` was provided, verify that preset files were seeded:
-- Check `${BLUEPRINT_PATH}/01-requirements/01-pending-promotion/nfr-and-global-cr/` for `nfr-and-global-cr-${IMPL_ID}.yaml`
-- Check `${BLUEPRINT_PATH}/01-requirements/01-pending-promotion/technology-selection/` for `technology-selection-${IMPL_ID}.yaml`
-- Report which preset files were seeded. If expected preset files are missing, warn the user.
 
 Also note:
 - aidev2 prompts use folder layout plus user-level schemas/config, not blueprint-local `.instructions`
