@@ -214,12 +214,49 @@ Infer `APP_ROOT` using this order:
 3. If multiple candidates remain, ask the user.
 4. If no candidate exists, stop and ask for the app repo path.
 
+**Target Folder Validation (REQ-053):** After resolving `APP_ROOT`, verify the directory exists on disk. If it does not exist, this is an **unrecoverable error** — the pipeline must abort. Do not create the app repo directory; only the `.aidev` bootstrap files inside an existing app repo may be auto-created.
+
 Derived paths:
 - `APP_ROOT` = inferred application repo root
 - `MANIFEST` = `APP_ROOT/.aidev/requirements/requirements-state.yaml`
 - `IMPL_ROOT` = `BLUEPRINT_ROOT/02-implementation/01-implementations/IMPLEMENTATION_ID`
 - `E2E_ROOT` = `IMPL_ROOT/06-e2e-tests`
 - `E2E_REPORTS` = `BLUEPRINT_ROOT/03-test-results/IMPLEMENTATION_ID`
+
+## Bootstrap `.aidev` Files (REQ-054)
+
+When `APP_ROOT` exists but the required `.aidev` bootstrap structure is missing, create it automatically before proceeding with any pipeline stage.
+
+Required bootstrap structure:
+```
+APP_ROOT/
+  .aidev/
+    requirements/
+      requirements-state.yaml
+```
+
+**Bootstrap rules:**
+1. Check whether `APP_ROOT/.aidev/requirements/requirements-state.yaml` exists.
+2. If the file is missing, create the directory structure and file:
+   - `APP_ROOT/.aidev/` (directory)
+   - `APP_ROOT/.aidev/requirements/` (directory)
+   - `APP_ROOT/.aidev/requirements/requirements-state.yaml` with default content:
+     ```yaml
+     manifest_version: '1.0'
+     requirement_set_id: <REQ_SET_ID>
+     app_identifier: <APP_IDENTIFIER>
+     implementation_id: <IMPLEMENTATION_ID>
+     iteration_id: 1
+     requirements_version_target: 1.0.0
+     requirements_version_implemented: 0.0.0
+     requirement_baseline: []
+     ```
+   - `<REQ_SET_ID>` comes from `config.yaml` → `identity.requirement_set_id`, or derived from `APP_IDENTIFIER`.
+   - `<APP_IDENTIFIER>` comes from `config.yaml` → `identity.app_identifier`, or derived from the blueprint folder name (strip `-ai-blueprint` suffix).
+   - `<IMPLEMENTATION_ID>` comes from `config.yaml` or the implementation directory name.
+3. If only the directory is missing but partial files exist, create only the missing parts.
+4. Log the bootstrap creation in the pipeline activity log.
+5. Never overwrite an existing `requirements-state.yaml` — only create when absent.
 
 ## Tooling Discovery
 

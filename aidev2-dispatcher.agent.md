@@ -19,6 +19,46 @@ Use these references:
 - [Requirements Pipeline](./aidev2-details/aidev2-requirements.instructions.md)
 - [Implementation Pipeline](./aidev2-details/aidev2-implementation.instructions.md)
 
+## Pre-Flight Checks (REQ-052, REQ-053, REQ-054)
+
+Before invoking the first specialist, the dispatcher shall run these checks in order. If any check fails and is marked **ABORT**, the pipeline shall terminate immediately with a summary of the failure — no specialist shall be invoked.
+
+### PF-01 Blueprint Root Validation
+1. Resolve `BLUEPRINT_ROOT` per the blueprint policy (walk up from `${file}`, look for `01-requirements`, `02-implementation`, `03-test-results`).
+2. If `BLUEPRINT_ROOT` cannot be resolved → **ABORT**: `**PIPELINE ABORT: Cannot resolve BLUEPRINT_ROOT. Ensure the active file is inside a valid blueprint repository.**`
+
+### PF-02 Target App Folder Validation (REQ-053)
+1. Resolve `APP_ROOT` per the blueprint policy (config.yaml → sibling inference → ask user).
+2. Verify `APP_ROOT` exists as a directory on disk.
+3. If `APP_ROOT` does not exist → **ABORT**: `**PIPELINE ABORT: Target app folder not found at <resolved path>. The app repository must exist before the pipeline can run.**`
+4. If `APP_ROOT` cannot be inferred and the user has not provided it → **ABORT**: `**PIPELINE ABORT: Cannot infer APP_ROOT. Provide the app repo path or verify config.yaml.**`
+
+### PF-03 Bootstrap `.aidev` Files (REQ-054)
+1. Check whether `APP_ROOT/.aidev/requirements/requirements-state.yaml` exists.
+2. If the file is missing:
+   a. Create directory `APP_ROOT/.aidev/requirements/` if it does not exist.
+   b. Read `IMPLEMENTATION_ID` from config.yaml (or derive per blueprint policy).
+   c. Read `requirement_set_id` and `app_identifier` from config.yaml identity fields (or derive from blueprint folder name).
+   d. Create `APP_ROOT/.aidev/requirements/requirements-state.yaml` with this content:
+      ```yaml
+      manifest_version: '1.0'
+      requirement_set_id: <REQ_SET_ID>
+      app_identifier: <APP_IDENTIFIER>
+      implementation_id: <IMPLEMENTATION_ID>
+      iteration_id: 1
+      requirements_version_target: 1.0.0
+      requirements_version_implemented: 0.0.0
+      requirement_baseline: []
+      ```
+   e. Narrate: `[dispatcher] Created missing bootstrap file: APP_ROOT/.aidev/requirements/requirements-state.yaml`
+3. If the file exists, continue without modification.
+
+### PF-04 Tooling Discovery
+1. Resolve `TOOLING_CMD` per the blueprint policy.
+2. If `TOOLING_CMD` cannot be resolved → **ABORT**: `**PIPELINE ABORT: Cannot locate framework-ai-development-tooling/ai-tooling.sh. Ensure the tooling repo is loaded in the workspace.**`
+
+Log all pre-flight outcomes to the pipeline activity log before proceeding.
+
 ## Routing
 
 Route by intent:
@@ -42,6 +82,23 @@ After each specialist returns:
 - Require a valid `handoff` payload.
 - Stop immediately on `status: blocked` or `status: fail` and report blockers.
 - Pass only `requirement_ids`, `step_tokens`, key checks, and required artifact paths to the next specialist.
+
+## Pipeline Abort Rules (REQ-052)
+
+The dispatcher shall **abort the entire pipeline** — no further specialists invoked, no partial continuation — under any of these conditions:
+
+1. **Pre-flight check failure**: Any PF-01 through PF-04 check fails (detailed above).
+2. **Specialist returns `status: blocked` or `status: fail`**: The pipeline terminates after recording the failure. The dispatcher shall NOT attempt recovery, retry, or fallback to a different specialist.
+3. **Specialist returns no handoff payload**: If a specialist invocation completes without returning a parseable `handoff` object, the dispatcher shall treat this as an unrecoverable error and abort: `**PIPELINE ABORT: Specialist <stage> did not return a valid handoff payload.**`
+4. **Specialist returns handoff with missing required fields**: If `stage`, `status`, or `summary` is absent, abort: `**PIPELINE ABORT: Specialist <stage> returned an incomplete handoff (missing: <fields>).**`
+5. **Unrecoverable tool or system error**: If the dispatcher itself encounters an error it cannot recover from (e.g., cannot write to the log file, cannot invoke a subagent), abort with: `**PIPELINE ABORT: Dispatcher encountered an unrecoverable error: <description>.**`
+
+On abort:
+- Emit `**PIPELINE ABORT: <reason>**` in bold.
+- Append the abort reason to the pipeline activity log.
+- Emit the pipeline summary table with all completed stages and the aborted stage marked as `abort`.
+- Do NOT attempt to invoke any remaining specialists.
+- Return the final handoff with `status: fail` and the abort reason in `blockers`.
 
 ## Narration Protocol
 

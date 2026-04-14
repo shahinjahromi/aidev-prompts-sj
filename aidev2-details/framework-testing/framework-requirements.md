@@ -1217,6 +1217,85 @@ Based on findings above, the following gaps are not covered by existing REQs:
 
 ---
 
+### REQ-052 Pipeline aborts on unrecoverable stage errors
+
+#### Acceptance Criteria
+- AC-052a: The dispatcher shall abort the entire pipeline — no further specialists invoked — when any specialist returns `status: blocked` or `status: fail`.
+- AC-052b: The dispatcher shall abort when a specialist invocation completes without returning a parseable `handoff` object. The abort message shall be: `**PIPELINE ABORT: Specialist <stage> did not return a valid handoff payload.**`
+- AC-052c: The dispatcher shall abort when a specialist returns a handoff with missing required fields (`stage`, `status`, or `summary`). The abort message shall identify the missing fields.
+- AC-052d: The dispatcher shall abort when it encounters an unrecoverable system error (e.g., cannot write to the log file, cannot invoke a subagent).
+- AC-052e: On abort, the dispatcher shall: (1) emit `**PIPELINE ABORT: <reason>**` in bold, (2) append the abort reason to the pipeline activity log, (3) emit the pipeline summary table with all completed stages and the aborted stage marked as `abort`, and (4) return a final handoff with `status: fail` and the abort reason in `blockers`.
+- AC-052f: The dispatcher shall NOT attempt recovery, retry, or fallback when a stage fails. The only valid action is to abort and report.
+
+#### Acceptance Test — AT-052 Verify pipeline abort on unrecoverable errors
+- Precondition: A full pipeline run is initiated.
+- Steps:
+  1. Simulate a specialist returning `status: fail`; verify the dispatcher halts immediately and does not invoke any further specialists.
+  2. Simulate a specialist returning no handoff payload; verify the dispatcher emits `**PIPELINE ABORT: ...**` and stops.
+  3. Simulate a specialist returning a handoff with `status` missing; verify the dispatcher aborts with the specific missing-field message.
+  4. Verify the pipeline activity log contains the abort reason.
+  5. Verify the pipeline summary table is emitted with the aborted stage marked as `abort`.
+  6. Verify the final handoff has `status: fail` with the reason in `blockers`.
+- Expected:
+  - Pipeline terminates immediately on any unrecoverable error.
+  - No further specialists are invoked after abort.
+  - Abort reason is logged and reported in the summary table and final handoff.
+
+---
+
+### REQ-053 Pipeline aborts when target app folder is missing
+
+#### Acceptance Criteria
+- AC-053a: Before invoking the first specialist, the dispatcher shall verify that the resolved `APP_ROOT` directory exists on disk.
+- AC-053b: If `APP_ROOT` does not exist, the dispatcher shall abort the pipeline with: `**PIPELINE ABORT: Target app folder not found at <resolved path>. The app repository must exist before the pipeline can run.**`
+- AC-053c: If `APP_ROOT` cannot be inferred (no config.yaml value, no sibling match, user not prompted), the dispatcher shall abort with: `**PIPELINE ABORT: Cannot infer APP_ROOT. Provide the app repo path or verify config.yaml.**`
+- AC-053d: The dispatcher shall NOT create the app repository directory. Only `.aidev` bootstrap files inside an existing app repo may be auto-created (see REQ-054).
+- AC-053e: This check shall run as part of the pre-flight sequence (PF-02) before any specialist is invoked.
+
+#### Acceptance Test — AT-053 Verify pipeline abort when app folder is missing
+- Precondition: A blueprint with config.yaml pointing to a non-existent app folder.
+- Steps:
+  1. Run the full pipeline with an `APP_ROOT` that does not exist on disk.
+  2. Verify the dispatcher emits `**PIPELINE ABORT: Target app folder not found at ...**`.
+  3. Verify no specialist is invoked.
+  4. Verify the pipeline summary table shows all stages as `skipped` and the pre-flight as `abort`.
+  5. Verify the pipeline activity log contains the abort entry.
+  6. Change config.yaml to a valid app folder and verify the pipeline starts normally.
+- Expected:
+  - Pipeline aborts before any specialist runs when `APP_ROOT` is missing.
+  - Error message includes the resolved path.
+  - No app repo directory is created by the dispatcher.
+
+---
+
+### REQ-054 Dispatcher auto-creates missing `.aidev` bootstrap files
+
+#### Acceptance Criteria
+- AC-054a: When `APP_ROOT` exists but `APP_ROOT/.aidev/requirements/requirements-state.yaml` does not exist, the dispatcher shall create the file and its parent directories automatically during the pre-flight phase (PF-03).
+- AC-054b: The created `requirements-state.yaml` shall contain: `manifest_version: '1.0'`, `requirement_set_id` (from config.yaml or derived), `app_identifier` (from config.yaml or derived), `implementation_id` (from config.yaml or derived), `iteration_id: 1`, `requirements_version_target: 1.0.0`, `requirements_version_implemented: 0.0.0`, and `requirement_baseline: []`.
+- AC-054c: The file shall use 2-space YAML indentation, block style, no tabs — consistent with REQ-036 and REQ-049.
+- AC-054d: The dispatcher shall never overwrite an existing `requirements-state.yaml`. Bootstrap creation only occurs when the file is absent.
+- AC-054e: The creation shall be narrated: `[dispatcher] Created missing bootstrap file: APP_ROOT/.aidev/requirements/requirements-state.yaml`.
+- AC-054f: The creation shall be logged in the pipeline activity log.
+
+#### Acceptance Test — AT-054 Verify auto-creation of .aidev bootstrap files
+- Precondition: An app repo exists at `APP_ROOT` but contains no `.aidev/` directory.
+- Steps:
+  1. Run the full pipeline targeting the app repo.
+  2. Verify `APP_ROOT/.aidev/requirements/requirements-state.yaml` was created before the first specialist runs.
+  3. Verify the file content matches the expected default structure with correct `implementation_id`, `requirement_set_id`, and `app_identifier`.
+  4. Verify the file uses 2-space YAML indentation with no tabs.
+  5. Verify the dispatcher narration includes the creation message.
+  6. Verify the pipeline activity log records the bootstrap creation.
+  7. Run the pipeline again and verify the file is NOT overwritten (existing file is preserved).
+  8. Verify the pipeline continues normally after bootstrap creation.
+- Expected:
+  - `.aidev/requirements/requirements-state.yaml` is created with correct defaults when missing.
+  - File is never overwritten if it already exists.
+  - Pipeline proceeds normally after bootstrap.
+
+---
+
 ## Traceability Matrix
 - REQ-001 -> AC-001 -> AT-001
 - REQ-002 -> AC-002 -> AT-002
@@ -1269,6 +1348,9 @@ Based on findings above, the following gaps are not covered by existing REQs:
 - REQ-049 -> AC-049 -> AT-049
 - REQ-050 -> AC-050 -> AT-050
 - REQ-051 -> AC-051 -> AT-051
+- REQ-052 -> AC-052 -> AT-052
+- REQ-053 -> AC-053 -> AT-053
+- REQ-054 -> AC-054 -> AT-054
 
 ## Notes
 - This specification is intentionally strict on implementation-id-specific preset files and merged-field parity, including module, to prevent silent schema drift during setup automation.
@@ -1313,3 +1395,6 @@ Based on findings above, the following gaps are not covered by existing REQs:
 - AC-049/AT-049 enforce that all YAML output — from both Python tooling and AI agents — uses 2-space indentation, block style, and no tabs; input YAML is auto-repaired before promote/diff if it contains tabs or parse errors.
 - AC-050/AT-050 enforce that every script-invoking step file contains the exact command template with all required flags (`-r`, `-a`, `--implementation-id`); agents shall never guess which flags to pass.
 - AC-051/AT-051 enforce that Python tooling scripts produce structured error messages (`ERROR [<script>]: <class>: <message>`) on stderr instead of raw tracebacks; agents can parse these for narration and logging.
+- AC-052/AT-052 enforce pipeline abort semantics: the dispatcher must terminate the entire pipeline on specialist failure (`blocked`/`fail`), missing handoff payload, incomplete handoff fields, or unrecoverable system errors — no recovery, retry, or fallback is permitted.
+- AC-053/AT-053 enforce target app folder validation: the dispatcher must verify `APP_ROOT` exists on disk before invoking any specialist; a missing app folder is an unrecoverable abort condition; the dispatcher never creates the app repo directory.
+- AC-054/AT-054 enforce auto-bootstrap of `.aidev` files: when `APP_ROOT` exists but `.aidev/requirements/requirements-state.yaml` is absent, the dispatcher creates it with default values during pre-flight; an existing file is never overwritten.
