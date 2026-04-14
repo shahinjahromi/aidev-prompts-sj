@@ -26,7 +26,7 @@ Only **FR (functional requirements)** and **NFR (non-functional and global CR)**
 
 ### App Manifest Schema
 
-The per-application manifest at `implementations.<IMPLEMENTATION_ID>.manifest_path` must conform to `.schemas/in-application/application_requirements_manifest.json`.
+The per-application manifest at `implementations.<IMPLEMENTATION_ID>.manifest_path` must conform to `.schemas/in-application/requirements-state-schema.json`.
 
 Each `requirement_baseline` item has: `requirement_id`, `pinned_version`, `functional_test_status` (`status`: `unspecified`/`passed`/`failed`, `first_version`, `current_version`, `tested_version`). See [Manifest Format](implementation.md#manifest-format) in `implementation.md`.
 
@@ -64,7 +64,7 @@ Identify your goal and follow the appropriate file and steps:
 8. **Scope discipline**: do exactly what is requested.
 9. **Security**: never store secrets in this repository.
 10. **Genericity**: if a command or example needs a concrete value, describe how to resolve it from `config.yaml` instead of embedding it here.
-11. **Manifest schema**: the app manifest must conform to `.schemas/in-application/application_requirements_manifest.json`.
+11. **Manifest schema**: the app manifest must conform to `.schemas/in-application/requirements-state-schema.json`.
 
 ---
 

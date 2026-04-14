@@ -1110,6 +1110,71 @@ Based on findings above, the following gaps are not covered by existing REQs:
 
 ---
 
+### REQ-047 YAML repair utility in framework tooling
+
+#### Acceptance Criteria
+- AC-047a: The framework tooling shall include a `repair_yaml.py` script invocable via `ai-tooling.sh repair-yaml`.
+- AC-047b: The script shall accept a path argument (file or directory). When given a directory, it shall recursively process all `.yaml` and `.yml` files.
+- AC-047c: The script shall fix the following issues in-place: (1) replace tab indentation with 2-space indentation, (2) normalize inconsistent indentation to 2-space block style, (3) strip trailing whitespace from lines, (4) ensure the file ends with a single newline.
+- AC-047d: The script shall validate that each repaired file is parseable YAML. If a file cannot be parsed after repair, it shall report the error and leave the original file unchanged.
+- AC-047e: The script shall print a summary of files processed, files repaired, and files that could not be repaired.
+- AC-047f: The `ai-tooling.sh` shell wrapper shall include a `repair-yaml` action that routes to `repair_yaml.py`.
+
+#### Acceptance Test — AT-047 Verify YAML repair utility
+- Steps:
+  1. Create a YAML file with tab indentation and inconsistent spacing.
+  2. Run `ai-tooling.sh repair-yaml <file>`.
+  3. Verify the file now uses 2-space indentation with no tabs.
+  4. Verify the file is valid YAML.
+  5. Run against a directory and verify all `.yaml`/`.yml` files are processed.
+  6. Verify unparseable files are reported and left unchanged.
+- Expected:
+  - Tab indentation is replaced with 2-space indentation.
+  - All output files are valid YAML.
+  - Summary is printed to stdout.
+
+---
+
+### REQ-048 Requirements state schema file exists in framework
+
+#### Acceptance Criteria
+- AC-048a: The framework schemas directory (`aidev2-details/aidev2-schemas/in-application/`) shall contain a file named `requirements-state-schema.json` that defines the JSON Schema for `.aidev/requirements/requirements-state.yaml`.
+- AC-048b: The schema shall validate the actual structure produced by `apply_delta_to_app.py`: `manifest_version`, `requirement_set_id`, `app_identifier`, `implementation_id`, `iteration_id`, `requirements_version_target`, `requirements_version_implemented`, and `requirement_baseline` (array of objects with `requirement_id` and `pinned_version`).
+- AC-048c: The schema title shall be "Requirements State" (not "manifest"). The description shall reference `.aidev/requirements/requirements-state.yaml`.
+- AC-048d: The older `application_requirements_manifest.json` schema in the same directory is superseded by this file. Both may coexist during transition, but `requirements-state-schema.json` is canonical.
+
+#### Acceptance Test — AT-048 Verify requirements state schema
+- Steps:
+  1. Verify `aidev2-details/aidev2-schemas/in-application/requirements-state-schema.json` exists.
+  2. Validate the schema against a known-good `requirements-state.yaml` file.
+  3. Verify the schema title is "Requirements State".
+  4. Verify required fields match what `apply_delta_to_app.py` writes.
+- Expected:
+  - Schema file exists and validates real requirements-state.yaml files.
+  - Title uses "Requirements State" terminology, not "manifest".
+
+---
+
+### REQ-049 Framework YAML writers always produce valid 2-space indented YAML without tabs
+
+#### Acceptance Criteria
+- AC-049a: All Python tooling that writes YAML shall use `yaml.safe_dump` with `indent=2, default_flow_style=False, sort_keys=False, allow_unicode=True`.
+- AC-049b: All agent-generated YAML content shall use 2-space indentation, block mapping style, and no tab characters. Agent instructions shall specify this as a hard constraint.
+- AC-049c: Before any promote or diff operation, the tooling shall validate that input YAML files are parseable. If a file contains tabs or is unparseable, the `repair-yaml` utility (REQ-047) shall be invoked automatically before proceeding.
+- AC-049d: `.editorconfig` in both the prompts root and in blueprint templates shall enforce `indent_style = space` and `indent_size = 2` for `*.yaml` and `*.yml` files.
+
+#### Acceptance Test — AT-049 Verify YAML output consistency
+- Steps:
+  1. Run a full pipeline that writes YAML files (promote, diff, apply).
+  2. Check every written YAML file for tab characters — none shall be present.
+  3. Verify indentation is consistently 2-space.
+  4. Verify `yaml.safe_dump` calls in Python tooling use `indent=2, default_flow_style=False`.
+- Expected:
+  - No YAML file contains tabs.
+  - All YAML files use 2-space block style.
+
+---
+
 ## Traceability Matrix
 - REQ-001 -> AC-001 -> AT-001
 - REQ-002 -> AC-002 -> AT-002
@@ -1157,6 +1222,9 @@ Based on findings above, the following gaps are not covered by existing REQs:
 - REQ-044 -> AC-044 -> AT-044
 - REQ-045 -> AC-045 -> AT-045
 - REQ-046 -> AC-046 -> AT-046
+- REQ-047 -> AC-047 -> AT-047
+- REQ-048 -> AC-048 -> AT-048
+- REQ-049 -> AC-049 -> AT-049
 
 ## Notes
 - This specification is intentionally strict on implementation-id-specific preset files and merged-field parity, including module, to prevent silent schema drift during setup automation.
@@ -1196,3 +1264,6 @@ Based on findings above, the following gaps are not covered by existing REQs:
 - AC-044/AT-044 enforce dispatcher pre-warming: the dispatcher must accumulate `pipeline_context` across stages, pre-build next specialist prompts before current specialist completes, and include `cached_data` to prevent redundant file reads.
 - AC-045/AT-045 enforce no redundant YAML reads: agents must consume script output and `cached_data` before falling back to file reads; reading current-requirements YAML during planning or implementation is forbidden when the data is available in the structured diff or cached_data.
 - AC-046/AT-046 enforce pipeline activity logging: every run must produce a `YYYY-MM-DD-HH-MM-SS-aidev2.log` file in `BLUEPRINT_ROOT/10-logs/` capturing all agent/subagent activity, thinking, tool calls, script invocations, errors, and the pipeline summary table.
+- AC-047/AT-047 enforce a YAML repair utility: `ai-tooling.sh repair-yaml` shall fix tab indentation, normalize to 2-space block style, and validate parseability; this prevents the "YAML indentation error in pending-promotion files" runtime fix that previously required manual intervention.
+- AC-048/AT-048 enforce that a `requirements-state-schema.json` exists in `aidev2-schemas/in-application/` and uses "Requirements State" terminology rather than "manifest", aligning with REQ-033's established path at `.aidev/requirements/requirements-state.yaml`.
+- AC-049/AT-049 enforce that all YAML output — from both Python tooling and AI agents — uses 2-space indentation, block style, and no tabs; input YAML is auto-repaired before promote/diff if it contains tabs or parse errors.

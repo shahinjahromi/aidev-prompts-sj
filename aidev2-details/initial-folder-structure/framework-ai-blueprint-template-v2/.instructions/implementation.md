@@ -35,7 +35,7 @@ All prompt paths are relative to `../` (blueprint root). Shared prompts director
 **Action (AI):**
 1. Read `config.yaml` → confirm `implementation_id` is known. If not, stop and ask.
 2. Read `implementations.<IMPLEMENTATION_ID>.manifest_path`.
-3. Verify manifest structure conforms to `.schemas/in-application/application_requirements_manifest.json`.
+3. Verify manifest structure conforms to `.schemas/in-application/requirements-state-schema.json`.
 4. Confirm manifest `requirements_version_target` matches the promoted requirements version.
 5. Confirm developer has set app manifest `iteration_id` appropriately.
 
@@ -430,7 +430,7 @@ Files under `02-implementation/02-implementation-mapping/` control which impleme
 
 ## Manifest Format
 
-**Schema:** `.schemas/in-application/application_requirements_manifest.json`
+**Schema:** `.schemas/in-application/requirements-state-schema.json`
 
 **Example entry:**
 ```yaml
