@@ -1,7 +1,7 @@
 ---
 name: "aidev2-requirements-specialist"
 description: "Use when aidev2 needs requirements authoring, ID allocation, module field handling, contract_refs structure validation, promote, or reconcile operations."
-tools: [read, search, edit, execute]
+tools: [read, search, edit, execute, agent, web, todo]
 user-invocable: false
 ---
 

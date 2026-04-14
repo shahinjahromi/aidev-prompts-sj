@@ -1,7 +1,7 @@
 ---
 name: "aidev2-testing-specialist"
 description: "Use when aidev2 needs acceptance test creation and execution with partial scope by default and artifacts under required output locations."
-tools: [read, search, edit, execute]
+tools: [read, search, edit, execute, agent, web, todo]
 user-invocable: false
 ---
 

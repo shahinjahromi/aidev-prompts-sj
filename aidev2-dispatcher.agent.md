@@ -2,7 +2,7 @@
 name: "aidev2-dispatcher"
 description: "Use when routing aidev2 work by intent: requirements authoring, diff/plan, implementation, validation gates, testing, or reconciliation with strict stage sequencing."
 argument-hint: "Intent text or step token(s), optionally with from-* stage hints."
-tools: [read, search, agent, todo]
+tools: [read, search, edit, execute, agent, web, todo]
 agents:
   - aidev2-requirements-specialist
   - aidev2-planning-specialist

@@ -1,7 +1,7 @@
 ---
 name: "aidev2-implementation-specialist"
 description: "Use when aidev2 needs scoped code execution from approved plans: execute, extract interfaces, and startup fix steps under current technology constraints."
-tools: [read, search, edit, execute]
+tools: [read, search, edit, execute, agent, web, todo]
 user-invocable: false
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: "aidev2-validation-specialist"
 description: "Use when aidev2 needs validation gates: schema validation, manifest checks, diff-clear checks, and policy gate verification."
-tools: [read, search, execute]
+tools: [read, search, edit, execute, agent, web, todo]
 user-invocable: false
 ---
 
