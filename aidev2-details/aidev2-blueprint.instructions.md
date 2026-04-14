@@ -157,7 +157,7 @@ Important requirement paths relative to `BLUEPRINT_ROOT`:
 
 Important implementation paths relative to `BLUEPRINT_ROOT`:
 - `02-implementation/00-prompts/` -> shared prompt files
-- `02-implementation/00-templates/e2e-playwright/` -> reusable Playwright reporter templates
+- `02-implementation/00-templates/e2e-playwright/` -> reusable Playwright reporter templates (canonical source: `aidev2-details/e2e-playwright-templates/` in user prompts)
 - `02-implementation/02-implementation-mapping/scope.yaml` -> default execution scope per implementation
 - `02-implementation/02-implementation-mapping/<type>.yaml` -> per-type implementation mapping rules
 - `02-implementation/01-implementations/<IMPLEMENTATION_ID>/01-delta-current/structured-diff.yaml`
@@ -172,6 +172,7 @@ Important implementation paths relative to `BLUEPRINT_ROOT`:
 - `02-implementation/01-implementations/<IMPLEMENTATION_ID>/51-plan-history/`
 - `02-implementation/01-implementations/<IMPLEMENTATION_ID>/52-plan-execution-history/`
 - `02-implementation/01-implementations/<IMPLEMENTATION_ID>/53-update-history/`
+- `03-test-results/<IMPLEMENTATION_ID>/` -> test report artifacts (HTML, JSON, screenshots)
 
 App repo paths (relative to `APP_ROOT`) that are typically required by aidev2:
 - `.aidev/requirements/requirements-state.yaml` -> implementation manifest

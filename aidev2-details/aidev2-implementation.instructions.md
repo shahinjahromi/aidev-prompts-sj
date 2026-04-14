@@ -140,9 +140,9 @@ When generating or updating `playwright.config.ts`:
   2. Assert the expected element is visible in the DOM.
   3. Capture a full-page screenshot with `testInfo.attach('screenshot-<UIC-ID>', { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' })`.
 - If the scenario visits more than one screen state within the same UIC, attach a screenshot for each visited state, while preserving one top-level test result row for that UIC.
-- Report: use `ui-html-reporter.ts`. This reporter embeds screenshots inline and shows a plain-language "Why it passed / Why it failed" explanation instead of HTTP request/response traffic.
+- Report: use `ui-html-reporter.ts` (canonical source: `aidev2-details/e2e-playwright-templates/helpers/ui-html-reporter.ts`). This reporter embeds screenshots inline and shows a plain-language "Why it passed / Why it failed" explanation instead of HTTP request/response traffic.
 - Run UI tests with: `npx playwright test --project=ui` (default, `TEST_MODE` unset)
-- API project reporter: use `traffic-html-reporter.ts` (HTTP request/response format retained for API tests).
+- API project reporter: use `traffic-html-reporter.ts` (canonical source: `aidev2-details/e2e-playwright-templates/helpers/traffic-html-reporter.ts`). HTTP request/response format retained for API tests.
 
 ### API tests (HTTP endpoints, BFF, backend services)
 

@@ -1,7 +1,7 @@
 # IM-06 Create Tests
 Inputs: plan, results, functional requirements AC/AT, E2E_ROOT.
 Action: create Playwright tests and config under IMPL_ROOT/06-e2e-tests.
-Rules: traceability to AT IDs, keep reporter/template compatibility.
+Rules: traceability to AT IDs, keep reporter/template compatibility. Copy reporter templates from `aidev2-details/e2e-playwright-templates/helpers/` (canonical source in user prompts).
 
 UI testing details (when UI is in scope):
 - Include UI-contract acceptance coverage for all relevant `ui_contracts` items tied to the scoped requirements.

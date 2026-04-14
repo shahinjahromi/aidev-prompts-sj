@@ -979,7 +979,7 @@ _Implementation: fakebank-omb-bff-web-go_
 
 #### FINDING-001: Deployed tooling `MANIFEST_REL_PATH` stale (REQ-033 violation)
 - **Symptom**: `common.py` in `framework-ai-development-tooling/` used `manifests/requirements-manifest.yaml` instead of `.aidev/requirements/requirements-state.yaml`.
-- **Root Cause**: Deployed tooling was out of sync with the template version under `aidev2-details/initial-folder-structure/`.
+- **Root Cause**: Deployed tooling was out of sync with the reference version under `aidev2-details/framework-ai-development-tooling/`.
 - **Fix**: Updated `MANIFEST_REL_PATH` in `framework-ai-development-tooling/common.py` to `".aidev/requirements/requirements-state.yaml"`.
 - **REQ Impact**: REQ-033 (requirements state file path) was already correct in the requirements doc; the tooling simply hadn't been updated.
 
