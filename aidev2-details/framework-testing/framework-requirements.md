@@ -42,6 +42,11 @@ This document defines acceptance criteria and acceptance tests for the framework
 - Framework template's `initial-folder-structure` lives under `aidev2-details/`
 - Implementation pipeline includes explicit manifest update step (IM-10) that records implemented requirement IDs in `requirements-state.yaml` and sets `requirements_version_implemented`
 - Implementation pipeline generates `.aidev/docs/variables.md` listing all runtime environment variables in a Markdown table
+- A dedicated run-tests prompt (`aidev2-08-run-tests.prompt.md`) exists for standalone test execution with setup, pre-checks, run, and post-run validation
+- Reusable Playwright reporter templates (traffic-html, traffic-json, ui-html) live under `aidev2-details/e2e-playwright-templates/helpers/` in the user prompts folder
+- A UI screenshot HTML reporter template (`ui-html-reporter.ts`) embeds screenshots inline with pass/fail explanations instead of HTTP traffic
+- Test result artifacts are stored under `BLUEPRINT_ROOT/03-test-results/<IMPLEMENTATION_ID>/` in the blueprint, not inside `06-e2e-tests/`
+- Framework tooling reference copy lives directly under `aidev2-details/framework-ai-development-tooling/`, not nested under `initial-folder-structure/`
 
 ## Requirements
 
@@ -848,6 +853,120 @@ This document defines acceptance criteria and acceptance tests for the framework
 
 ---
 
+### REQ-038 Dedicated run-tests prompt exists for standalone test execution
+
+#### Acceptance Criteria
+- AC-038: A top-level prompt file `aidev2-08-run-tests.prompt.md` shall exist in the user prompts folder.
+- The prompt shall follow the `aidev2-NN-` naming convention and route through the dispatcher to the testing specialist.
+- The prompt shall support resolving the implementation ID from `config.yaml`, setting up the test environment, running tests (headless by default), and validating post-run artifacts.
+- The prompt shall pass `E2E_REPORTS_ROOT` as an environment variable so reports land under `BLUEPRINT_ROOT/03-test-results/<IMPLEMENTATION_ID>/`.
+- The prompt shall support headless, headed, debug, and single-feature run modes.
+- The prompt shall validate that report artifacts exist in `03-test-results/<IMPLEMENTATION_ID>/` after the run and that no artifacts were written under `06-e2e-tests/`.
+
+#### Acceptance Test — AT-038 Verify run-tests prompt exists and routes correctly
+- Precondition: User prompts folder is accessible.
+- Steps:
+  1. Verify `aidev2-08-run-tests.prompt.md` exists at the prompts root.
+  2. Verify the file follows the `aidev2-NN-` naming convention.
+  3. Verify the prompt references the dispatcher agent.
+  4. Verify the prompt mentions `E2E_REPORTS_ROOT` and `03-test-results/`.
+- Expected:
+  - Prompt exists with correct naming, dispatcher routing, and report path configuration.
+
+---
+
+### REQ-039 Reusable Playwright reporter templates live under `aidev2-details/e2e-playwright-templates/`
+
+#### Acceptance Criteria
+- AC-039: The user prompts folder shall contain reusable Playwright reporter template files under `aidev2-details/e2e-playwright-templates/helpers/`.
+- At minimum, the following files shall exist: `traffic-html-reporter.ts`, `traffic-json-reporter.ts`, `ui-html-reporter.ts`.
+- These templates are the canonical source; implementations copy them verbatim into `IMPL_ROOT/06-e2e-tests/helpers/`.
+- The templates shall use only relative paths and environment variables (no hardcoded absolute paths).
+- A `README.txt` shall exist in the templates root explaining usage.
+
+#### Acceptance Test — AT-039 Verify reporter templates exist in prompts folder
+- Precondition: User prompts folder is accessible.
+- Steps:
+  1. Verify `aidev2-details/e2e-playwright-templates/helpers/traffic-html-reporter.ts` exists.
+  2. Verify `aidev2-details/e2e-playwright-templates/helpers/traffic-json-reporter.ts` exists.
+  3. Verify `aidev2-details/e2e-playwright-templates/helpers/ui-html-reporter.ts` exists.
+  4. Verify `aidev2-details/e2e-playwright-templates/README.txt` exists.
+  5. Verify no template contains hardcoded absolute paths.
+- Expected:
+  - All three reporter files and README.txt exist.
+  - No hardcoded absolute paths in templates.
+
+---
+
+### REQ-040 UI screenshot HTML reporter embeds screenshots inline with pass/fail explanations
+
+#### Acceptance Criteria
+- AC-040: The `ui-html-reporter.ts` template shall produce an HTML report that:
+  - Embeds screenshots inline (base64 `<img>` tags) for every attached screenshot in every test result.
+  - Shows a plain-language "Why it passed" or "Why it failed" explanation per test row, instead of HTTP request/response traffic.
+  - Includes a summary bar with passed/failed/skipped counts.
+  - Shows one result row per executed `UIC-*` ID.
+  - Uses fixed column widths consistent with the traffic reporter (RT=100px, Status=150px, Test=150px, remaining width for screenshots/explanation).
+- The reporter shall read screenshot attachments from `testInfo.attachments` entries with `contentType: 'image/png'`.
+- The reporter shall not show HTTP traffic columns; those belong only in the traffic reporters.
+
+#### Acceptance Test — AT-040 Verify UI HTML reporter embeds screenshots
+- Precondition: A UI test run has completed with screenshot attachments.
+- Steps:
+  1. Open the HTML report generated by `ui-html-reporter.ts`.
+  2. Verify each test row contains at least one inline `<img>` tag with base64 screenshot data.
+  3. Verify each test row contains a pass/fail explanation text.
+  4. Verify no HTTP request/response traffic column exists.
+  5. Verify the summary bar shows correct passed/failed/skipped counts.
+- Expected:
+  - Screenshots are embedded inline as base64 images.
+  - Pass/fail explanations are present for every row.
+  - No HTTP traffic columns exist.
+
+---
+
+### REQ-041 Test result artifacts stored under `03-test-results/` in the blueprint root
+
+#### Acceptance Criteria
+- AC-041: All test result artifacts (HTML reports, JSON reports, screenshots, traces) shall be stored under `BLUEPRINT_ROOT/03-test-results/<IMPLEMENTATION_ID>/`.
+- The `03-test-results/` folder shall exist at the blueprint root level (same level as `01-requirements/`, `02-implementation/`).
+- The framework shall create this folder if it does not exist when running tests.
+- No test artifacts shall be written inside `06-e2e-tests/` or any other location.
+- The run-tests prompt, implementation instructions, and Playwright config shall all consistently reference this path.
+
+#### Acceptance Test — AT-041 Verify test results location in blueprint
+- Precondition: A test run has been executed against a blueprint.
+- Steps:
+  1. Verify `BLUEPRINT_ROOT/03-test-results/` exists.
+  2. Verify `BLUEPRINT_ROOT/03-test-results/<IMPLEMENTATION_ID>/` contains report files.
+  3. Verify no report artifacts exist under `IMPL_ROOT/06-e2e-tests/`.
+  4. Verify `BLUEPRINT_ROOT/03-test-results/` is at the same directory level as `01-requirements/` and `02-implementation/`.
+- Expected:
+  - All test artifacts are under `03-test-results/<IMPLEMENTATION_ID>/`.
+  - No artifacts under `06-e2e-tests/`.
+
+---
+
+### REQ-042 Framework tooling reference lives directly under `aidev2-details/framework-ai-development-tooling/`
+
+#### Acceptance Criteria
+- AC-042: The framework tooling reference copy (Python scripts, `ai-tooling.sh`, etc.) shall reside at `aidev2-details/framework-ai-development-tooling/` in the user prompts folder.
+- The tooling shall NOT be nested under `initial-folder-structure/` — it is a direct child of `aidev2-details/`.
+- All references in framework instructions, requirements docs, and findings shall use the path `aidev2-details/framework-ai-development-tooling/` (not `aidev2-details/initial-folder-structure/framework-ai-development-tooling/`).
+- The `initial-folder-structure/` folder under `aidev2-details/` shall contain only the blueprint template, not the tooling.
+
+#### Acceptance Test — AT-042 Verify tooling location
+- Precondition: User prompts folder is accessible.
+- Steps:
+  1. Verify `aidev2-details/framework-ai-development-tooling/ai-tooling.sh` exists.
+  2. Verify `aidev2-details/initial-folder-structure/framework-ai-development-tooling/` does NOT exist.
+  3. Verify no instruction or requirements file references `initial-folder-structure/framework-ai-development-tooling/`.
+- Expected:
+  - Tooling exists directly under `aidev2-details/`.
+  - No tooling copy exists under `initial-folder-structure/`.
+
+---
+
 ---
 
 ## Framework Testing Findings — fakebank-omb-bff-web-ai-blueprint Run
@@ -912,7 +1031,7 @@ _Implementation: fakebank-omb-bff-web-go_
 
 Based on findings above, the following gaps were not covered by existing REQs (items 4-5 are now covered by REQ-036 and REQ-037):
 
-1. **Tooling sync with template**: Deployed tooling under `framework-ai-development-tooling/` shall match the template version under `aidev2-details/initial-folder-structure/framework-ai-development-tooling/`. There is currently no REQ enforcing this.
+1. **Tooling sync with template**: Deployed tooling under `framework-ai-development-tooling/` shall match the template version under `aidev2-details/framework-ai-development-tooling/`. There is currently no REQ enforcing this.
 2. **YAML authoring safety for list items**: Authoring agents shall quote any list item string that contains `{` or `}` to prevent YAML parser misinterpretation. No existing REQ covers YAML authoring safety.
 3. **Promote script grouped file support**: REQ-027 defines the folder structure but does not explicitly require the promote tooling to handle grouped subdirectories. The requirement could be strengthened.
 4. ~~App manifest update after implementation~~ — now covered by REQ-036.
@@ -958,6 +1077,11 @@ Based on findings above, the following gaps were not covered by existing REQs (i
 - REQ-035 -> AC-035 -> AT-035
 - REQ-036 -> AC-036 -> AT-036
 - REQ-037 -> AC-037 -> AT-037
+- REQ-038 -> AC-038 -> AT-038
+- REQ-039 -> AC-039 -> AT-039
+- REQ-040 -> AC-040 -> AT-040
+- REQ-041 -> AC-041 -> AT-041
+- REQ-042 -> AC-042 -> AT-042
 
 ## Notes
 - This specification is intentionally strict on implementation-id-specific preset files and merged-field parity, including module, to prevent silent schema drift during setup automation.
@@ -989,3 +1113,8 @@ Based on findings above, the following gaps were not covered by existing REQs (i
 - AC-035/AT-035 enforce DB schema migration artifacts: every physical_database_schema change must produce both a full resulting schema file and a companion `-migration` file before the run is considered complete.
 - AC-036/AT-036 enforce that the implementation pipeline updates the app manifest (`requirements-state.yaml`) with all implemented requirement IDs and sets `requirements_version_implemented` equal to `requirements_version_target`; the pipeline is not complete if the manifest is still empty.
 - AC-037/AT-037 enforce that the implementation pipeline generates `.aidev/docs/variables.md` with a complete, alphabetically sorted Markdown table of all runtime environment variables including Required, Default, and Description columns.
+- AC-038/AT-038 enforce that a dedicated `aidev2-08-run-tests.prompt.md` exists for standalone test execution with setup, pre-checks, run modes, and post-run artifact validation.
+- AC-039/AT-039 enforce that reusable Playwright reporter templates (traffic-html, traffic-json, ui-html) live under `aidev2-details/e2e-playwright-templates/helpers/` as the canonical copy source.
+- AC-040/AT-040 enforce that the UI HTML reporter embeds screenshots inline with pass/fail explanations instead of HTTP traffic; one row per UIC-* ID.
+- AC-041/AT-041 enforce that all test result artifacts are stored under `BLUEPRINT_ROOT/03-test-results/<IMPLEMENTATION_ID>/` at the blueprint root level.
+- AC-042/AT-042 enforce that the framework tooling reference copy lives at `aidev2-details/framework-ai-development-tooling/`, not nested under `initial-folder-structure/`.
