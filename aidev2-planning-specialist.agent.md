@@ -1,7 +1,7 @@
 ---
 name: "aidev2-planning-specialist"
 description: "Use when aidev2 needs structured diff generation and plan artifact creation from diff-only scope."
-tools: [read, search, edit, execute]
+tools: [read, search, edit, execute, agent, todo, web]
 user-invocable: false
 ---
 

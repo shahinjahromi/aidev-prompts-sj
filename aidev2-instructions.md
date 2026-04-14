@@ -92,4 +92,4 @@ Agents must minimise YAML I/O round-trips:
 
 ## Pipeline Activity Log
 
-Every pipeline run produces a log file at `BLUEPRINT_ROOT/.aidev/logs/YYYY-MM-DD-HH-MM-SS-aidev2.log` (REQ-046). The dispatcher creates the file and passes `LOG_FILE` to every specialist via `pipeline_context`. All agents and subagents must append timestamped entries for every action: tool calls, script invocations, decisions/thinking, narration lines, errors, and handoff summaries. Use `echo "<line>" >> "$LOG_FILE"` to append. The log is append-only — never truncate or overwrite.
+Every pipeline run produces a log file at `BLUEPRINT_ROOT/10-logs/YYYY-MM-DD-HH-MM-SS-aidev2.log` (REQ-046). The dispatcher creates the file and passes `LOG_FILE` to every specialist via `pipeline_context`. All agents and subagents must append timestamped entries for every action: tool calls, script invocations, decisions/thinking, narration lines, errors, and handoff summaries. Use `echo "<line>" >> "$LOG_FILE"` to append. The log is append-only — never truncate or overwrite.

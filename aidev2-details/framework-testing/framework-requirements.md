@@ -1077,7 +1077,7 @@ Based on findings above, the following gaps are not covered by existing REQs:
 
 #### Acceptance Criteria
 - AC-046: Every pipeline run (full or partial) shall produce a plain-text log file named `YYYY-MM-DD-HH-MM-SS-aidev2.log` where the timestamp is the ISO-8601-safe datetime (no colons, no dots) of the pipeline start.
-- The log file shall be written to `BLUEPRINT_ROOT/.aidev/logs/`. The directory shall be created if it does not exist.
+- The log file shall be written to `BLUEPRINT_ROOT/10-logs/`. The directory shall be created if it does not exist.
 - The dispatcher shall create the log file at pipeline start and pass the absolute path (`LOG_FILE`) to every specialist in `pipeline_context`.
 - Every specialist (agent and subagent) shall append entries to `LOG_FILE` throughout execution. Logged entries must include:
   - Stage start/end with timestamps and elapsed time
@@ -1095,7 +1095,7 @@ Based on findings above, the following gaps are not covered by existing REQs:
 #### Acceptance Test — AT-046 Verify pipeline activity log
 - Precondition: A full pipeline run completes (pass or fail).
 - Steps:
-  1. Verify `BLUEPRINT_ROOT/.aidev/logs/` contains a file matching `????-??-??-??-??-??-aidev2.log`.
+  1. Verify `BLUEPRINT_ROOT/10-logs/` contains a file matching `????-??-??-??-??-??-aidev2.log`.
   2. Verify the first line contains `[PIPELINE START]` with a timestamp.
   3. Verify each stage has `STAGE START` and `STAGE END` entries with matching stage names.
   4. Verify at least one script invocation entry exists with command, exit code, and elapsed time.
@@ -1195,4 +1195,4 @@ Based on findings above, the following gaps are not covered by existing REQs:
 - AC-043/AT-043 enforce diff summary script availability: `summarize_diff.py` (via `ai-tooling.sh summarize-diff`) produces a plain-text summary with counts, IDs, and module_changed flags, replacing agent-side structured-diff.yaml parsing.
 - AC-044/AT-044 enforce dispatcher pre-warming: the dispatcher must accumulate `pipeline_context` across stages, pre-build next specialist prompts before current specialist completes, and include `cached_data` to prevent redundant file reads.
 - AC-045/AT-045 enforce no redundant YAML reads: agents must consume script output and `cached_data` before falling back to file reads; reading current-requirements YAML during planning or implementation is forbidden when the data is available in the structured diff or cached_data.
-- AC-046/AT-046 enforce pipeline activity logging: every run must produce a `YYYY-MM-DD-HH-MM-SS-aidev2.log` file in `BLUEPRINT_ROOT/.aidev/logs/` capturing all agent/subagent activity, thinking, tool calls, script invocations, errors, and the pipeline summary table.
+- AC-046/AT-046 enforce pipeline activity logging: every run must produce a `YYYY-MM-DD-HH-MM-SS-aidev2.log` file in `BLUEPRINT_ROOT/10-logs/` capturing all agent/subagent activity, thinking, tool calls, script invocations, errors, and the pipeline summary table.

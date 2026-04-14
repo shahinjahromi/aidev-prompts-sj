@@ -2,7 +2,7 @@
 name: "aidev2-dispatcher"
 description: "Use when routing aidev2 work by intent: requirements authoring, diff/plan, implementation, validation gates, testing, or reconciliation with strict stage sequencing."
 argument-hint: "Intent text or step token(s), optionally with from-* stage hints."
-tools: [read, search, agent, todo]
+tools: [read, search, edit, execute, agent, todo, web]
 agents:
   - aidev2-requirements-specialist
   - aidev2-planning-specialist
@@ -81,8 +81,8 @@ Derive each row from the `timing` and `errors` fields of the corresponding hando
 
 At pipeline start, before invoking the first specialist:
 1. Compute `LOG_TIMESTAMP` as `YYYY-MM-DD-HH-MM-SS` from the current datetime (no colons, no dots).
-2. Create log directory `BLUEPRINT_ROOT/.aidev/logs/` if it does not exist.
-3. Create log file `BLUEPRINT_ROOT/.aidev/logs/<LOG_TIMESTAMP>-aidev2.log`.
+2. Create log directory `BLUEPRINT_ROOT/10-logs/` if it does not exist.
+3. Create log file `BLUEPRINT_ROOT/10-logs/<LOG_TIMESTAMP>-aidev2.log`.
 4. Write the first line: `[<timestamp>][dispatcher] [PIPELINE START] implementation_id=<ID> stages=<list>`.
 5. Store the absolute log file path as `LOG_FILE` in `pipeline_context`.
 6. Pass `LOG_FILE` to every specialist in their invocation prompt.
