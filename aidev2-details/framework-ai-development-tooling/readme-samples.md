@@ -1,65 +1,65 @@
-# Sixert Full Path Command Sequence
+# Full Path Command Sequence
 
 ## Paths
 
-- Tool script: `/media/psf/z-work-ai-enablement/projects/ai-development-tooling/ai-tooling.sh`
-- Requirements root: `/media/psf/z-work-ai-enablement/projects/sixert-bank-specs/01-requirements`
-- App root: `/media/psf/z-work-ai-enablement/projects/sixert_bank-main`
-- Implementation id: `SIXERT_NODEJS_01`
+- Tool script: `$TOOL` (path to `ai-tooling.sh`)
+- Requirements root: `$REQ` (path to `<blueprint>/01-requirements`)
+- App root: `$APP` (path to the application repository)
+- Implementation id: `$IMPL` (e.g. `MY_APP_01`)
 
 ## 1) Bootstrap (generic)
 
 ```bash
-/media/psf/z-work-ai-enablement/projects/ai-development-tooling/ai-tooling.sh bootstrap \
-  -r /media/psf/z-work-ai-enablement/projects/sixert-bank-specs/01-requirements \
-  -a /media/psf/z-work-ai-enablement/projects/sixert_bank-main
+"$TOOL" bootstrap \
+  -r "$REQ" \
+  -a "$APP"
 ```
 
 ## 2) Promote pending requirements
 
 ```bash
-/media/psf/z-work-ai-enablement/projects/ai-development-tooling/ai-tooling.sh promote \
-  -r /media/psf/z-work-ai-enablement/projects/sixert-bank-specs/01-requirements \
-  -a /media/psf/z-work-ai-enablement/projects/sixert_bank-main \
-  --implementation-id SIXERT_NODEJS_01
+"$TOOL" promote \
+  -r "$REQ" \
+  -a "$APP" \
+  --implementation-id "$IMPL"
 ```
 
 ## 3) Generate delta
 
 ```bash
-/media/psf/z-work-ai-enablement/projects/ai-development-tooling/ai-tooling.sh delta \
-  -r /media/psf/z-work-ai-enablement/projects/sixert-bank-specs/01-requirements \
-  -a /media/psf/z-work-ai-enablement/projects/sixert_bank-main \
-  --implementation-id SIXERT_NODEJS_01
+"$TOOL" delta \
+  -r "$REQ" \
+  -a "$APP" \
+  --implementation-id "$IMPL"
 ```
 
 Review delta in (01-delta-current/ contains only structured-diff.yaml):
 
-- `/media/psf/z-work-ai-enablement/projects/sixert-bank-specs/02-implementation-state/01-implementations/SIXERT_NODEJS_01/01-delta-current/structured-diff.yaml`
-- `/media/psf/z-work-ai-enablement/projects/sixert-bank-specs/02-implementation-state/01-implementations/SIXERT_NODEJS_01/02-delta-history/01-delta-current.yaml`
+- `<spec-root>/02-implementation-state/01-implementations/$IMPL/01-delta-current/structured-diff.yaml`
+- `<spec-root>/02-implementation-state/01-implementations/$IMPL/02-delta-history/01-delta-current.yaml`
 
 ## 4) Generate AI plan
 
 ```bash
-/media/psf/z-work-ai-enablement/projects/ai-development-tooling/ai-tooling.sh plan \
-  -r /media/psf/z-work-ai-enablement/projects/sixert-bank-specs/01-requirements \
-  -a /media/psf/z-work-ai-enablement/projects/sixert_bank-main \
-  --implementation-id SIXERT_NODEJS_01
+"$TOOL" plan \
+  -r "$REQ" \
+  -a "$APP" \
+  --implementation-id "$IMPL"
 ```
 
 Review plan in:
 
-- `/media/psf/z-work-ai-enablement/projects/sixert-bank-specs/02-implementation-state/01-implementations/SIXERT_NODEJS_01/03-ai-plan-current/current-plan.md`
+- `<spec-root>/02-implementation-state/01-implementations/$IMPL/03-ai-plan-current/current-plan.md`
 
 ## 5) Apply delta to app manifest state
 
 ```bash
-/media/psf/z-work-ai-enablement/projects/ai-development-tooling/ai-tooling.sh apply \
-  -r /media/psf/z-work-ai-enablement/projects/sixert-bank-specs/01-requirements \
-  -a /media/psf/z-work-ai-enablement/projects/sixert_bank-main \
-  --implementation-id SIXERT_NODEJS_01
+"$TOOL" apply \
+  -r "$REQ" \
+  -a "$APP" \
+  --implementation-id "$IMPL"
 ```
 
 App manifest updated:
 
-- `/media/psf/z-work-ai-enablement/projects/sixert_bank-main/.aidev/requirements/requirements-state.yaml`
+- `$APP/.aidev/requirements/requirements-state.yaml`

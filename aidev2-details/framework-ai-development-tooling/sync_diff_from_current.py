@@ -22,7 +22,7 @@ Usage:
 import os
 from typing import Dict, Set
 
-from bootstrap_sixert import extract_requirements_from_yaml, pick_bucket
+from bootstrap_core import extract_requirements_from_yaml, pick_bucket
 from common import (
     build_parser,
     DIFF_BUCKETS_BY_ARTIFACT_TYPE,

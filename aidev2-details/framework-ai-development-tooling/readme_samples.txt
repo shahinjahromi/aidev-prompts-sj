@@ -1,11 +1,11 @@
 AI Development Tooling - Samples (Action Script Only)
 
 Copy/paste variable exports:
-export AI_DEV_TOOLING_BASE=/media/psf/z-work-ai-enablement/projects/ai-development-tooling
-export AI_DEV_REQ=/media/psf/z-work-ai-enablement/projects/sixert-bank-specs/01-requirements
-export AI_DEV_IMPL_ROOT=/media/psf/z-work-ai-enablement/projects/sixert-bank-specs/02-implementation-state/01-implementations
-export AI_DEV_APP=/media/psf/z-work-ai-enablement/projects/sixert_bank-main
-export AI_DEV_IMPL=SIXERT_NODEJS_01
+export AI_DEV_TOOLING_BASE=<path-to>/ai-development-tooling
+export AI_DEV_REQ=<path-to-blueprint>/01-requirements
+export AI_DEV_IMPL_ROOT=<path-to-blueprint>/02-implementation-state/01-implementations
+export AI_DEV_APP=<path-to-app-repo>
+export AI_DEV_IMPL=<IMPLEMENTATION_ID>
 export AI_DEV_TOOLING_CMD="$AI_DEV_TOOLING_BASE/ai-tooling.sh"
 
 Requirements source examples (flat layout):

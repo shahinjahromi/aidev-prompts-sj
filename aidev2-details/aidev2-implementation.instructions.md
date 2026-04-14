@@ -79,7 +79,7 @@ Purpose:
 
 Command:
 ```bash
-"$TOOLING_CMD" diff -r "$REQ_PATH" --implementation-id "$IMPLEMENTATION_ID"
+"$TOOLING_CMD" diff -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID"
 ```
 
 After diff:

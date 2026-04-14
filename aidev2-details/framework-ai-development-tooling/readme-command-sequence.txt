@@ -1,10 +1,10 @@
 Command sequence for requirement lifecycle
 
 Base variables:
-- REQ=/media/psf/z-work-ai-enablement/projects/sixert-bank-specs/01-requirements
-- APP=/media/psf/z-work-ai-enablement/projects/sixert_bank-main
-- IMPL=SIXERT_NODEJS_01
-- TOOL=/media/psf/z-work-ai-enablement/projects/ai-development-tooling/ai-tooling.sh
+- REQ=<path-to-blueprint>/01-requirements
+- APP=<path-to-app-repo>
+- IMPL=<IMPLEMENTATION_ID>
+- TOOL=<path-to>/ai-development-tooling/ai-tooling.sh
 
 1) update merged requirements from diffs
 Command:

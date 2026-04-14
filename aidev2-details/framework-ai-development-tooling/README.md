@@ -24,12 +24,12 @@ Examples:
 - `./ai-tooling.sh bootstrap -r <requirements-path> -a <app-path>`
 - `./ai-tooling.sh merge -r <requirements-path> --all-implementations`
 - `./ai-tooling.sh refresh-merged -r <requirements-path> --all-implementations`
-- `./ai-tooling.sh delta -r <requirements-path> --implementation-id SIXERT_NODEJS_01`
-- `./ai-tooling.sh plan -r <requirements-path> --implementation-id SIXERT_NODEJS_01`
-- `./ai-tooling.sh apply -r <requirements-path> --implementation-id SIXERT_NODEJS_01`
+- `./ai-tooling.sh delta -r <requirements-path> --implementation-id <IMPL_ID>`
+- `./ai-tooling.sh plan -r <requirements-path> --implementation-id <IMPL_ID>`
+- `./ai-tooling.sh apply -r <requirements-path> --implementation-id <IMPL_ID>`
 - `./ai-tooling.sh update-merged -r <requirements-path> --all-implementations`
-- `./ai-tooling.sh diff -r <requirements-path> --implementation-id SIXERT_NODEJS_01`
-- `./ai-tooling.sh promote -r <requirements-path> --implementation-id SIXERT_NODEJS_01`
+- `./ai-tooling.sh diff -r <requirements-path> --implementation-id <IMPL_ID>`
+- `./ai-tooling.sh promote -r <requirements-path> --implementation-id <IMPL_ID>`
 - `./ai-tooling.sh all -r <requirements-path> --all-implementations`
 
 ## Required identifiers
@@ -50,8 +50,7 @@ Examples:
 
 ## App requirements manifest file
 
-The file `$APP/.aidev/requirements/requirements-state.yaml` (for example
-`/media/psf/z-work-ai-enablement/projects/sixert_bank-main/.aidev/requirements/requirements-state.yaml`)
+The file `$APP/.aidev/requirements/requirements-state.yaml`
 is the app-side control and traceability manifest for requirement implementation state.
 
 What this file represents:
@@ -78,12 +77,10 @@ Use this sequence for each iteration.
 ### 0) Set base paths
 
 ```bash
-REQ=/media/psf/z-work-ai-enablement/projects/sixert-bank-specs/01-requirements
-APP=/media/psf/z-work-ai-enablement/projects/sixert_bank-main
-IMPL=SIXERT_NODEJS_01
-TOOL=/media/psf/z-work-ai-enablement/projects/ai-development-tooling/ai-tooling.sh
-- For this layout, set `REQ` to the numbered requirements root:
-  - `/media/psf/z-work-ai-enablement/projects/sixert-bank-specs/01-requirements`
+REQ=<path-to-blueprint>/01-requirements
+APP=<path-to-app-repo>
+IMPL=<IMPLEMENTATION_ID>
+TOOL=<path-to>/ai-development-tooling/ai-tooling.sh
 ```
 
 ### 1) Add or update requirements in pending-promotion staging

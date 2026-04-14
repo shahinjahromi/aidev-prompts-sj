@@ -98,7 +98,11 @@ Reading individual YAML files one-at-a-time is the dominant I/O cost during requ
 2. **Derive sequences from cache.** When computing `next_seq`, use the already-cached file contents — do not re-read files you have already loaded.
 3. **Re-read only on write.** After writing a YAML file, re-read only that file to refresh the cache. Do not re-read the entire tree.
 4. **Use the instructions cache.** If the session memory file `aidev2-config-cache.md` already contains `max_sequence` values for a type, use those as the starting point and scan only for IDs above that value. Update the cache after authoring.
-5. **Script-first for promote (REQ-042).** RQ-02 Promote is mechanical — execute via `ai-tooling.sh promote`. Read only stdout/stderr and exit code. Do not parse pending-promotion or current YAML to replicate promote logic.
+5. **Script-first for promote (REQ-042, REQ-050).** RQ-02 Promote is mechanical — execute the exact command from the step file:
+   ```bash
+   "$TOOLING_CMD" promote -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID"
+   ```
+   Read only stdout/stderr and exit code. Do not parse pending-promotion or current YAML to replicate promote logic.
 6. **Consume cached_data first (REQ-045).** If the dispatcher provides `cached_data` containing requirement paths, max_sequence values, or config data, use those. Do not re-read YAML files for data already in `cached_data`.
 
 ---
