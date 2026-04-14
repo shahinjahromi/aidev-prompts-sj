@@ -75,6 +75,11 @@ For each implementation:
 
 If only one implementation exists, note that it is auto-selectable.
 
+Additionally derive requirement state:
+- For each type prefix (FR, NFR, GLOBAL, TS, MAC, UIC, AC, AT), scan pending + current files and record `max_sequence`.
+- List all requirement YAML file paths under pending and current.
+- Summarise standing NFR and Global CR titles (one line each) so specialists can reference constraints without re-reading the full YAML.
+
 ## Step 5 — Write Cache Entry
 
 Write a new section to `/memories/session/aidev2-config-cache.md`:
@@ -88,6 +93,27 @@ Write a new section to `/memories/session/aidev2-config-cache.md`:
 - schemas_root: <value>
 - pending_req_path: <value>
 - current_req_path_by_type: <value>
+
+### Max Sequences
+
+- FR: <n>
+- NFR: <n>
+- GLOBAL: <n>
+- TS: <n>
+- MAC: <n>
+- UIC: <n>
+- AC: <n>
+- AT: <n>
+
+### Standing NFR / Global CR Summary
+
+- NFR-XXXXX-<short-title>: <one-line summary>
+- GLOBAL-XXXXX-<short-title>: <one-line summary>
+
+### Requirement File Paths
+
+- pending: <list of YAML file relative paths>
+- current: <list of YAML file relative paths>
 
 ### Implementations
 

@@ -40,14 +40,7 @@ This document defines acceptance criteria and acceptance tests for the framework
 - DB physical schema changes produce both a full resulting schema file and a companion `-migration` file
 - Process instructions file named `aidev2-instructions.md`; README named `aidev2-readme.md` pointing to it
 - Framework template's `initial-folder-structure` lives under `aidev2-details/`
-- Implementation pipeline includes explicit manifest update step (IM-10) that records implemented requirement IDs in `requirements-state.yaml` and sets `requirements_version_implemented`
-- Implementation pipeline generates `.aidev/docs/variables.md` listing all runtime environment variables in a Markdown table
-- A dedicated run-tests prompt (`aidev2-08-run-tests.prompt.md`) exists for standalone test execution with setup, pre-checks, run, and post-run validation
-- Reusable Playwright reporter templates (traffic-html, traffic-json, ui-html) live under `aidev2-details/e2e-playwright-templates/helpers/` in the user prompts folder
-- A UI screenshot HTML reporter template (`ui-html-reporter.ts`) embeds screenshots inline with pass/fail explanations instead of HTTP traffic
-- Test result artifacts are stored under `BLUEPRINT_ROOT/03-test-results/<IMPLEMENTATION_ID>/` in the blueprint, not inside `06-e2e-tests/`
-- Framework tooling reference copy lives directly under `aidev2-details/framework-ai-development-tooling/`, not nested under `initial-folder-structure/`
-- All YAML output by agents and Python tooling uses 2-space indent, block style, no tabs; enforced by instruction rules, `.editorconfig`, and explicit `indent=2` in Python `yaml.safe_dump` / `yaml.dump` calls
+- All YAML output uses 2-space indentation, block style, no tabs; `.editorconfig` enforces this at repository level
 
 ## Requirements
 
@@ -799,197 +792,21 @@ This document defines acceptance criteria and acceptance tests for the framework
 
 ---
 
-### REQ-036 Implementation pipeline updates app manifest with implemented requirements
+### REQ-036 YAML output uses consistent formatting
 
 #### Acceptance Criteria
-- AC-036: The implementation pipeline shall include an explicit manifest-update step (IM-10) that runs after implementation is complete and the diff is clear.
-- For every requirement ID in the structured diff's `created` and `updated` lists, the step shall add or update a `requirement_baseline` entry in `APP_ROOT/.aidev/requirements/requirements-state.yaml` with `requirement_id` and `pinned_version` set to `requirements_version_target`.
-- For every MAC ID in the `models_and_contracts_diff` `created` and `updated` lists, the step shall add a baseline entry.
-- For items in the `removed` list, the step shall remove them from `requirement_baseline`.
-- The step shall set `requirements_version_implemented` equal to `requirements_version_target`.
-- The pipeline shall not be considered complete if `requirements_version_implemented` still equals `0.0.0` or differs from `requirements_version_target`.
+- AC-036: All YAML files written by the framework (agent output and Python tooling) shall use 2-space indentation and block mapping style. Tab characters shall never appear in YAML output.
 
-#### Acceptance Test — AT-036 Verify manifest update after implementation
-- Precondition: A full pipeline run (promote → diff → plan → execute → fix → tests) has been completed successfully.
-- Steps:
-  1. Read `APP_ROOT/.aidev/requirements/requirements-state.yaml` after the pipeline completes.
-  2. Verify `requirements_version_implemented` equals `requirements_version_target`.
-  3. Verify `requirement_baseline` contains an entry for every requirement ID from the structured diff's `created` and `updated` lists.
-  4. Verify `requirement_baseline` contains entries for every MAC ID from `models_and_contracts_diff.created` and `models_and_contracts_diff.updated`.
-  5. Verify no removed requirement IDs remain in `requirement_baseline`.
-  6. Verify each baseline entry has a `pinned_version` matching `requirements_version_target`.
+#### Acceptance Tests
+- AT-036:
+  1. Run a full pipeline that writes at least one requirement YAML, one manifest YAML, and one plan YAML.
+  2. For each written file, verify indentation uses exactly 2 spaces per level (no tabs, no 4-space).
+  3. Verify `yaml.safe_dump` / `yaml.dump` calls in Python tooling pass `indent=2, default_flow_style=False`.
+  4. Verify `.editorconfig` exists at the prompts root and in the blueprint template with `indent_style = space` and `indent_size = 2` for `*.yaml` / `*.yml`.
 - Expected:
-  - `requirements_version_implemented` matches `requirements_version_target`.
-  - All implemented requirement and MAC IDs are present in `requirement_baseline`.
-  - No removed IDs remain.
-
----
-
-### REQ-037 Implementation pipeline generates `.aidev/docs/variables.md` with all environment variables
-
-#### Acceptance Criteria
-- AC-037: The implementation pipeline shall include a docs generation step (IM-11) that produces `APP_ROOT/.aidev/docs/variables.md`.
-- The file shall contain a Markdown table with columns: Variable, Required, Default, Description.
-- The table shall list every environment variable the application reads at runtime, sourced from env-reading calls in code, config files, and startup scripts.
-- Variables shall be sorted alphabetically.
-- `Required` shall be "Yes" if the app fails to start without it, "No" if a default exists.
-- `Default` shall show the fallback value from code, or be empty if none.
-- `Description` shall be a one-sentence explanation of the variable's purpose.
-- The file shall not include variables used only in tests or CI pipelines.
-- The file shall be regenerated on every implementation run to stay current.
-
-#### Acceptance Test — AT-037 Verify variables.md generation
-- Precondition: A full pipeline run has completed on an app that reads environment variables.
-- Steps:
-  1. Verify `APP_ROOT/.aidev/docs/variables.md` exists after the pipeline completes.
-  2. Verify the file contains a Markdown table with the four required columns.
-  3. Cross-reference the table with actual env-reading calls in the application source code.
-  4. Verify every `os.Getenv`, `process.env`, `os.environ`, or equivalent call has a corresponding row.
-  5. Verify variables are sorted alphabetically.
-  6. Verify the Required and Default columns are accurate.
-- Expected:
-  - `variables.md` exists and contains a complete, accurate, alphabetically sorted table.
-  - No env-reading call in the codebase is missing from the table.
-  - Required/Default values match the code.
-
----
-
-### REQ-038 Dedicated run-tests prompt exists for standalone test execution
-
-#### Acceptance Criteria
-- AC-038: A top-level prompt file `aidev2-08-run-tests.prompt.md` shall exist in the user prompts folder.
-- The prompt shall follow the `aidev2-NN-` naming convention and route through the dispatcher to the testing specialist.
-- The prompt shall support resolving the implementation ID from `config.yaml`, setting up the test environment, running tests (headless by default), and validating post-run artifacts.
-- The prompt shall pass `E2E_REPORTS_ROOT` as an environment variable so reports land under `BLUEPRINT_ROOT/03-test-results/<IMPLEMENTATION_ID>/`.
-- The prompt shall support headless, headed, debug, and single-feature run modes.
-- The prompt shall validate that report artifacts exist in `03-test-results/<IMPLEMENTATION_ID>/` after the run and that no artifacts were written under `06-e2e-tests/`.
-
-#### Acceptance Test — AT-038 Verify run-tests prompt exists and routes correctly
-- Precondition: User prompts folder is accessible.
-- Steps:
-  1. Verify `aidev2-08-run-tests.prompt.md` exists at the prompts root.
-  2. Verify the file follows the `aidev2-NN-` naming convention.
-  3. Verify the prompt references the dispatcher agent.
-  4. Verify the prompt mentions `E2E_REPORTS_ROOT` and `03-test-results/`.
-- Expected:
-  - Prompt exists with correct naming, dispatcher routing, and report path configuration.
-
----
-
-### REQ-039 Reusable Playwright reporter templates live under `aidev2-details/e2e-playwright-templates/`
-
-#### Acceptance Criteria
-- AC-039: The user prompts folder shall contain reusable Playwright reporter template files under `aidev2-details/e2e-playwright-templates/helpers/`.
-- At minimum, the following files shall exist: `traffic-html-reporter.ts`, `traffic-json-reporter.ts`, `ui-html-reporter.ts`.
-- These templates are the canonical source; implementations copy them verbatim into `IMPL_ROOT/06-e2e-tests/helpers/`.
-- The templates shall use only relative paths and environment variables (no hardcoded absolute paths).
-- A `README.txt` shall exist in the templates root explaining usage.
-
-#### Acceptance Test — AT-039 Verify reporter templates exist in prompts folder
-- Precondition: User prompts folder is accessible.
-- Steps:
-  1. Verify `aidev2-details/e2e-playwright-templates/helpers/traffic-html-reporter.ts` exists.
-  2. Verify `aidev2-details/e2e-playwright-templates/helpers/traffic-json-reporter.ts` exists.
-  3. Verify `aidev2-details/e2e-playwright-templates/helpers/ui-html-reporter.ts` exists.
-  4. Verify `aidev2-details/e2e-playwright-templates/README.txt` exists.
-  5. Verify no template contains hardcoded absolute paths.
-- Expected:
-  - All three reporter files and README.txt exist.
-  - No hardcoded absolute paths in templates.
-
----
-
-### REQ-040 UI screenshot HTML reporter embeds screenshots inline with pass/fail explanations
-
-#### Acceptance Criteria
-- AC-040: The `ui-html-reporter.ts` template shall produce an HTML report that:
-  - Embeds screenshots inline (base64 `<img>` tags) for every attached screenshot in every test result.
-  - Shows a plain-language "Why it passed" or "Why it failed" explanation per test row, instead of HTTP request/response traffic.
-  - Includes a summary bar with passed/failed/skipped counts.
-  - Shows one result row per executed `UIC-*` ID.
-  - Uses fixed column widths consistent with the traffic reporter (RT=100px, Status=150px, Test=150px, remaining width for screenshots/explanation).
-- The reporter shall read screenshot attachments from `testInfo.attachments` entries with `contentType: 'image/png'`.
-- The reporter shall not show HTTP traffic columns; those belong only in the traffic reporters.
-
-#### Acceptance Test — AT-040 Verify UI HTML reporter embeds screenshots
-- Precondition: A UI test run has completed with screenshot attachments.
-- Steps:
-  1. Open the HTML report generated by `ui-html-reporter.ts`.
-  2. Verify each test row contains at least one inline `<img>` tag with base64 screenshot data.
-  3. Verify each test row contains a pass/fail explanation text.
-  4. Verify no HTTP request/response traffic column exists.
-  5. Verify the summary bar shows correct passed/failed/skipped counts.
-- Expected:
-  - Screenshots are embedded inline as base64 images.
-  - Pass/fail explanations are present for every row.
-  - No HTTP traffic columns exist.
-
----
-
-### REQ-041 Test result artifacts stored under `03-test-results/` in the blueprint root
-
-#### Acceptance Criteria
-- AC-041: All test result artifacts (HTML reports, JSON reports, screenshots, traces) shall be stored under `BLUEPRINT_ROOT/03-test-results/<IMPLEMENTATION_ID>/`.
-- The `03-test-results/` folder shall exist at the blueprint root level (same level as `01-requirements/`, `02-implementation/`).
-- The framework shall create this folder if it does not exist when running tests.
-- No test artifacts shall be written inside `06-e2e-tests/` or any other location.
-- The run-tests prompt, implementation instructions, and Playwright config shall all consistently reference this path.
-
-#### Acceptance Test — AT-041 Verify test results location in blueprint
-- Precondition: A test run has been executed against a blueprint.
-- Steps:
-  1. Verify `BLUEPRINT_ROOT/03-test-results/` exists.
-  2. Verify `BLUEPRINT_ROOT/03-test-results/<IMPLEMENTATION_ID>/` contains report files.
-  3. Verify no report artifacts exist under `IMPL_ROOT/06-e2e-tests/`.
-  4. Verify `BLUEPRINT_ROOT/03-test-results/` is at the same directory level as `01-requirements/` and `02-implementation/`.
-- Expected:
-  - All test artifacts are under `03-test-results/<IMPLEMENTATION_ID>/`.
-  - No artifacts under `06-e2e-tests/`.
-
----
-
-### REQ-042 Framework tooling reference lives directly under `aidev2-details/framework-ai-development-tooling/`
-
-#### Acceptance Criteria
-- AC-042: The framework tooling reference copy (Python scripts, `ai-tooling.sh`, etc.) shall reside at `aidev2-details/framework-ai-development-tooling/` in the user prompts folder.
-- The tooling shall NOT be nested under `initial-folder-structure/` — it is a direct child of `aidev2-details/`.
-- All references in framework instructions, requirements docs, and findings shall use the path `aidev2-details/framework-ai-development-tooling/` (not `aidev2-details/initial-folder-structure/framework-ai-development-tooling/`).
-- The `initial-folder-structure/` folder under `aidev2-details/` shall contain only the blueprint template, not the tooling.
-
-#### Acceptance Test — AT-042 Verify tooling location
-- Precondition: User prompts folder is accessible.
-- Steps:
-  1. Verify `aidev2-details/framework-ai-development-tooling/ai-tooling.sh` exists.
-  2. Verify `aidev2-details/initial-folder-structure/framework-ai-development-tooling/` does NOT exist.
-  3. Verify no instruction or requirements file references `initial-folder-structure/framework-ai-development-tooling/`.
-- Expected:
-  - Tooling exists directly under `aidev2-details/`.
-  - No tooling copy exists under `initial-folder-structure/`.
-
----
-
-### REQ-043 All YAML output uses 2-space indent, block style, and no tabs
-
-#### Acceptance Criteria
-- AC-043: All YAML files generated by the framework — whether written by AI agents during authoring, promote, reconcile, diff, plan, or execute steps, or by Python tooling scripts — shall use 2-space indentation, block style (no inline `{}` or `[]` flow notation), and no tab characters.
-- The requirements instruction file and implementation instruction file shall each contain a "YAML Output Rules" section mandating these formatting rules.
-- Python tooling `yaml.safe_dump` and `yaml.dump` calls shall include `indent=2` and `default_flow_style=False` parameters.
-- An `.editorconfig` file shall exist at the user prompts root and in the blueprint template, both specifying `indent_style = space` and `indent_size = 2` for `*.yaml` and `*.yml` files.
-
-#### Acceptance Test — AT-043 Verify YAML formatting enforcement
-- Precondition: User prompts folder and blueprint template are accessible.
-- Steps:
-  1. Open `aidev2-details/aidev2-requirements.instructions.md` and verify a "YAML Output Rules" section exists with 2-space indent and no-tabs rules.
-  2. Open `aidev2-details/aidev2-implementation.instructions.md` and verify the same section exists.
-  3. Open `aidev2-details/framework-ai-development-tooling/common.py` and verify `write_yaml` calls `yaml.safe_dump` with `indent=2, default_flow_style=False`.
-  4. Open `aidev2-details/framework-ai-development-tooling/verify_execution_complete.py` and verify `yaml.safe_dump` includes `indent=2, default_flow_style=False`.
-  5. Open `aidev2-details/framework-ai-development-tooling/interface-extractors/extract-nodejs-library-interfaces.py` and verify `yaml.dump` includes `indent=2`.
-  6. Open `.editorconfig` at the user prompts root and verify `[*.{yaml,yml}]` section has `indent_style = space` and `indent_size = 2`.
-  7. Open `.editorconfig` in `aidev2-details/initial-folder-structure/framework-ai-blueprint-template-v2/` and verify the same.
-- Expected:
-  - All YAML output rules are present in both instruction files.
-  - All Python YAML write calls include `indent=2`.
-  - Both `.editorconfig` files enforce 2-space YAML indentation.
+  - No YAML file contains tab indentation.
+  - All YAML files use 2-space block style.
+  - `.editorconfig` files are present and correctly configured.
 
 ---
 
@@ -1005,7 +822,7 @@ _Implementation: fakebank-omb-bff-web-go_
 
 #### FINDING-001: Deployed tooling `MANIFEST_REL_PATH` stale (REQ-033 violation)
 - **Symptom**: `common.py` in `framework-ai-development-tooling/` used `manifests/requirements-manifest.yaml` instead of `.aidev/requirements/requirements-state.yaml`.
-- **Root Cause**: Deployed tooling was out of sync with the reference version under `aidev2-details/framework-ai-development-tooling/`.
+- **Root Cause**: Deployed tooling was out of sync with the template version under `aidev2-details/initial-folder-structure/`.
 - **Fix**: Updated `MANIFEST_REL_PATH` in `framework-ai-development-tooling/common.py` to `".aidev/requirements/requirements-state.yaml"`.
 - **REQ Impact**: REQ-033 (requirements state file path) was already correct in the requirements doc; the tooling simply hadn't been updated.
 
@@ -1041,27 +858,13 @@ _Implementation: fakebank-omb-bff-web-go_
 - **Symptom**: The promote script tried to process `.gitkeep` placeholder files as YAML documents, causing parse errors.
 - **Fix**: Added a skip condition for `.gitkeep` files in `iter_pending_promotion_doc_paths`.
 
-#### FINDING-009: Implementation pipeline had no manifest update step — `requirements-state.yaml` left empty (new REQ-036)
-- **Symptom**: After a full pipeline run, `APP_ROOT/.aidev/requirements/requirements-state.yaml` still had `requirements_version_implemented: 0.0.0` and empty `requirement_baseline: []`. No requirement IDs were recorded as implemented.
-- **Root Cause**: The implementation instructions (IM-00 through IM-09) had no explicit step to update the app manifest with implemented requirements. `apply_delta_to_app.py` existed in tooling but was never invoked because no instruction step referenced it.
-- **Fix**: Added **IM-10 Update App Manifest** to `aidev2-implementation.instructions.md` and created `08-update-manifest.md` step file. The implementation specialist agent now references both new step files.
-- **REQ Impact**: Created REQ-036 to enforce this going forward.
-
-#### FINDING-010: No framework step to generate `.aidev/docs/variables.md` (new REQ-037)
-- **Symptom**: After implementation, there was no documentation of required environment variables in the app repo.
-- **Root Cause**: No step existed in the pipeline to generate app documentation.
-- **Fix**: Added **IM-11 Generate App Docs** to `aidev2-implementation.instructions.md` and created `09-generate-docs.md` step file.
-- **REQ Impact**: Created REQ-037 to enforce this going forward.
-
 ### New Requirement Candidates
 
-Based on findings above, the following gaps were not covered by existing REQs (items 4-5 are now covered by REQ-036 and REQ-037):
+Based on findings above, the following gaps are not covered by existing REQs:
 
-1. **Tooling sync with template**: Deployed tooling under `framework-ai-development-tooling/` shall match the template version under `aidev2-details/framework-ai-development-tooling/`. There is currently no REQ enforcing this.
+1. **Tooling sync with template**: Deployed tooling under `framework-ai-development-tooling/` shall match the template version under `aidev2-details/initial-folder-structure/framework-ai-development-tooling/`. There is currently no REQ enforcing this.
 2. **YAML authoring safety for list items**: Authoring agents shall quote any list item string that contains `{` or `}` to prevent YAML parser misinterpretation. No existing REQ covers YAML authoring safety.
 3. **Promote script grouped file support**: REQ-027 defines the folder structure but does not explicitly require the promote tooling to handle grouped subdirectories. The requirement could be strengthened.
-4. ~~App manifest update after implementation~~ — now covered by REQ-036.
-5. ~~Environment variables documentation~~ — now covered by REQ-037.
 
 ---
 
@@ -1102,13 +905,6 @@ Based on findings above, the following gaps were not covered by existing REQs (i
 - REQ-034 -> AC-034 -> AT-034
 - REQ-035 -> AC-035 -> AT-035
 - REQ-036 -> AC-036 -> AT-036
-- REQ-037 -> AC-037 -> AT-037
-- REQ-038 -> AC-038 -> AT-038
-- REQ-039 -> AC-039 -> AT-039
-- REQ-040 -> AC-040 -> AT-040
-- REQ-041 -> AC-041 -> AT-041
-- REQ-042 -> AC-042 -> AT-042
-- REQ-043 -> AC-043 -> AT-043
 
 ## Notes
 - This specification is intentionally strict on implementation-id-specific preset files and merged-field parity, including module, to prevent silent schema drift during setup automation.
@@ -1138,10 +934,3 @@ Based on findings above, the following gaps were not covered by existing REQs (i
 - AC-033/AT-033 enforce that the requirements state file (implementation manifest) is located at `.aidev/requirements/requirements-state.yaml` in the app repo; the legacy `manifests/requirements-manifest.yaml` path is forbidden.
 - AC-034/AT-034 enforce design-first authoring: models and contracts are first-class authoring targets; MAC catalog entries and spec files must be created/updated when requested, with or without accompanying FRs.
 - AC-035/AT-035 enforce DB schema migration artifacts: every physical_database_schema change must produce both a full resulting schema file and a companion `-migration` file before the run is considered complete.
-- AC-036/AT-036 enforce that the implementation pipeline updates the app manifest (`requirements-state.yaml`) with all implemented requirement IDs and sets `requirements_version_implemented` equal to `requirements_version_target`; the pipeline is not complete if the manifest is still empty.
-- AC-037/AT-037 enforce that the implementation pipeline generates `.aidev/docs/variables.md` with a complete, alphabetically sorted Markdown table of all runtime environment variables including Required, Default, and Description columns.
-- AC-038/AT-038 enforce that a dedicated `aidev2-08-run-tests.prompt.md` exists for standalone test execution with setup, pre-checks, run modes, and post-run artifact validation.
-- AC-039/AT-039 enforce that reusable Playwright reporter templates (traffic-html, traffic-json, ui-html) live under `aidev2-details/e2e-playwright-templates/helpers/` as the canonical copy source.
-- AC-040/AT-040 enforce that the UI HTML reporter embeds screenshots inline with pass/fail explanations instead of HTTP traffic; one row per UIC-* ID.
-- AC-041/AT-041 enforce that all test result artifacts are stored under `BLUEPRINT_ROOT/03-test-results/<IMPLEMENTATION_ID>/` at the blueprint root level.
-- AC-042/AT-042 enforce that the framework tooling reference copy lives at `aidev2-details/framework-ai-development-tooling/`, not nested under `initial-folder-structure/`.

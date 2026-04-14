@@ -48,3 +48,6 @@ After each specialist returns:
 - Never pass full prompt files or full instruction files to specialists.
 - Pass only lane-specific intent, step tokens, implementation id, requirement ids, and prior stage outputs.
 - Keep routing deterministic when step tokens are explicit.
+- Forward `cached_data` from the previous handoff to the next specialist. This avoids re-reading YAML files that a prior stage already parsed.
+- If the session cache (`/memories/session/aidev2-config-cache.md`) exists, reference it in the specialist prompt so it can skip IM-00 / RQ-01 discovery overhead.
+- When running a full pipeline, warm the cache before the first specialist if it is not already populated.

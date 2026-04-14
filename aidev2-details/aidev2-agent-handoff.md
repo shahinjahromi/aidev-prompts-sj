@@ -27,6 +27,10 @@ handoff:
   next_inputs:
   - key: <name>
     value: <summary value>
+  cached_data:
+    max_sequences: <map of type->number, optional>
+    standing_constraints: <list of NFR/GLOBAL one-line summaries, optional>
+    config_cache_path: <session memory path if written, optional>
 ```
 
 ## Rules
@@ -36,3 +40,4 @@ handoff:
 - Keep `summary` concise but specific.
 - Include artifact paths whenever files are written.
 - Include failed or skipped checks explicitly.
+- Populate `cached_data` when the stage computed reusable state (sequences, standing constraints, config cache). Downstream stages should consume `cached_data` from the handoff before re-reading YAML files.

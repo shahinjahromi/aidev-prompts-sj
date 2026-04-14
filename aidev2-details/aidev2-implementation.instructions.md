@@ -28,16 +28,16 @@ All YAML written by agents during the implementation pipeline must follow these 
 - DB schema contract changes are mandatory work in the same run.
 - Module reassignment (a requirement's `module` field changed between current and manifest baseline) triggers undo/redo logic: remove the requirement's contributions from the old module location, then re-implement under the new module.
 
+## YAML Read Efficiency
+
+Reading YAML files individually is a significant I/O cost. Apply these rules throughout the implementation pipeline:
+
+1. **Batch-read on entry.** At the start of IM-00, read all YAML files under `01-requirements/03-current/` and the manifest in a single parallel batch. Cache parsed contents for the duration of the run.
+2. **Read implementation YAML in one batch.** When entering IM-03 Plan, read `structured-diff.yaml`, any existing `plan.yaml`, `paths.yaml`, and `results.yaml` together — not one-at-a-time.
+3. **Re-read only on write.** After writing any YAML file, refresh only that file in cache.
+4. **Module-scoped file reads.** When the run targets a specific module, limit source-code file reads to: (a) the module's own folder, (b) shared entry points (routing, DI/dependency injection, main/bootstrap, middleware), and (c) files referenced in the structured diff.
+
 ## IM-00 Pre-Step Verification
-
-### YAML Read Efficiency
-
-Minimize redundant file I/O across implementation sub-steps:
-
-1. **Batch reads at step entry.** When a sub-step (diff, plan, execute) needs merged requirements, the manifest, and config, read all three in one parallel batch at the start of the step.
-2. **Do not re-read files already in memory.** If a file was loaded earlier in the same sub-step and has not been written to since, reuse the in-memory copy.
-3. **Carry forward across sub-steps.** When sub-steps run sequentially in the same session (e.g. plan → execute), data loaded in a prior step that has not been modified may be reused without re-reading.
-4. **Diff output reuse.** The structured diff generated in IM-01 should be read once and passed by reference to IM-02, IM-03, and IM-04 — not re-read from disk for each step.
 
 1. Read `BLUEPRINT_ROOT/.instructions/config.yaml` (if present) — extract `IMPLEMENTATION_ID`, `APP_ROOT`, `STARTUP_HINT`, `APP_TEST_STARTUP_HINT`, `MANIFEST`, `TOOLING_CMD`, and DB contract alignment settings. See **Config Resolution** in `aidev2-blueprint.instructions.md`.
 2. Resolve `IMPLEMENTATION_ID`.
@@ -94,6 +94,8 @@ Plan rules:
 - include per-change scope, impacted files, symbols, steps, validation, and risks
 - do not plan unrelated edits
 - for module-reassignment entries, plan explicit undo (old module cleanup) and redo (new module implementation) steps before any content-level updates for the same requirement
+- include a `test_coverage_mapping` section that maps each planned requirement change to the test type (ui, api, or none) and lists the AC/AT IDs that will be exercised by the test. This mapping is consumed by IM-08 to avoid re-reading requirements during test creation.
+- include a `codebase_map` section that lists the key source files, their primary purpose, and the symbols (functions, types, routes, components) relevant to the planned changes. This map reduces file-discovery I/O during IM-04 Execute.
 
 ## IM-04 Execute
 
@@ -118,6 +120,8 @@ Output:
 
 Use stack-aware extraction.
 If a stack-specific tooling extractor is present under `AI_TOOLING/interface-extractors/`, prefer it over manual extraction.
+
+Skip optimisation: if `ref-library-methods.yaml` already exists and the plan did not introduce new external dependencies, reuse the existing file and skip extraction. Log the skip.
 
 ## IM-06 Verify Diff Clear
 
@@ -159,9 +163,9 @@ When generating or updating `playwright.config.ts`:
   2. Assert the expected element is visible in the DOM.
   3. Capture a full-page screenshot with `testInfo.attach('screenshot-<UIC-ID>', { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' })`.
 - If the scenario visits more than one screen state within the same UIC, attach a screenshot for each visited state, while preserving one top-level test result row for that UIC.
-- Report: use `ui-html-reporter.ts` (canonical source: `aidev2-details/e2e-playwright-templates/helpers/ui-html-reporter.ts`). This reporter embeds screenshots inline and shows a plain-language "Why it passed / Why it failed" explanation instead of HTTP request/response traffic.
+- Report: use `ui-html-reporter.ts`. This reporter embeds screenshots inline and shows a plain-language "Why it passed / Why it failed" explanation instead of HTTP request/response traffic.
 - Run UI tests with: `npx playwright test --project=ui` (default, `TEST_MODE` unset)
-- API project reporter: use `traffic-html-reporter.ts` (canonical source: `aidev2-details/e2e-playwright-templates/helpers/traffic-html-reporter.ts`). HTTP request/response format retained for API tests.
+- API project reporter: use `traffic-html-reporter.ts` (HTTP request/response format retained for API tests).
 
 ### API tests (HTTP endpoints, BFF, backend services)
 
@@ -220,21 +224,3 @@ Apply the same suffix to all output files from the same run (HTML, JSON, etc.).
 - For API test runs, keep existing output format unchanged, including request/response reporting style.
 
 Do not modify application code in this step unless the user explicitly switches back to execute/fix.
-
-## IM-10 Update App Manifest
-
-After all requirements are implemented, the diff is clear, and tests pass, update the app manifest at `APP_ROOT/.aidev/requirements/requirements-state.yaml`:
-
-1. For every requirement ID in the structured diff's `created` and `updated` lists, add or update a `requirement_baseline` entry with `requirement_id` and `pinned_version` set to `requirements_version_target`.
-2. For every MAC ID in the `models_and_contracts_diff` `created` and `updated` lists, add a baseline entry.
-3. For items in the `removed` list, remove them from `requirement_baseline`.
-4. Set `requirements_version_implemented` to the value of `requirements_version_target`.
-5. Write the updated manifest.
-
-This step is mandatory. The pipeline is not complete if `requirements_version_implemented` still equals `0.0.0` or differs from `requirements_version_target`.
-
-## IM-11 Generate App Docs
-
-After the manifest is updated, generate `APP_ROOT/.aidev/docs/variables.md` listing every environment variable the application reads at runtime in a Markdown table with columns: Variable, Required, Default, Description.
-
-Source the list from all env-reading calls in code (`os.Getenv`, `process.env`, etc.), config files, and startup scripts. Sort alphabetically. Regenerate on every implementation run.

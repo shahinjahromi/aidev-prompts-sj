@@ -3,6 +3,8 @@ Inputs: TASK_DESCRIPTION, artifact type, pending/current files, local schemas.
 Action: write/update pending artifacts only.
 Rules: FR/NFR/GLOBAL drive code; MAC metadata only; UI contracts are screen-only.
 
+Read efficiency: batch-read all YAML files under `01-pending-promotion/` and `03-current/` in one parallel read at session start. Cache results — do not re-read unless a file is written. If `aidev2-config-cache.md` has `max_sequence` values, use those as the floor.
+
 Module handling:
 - If the user specifies a module, set the `module` field on every authored item.
 - If the user does not mention a module, omit the field.

@@ -11,8 +11,8 @@ Load only:
 - [Handoff Contract](./aidev2-details/aidev2-agent-handoff.md)
 - [Blueprint Policy](./aidev2-details/aidev2-blueprint.instructions.md)
 - [Schema Instructions](./aidev2-details/aidev2-schemas.instructions.md)
-- [Requirements Pipeline](./aidev2-details/aidev2-requirements.instructions.md)
-- [Implementation Pipeline](./aidev2-details/aidev2-implementation.instructions.md)
+
+Do not load the Requirements Pipeline or Implementation Pipeline — validation needs only schema shapes and blueprint policy, not authoring or execution rules.
 
 ## Scope
 

@@ -41,8 +41,6 @@ All YAML written by agents — whether authoring, promoting, reconciling, or gen
 4. **No trailing whitespace** on any line.
 5. **Single newline at end of file.**
 
-These rules apply to every YAML file written during authoring, promote, reconcile, and merge operations.
-
 ---
 
 ## Module Property
@@ -94,12 +92,12 @@ Sequence numbers must be **globally unique within each requirement type** across
 
 ## YAML Read Efficiency
 
-Minimize redundant file I/O during authoring, promote, and reconcile operations:
+Reading individual YAML files one-at-a-time is the dominant I/O cost during requirements authoring. Apply these rules to reduce round-trips:
 
-1. **Batch reads.** When a step needs data from multiple YAML files (e.g. ID uniqueness scan across pending + current), read all required files in a single parallel batch — do not read them one at a time in sequence.
-2. **Cache within the step.** Once a YAML file has been read during the current pipeline step, reuse the in-memory content for the remainder of that step. Do not re-read the same file unless it was written to since the last read.
-3. **Session-level sequence cache.** After the first ID uniqueness scan in a session, store the per-type `max_seq` values in session memory. On subsequent authoring calls in the same session, read only files modified since the cache was populated instead of re-scanning all files.
-4. **Skip unchanged files during promote.** When promoting, compare file modification timestamps or content hashes before copying. Skip files whose content has not changed since the last promote.
+1. **Batch-read on entry.** At the start of an authoring session, read all YAML files under `01-pending-promotion/` and `03-current/` in a single parallel batch. Cache the parsed contents in working memory for the duration of the session.
+2. **Derive sequences from cache.** When computing `next_seq`, use the already-cached file contents — do not re-read files you have already loaded.
+3. **Re-read only on write.** After writing a YAML file, re-read only that file to refresh the cache. Do not re-read the entire tree.
+4. **Use the instructions cache.** If the session memory file `aidev2-config-cache.md` already contains `max_sequence` values for a type, use those as the starting point and scan only for IDs above that value. Update the cache after authoring.
 
 ---
 
