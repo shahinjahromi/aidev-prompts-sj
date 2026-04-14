@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from common import build_parser, generate_merged, merged_path, resolve_target_implementations, validate_target_for_app, write_split_merged, write_yaml
+from common import build_parser, generate_merged, merged_path, resolve_target_implementations, safe_main, validate_target_for_app, write_split_merged, write_yaml
 
 
 def main() -> None:
@@ -17,4 +17,4 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    main()
+    safe_main(main, 'merge_requirements')

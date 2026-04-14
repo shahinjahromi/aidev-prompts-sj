@@ -31,6 +31,7 @@ from common import (
     get_diff_files,
     now_iso,
     read_yaml,
+    safe_main,
     write_yaml,
 )
 
@@ -115,4 +116,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    safe_main(main, 'sync_diff_from_current')

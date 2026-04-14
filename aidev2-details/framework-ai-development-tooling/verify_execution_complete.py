@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 
 import yaml
 
-from common import implementation_structured_diff_path, read_yaml
+from common import implementation_structured_diff_path, read_yaml, safe_main
 
 
 TOOLING_DIR = Path(__file__).resolve().parent
@@ -146,4 +146,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    safe_main(main, 'verify_execution_complete')

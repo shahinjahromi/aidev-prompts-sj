@@ -1175,6 +1175,48 @@ Based on findings above, the following gaps are not covered by existing REQs:
 
 ---
 
+### REQ-050 Every script-invoking step shall include the exact command template with all required flags
+
+#### Acceptance Criteria
+- AC-050a: Every step file (`aidev2-steps/**/*.md`) that invokes a Python tooling script shall include a literal command template in the `Action:` line showing the full command with all required flags and variable placeholders (e.g. `"$TOOLING_CMD" promote -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID"`).
+- AC-050b: The agent shall use the command template verbatim — substituting only the variable values discovered during IM-00 / RQ-01. The agent shall not attempt to invoke a tooling command without all required flags.
+- AC-050c: The required flag set for each tooling action is: `-r`/`--requirements-path` (always required), `-a`/`--app-path` (required when the script needs the app repo), `--implementation-id` (required when the script targets a specific implementation). The step file's `Inputs:` line shall list exactly which variables the command needs.
+- AC-050d: If a variable required by the command template is not yet resolved, the agent shall stop and report the missing variable as a blocker rather than invoking the script without it.
+
+#### Acceptance Test — AT-050 Verify all step files have exact command templates
+- Steps:
+  1. For each step file under `aidev2-steps/` that references `ai-tooling.sh` or `$TOOLING_CMD`:
+     a. Verify an `Action:` line exists with the full command including `-r`, `-a` (if needed), and `--implementation-id` (if needed).
+     b. Verify the `Inputs:` line lists all variables used in the command template.
+  2. Run a pipeline and verify the agent does not invoke any tooling command without the required flags.
+  3. Verify no script invocation fails with "missing required argument" errors.
+- Expected:
+  - Every script-invoking step has an unambiguous command template.
+  - No "missing -r/--requirements-path" or similar errors occur.
+
+---
+
+### REQ-051 Python tooling scripts shall produce structured error output on failure
+
+#### Acceptance Criteria
+- AC-051a: Every Python tooling script (`promote_changes.py`, `generate_structured_diff.py`, `apply_delta_to_app.py`, `verify_execution_complete.py`, `merge_requirements.py`, `sync_diff_from_current.py`, `summarize_diff.py`, `bootstrap.py`) shall wrap its `main()` body in a try/except that catches all exceptions.
+- AC-051b: On any exception, the script shall print a structured error message to stderr in the format: `ERROR [<script_name>]: <error_class>: <message>` and exit with code 1.
+- AC-051c: For `ValueError` exceptions from validation functions (`validate_target_for_app`, `resolve_target_implementations`), the error message shall include the specific validation failure (e.g., `requirement_set_id mismatch`, `app_path not found`, `missing control.yaml`) — not just a Python traceback.
+- AC-051d: The script shall never print a raw Python traceback to stdout. Tracebacks may appear on stderr only when a `--debug` flag is passed.
+- AC-051e: The structured error output shall be parseable by agents for narration and error logging.
+
+#### Acceptance Test — AT-051 Verify tooling scripts produce structured errors
+- Steps:
+  1. Invoke `promote_changes.py` with a valid `-r` but pointing to a directory with no `control.yaml` — verify stderr contains `ERROR [promote_changes]: FileNotFoundError: ...` and exit code is 1.
+  2. Invoke `promote_changes.py` with valid `-r` and `-a` pointing to a mismatched app — verify stderr contains `ERROR [promote_changes]: ValueError: requirement_set_id mismatch ...`.
+  3. Invoke `generate_structured_diff.py` with a non-existent `--implementation-id` — verify stderr contains `ERROR [generate_structured_diff]: ValueError: implementation_id not found ...`.
+  4. Verify no raw Python traceback appears on stdout for any failure case.
+- Expected:
+  - Every failure produces a single structured error line on stderr.
+  - Exit code is always 1 for errors, 0 for success.
+
+---
+
 ## Traceability Matrix
 - REQ-001 -> AC-001 -> AT-001
 - REQ-002 -> AC-002 -> AT-002
@@ -1225,6 +1267,8 @@ Based on findings above, the following gaps are not covered by existing REQs:
 - REQ-047 -> AC-047 -> AT-047
 - REQ-048 -> AC-048 -> AT-048
 - REQ-049 -> AC-049 -> AT-049
+- REQ-050 -> AC-050 -> AT-050
+- REQ-051 -> AC-051 -> AT-051
 
 ## Notes
 - This specification is intentionally strict on implementation-id-specific preset files and merged-field parity, including module, to prevent silent schema drift during setup automation.
@@ -1267,3 +1311,5 @@ Based on findings above, the following gaps are not covered by existing REQs:
 - AC-047/AT-047 enforce a YAML repair utility: `ai-tooling.sh repair-yaml` shall fix tab indentation, normalize to 2-space block style, and validate parseability; this prevents the "YAML indentation error in pending-promotion files" runtime fix that previously required manual intervention.
 - AC-048/AT-048 enforce that a `requirements-state-schema.json` exists in `aidev2-schemas/in-application/` and uses "Requirements State" terminology rather than "manifest", aligning with REQ-033's established path at `.aidev/requirements/requirements-state.yaml`.
 - AC-049/AT-049 enforce that all YAML output — from both Python tooling and AI agents — uses 2-space indentation, block style, and no tabs; input YAML is auto-repaired before promote/diff if it contains tabs or parse errors.
+- AC-050/AT-050 enforce that every script-invoking step file contains the exact command template with all required flags (`-r`, `-a`, `--implementation-id`); agents shall never guess which flags to pass.
+- AC-051/AT-051 enforce that Python tooling scripts produce structured error messages (`ERROR [<script>]: <class>: <message>`) on stderr instead of raw tracebacks; agents can parse these for narration and logging.

@@ -29,6 +29,7 @@ from common import (
     REQUIREMENT_TYPE_TO_ARTIFACT,
     requirements_manifest_path,
     resolve_target_implementations,
+    safe_main,
     sync_technology_selection_mirrors,
     validate_target_for_app,
     write_split_merged,
@@ -334,4 +335,4 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    main()
+    safe_main(main, 'promote_changes')

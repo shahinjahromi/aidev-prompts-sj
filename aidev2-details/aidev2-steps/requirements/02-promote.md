@@ -1,6 +1,7 @@
 # RQ-02 Promote
 Inputs: TOOLING_CMD, REQ_PATH, IMPLEMENTATION_ID, APP_ROOT.
-Action: run promote command; summarize promoted counts.
+Action: run `"$TOOLING_CMD" promote -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID"`.
+Output: promoted items merged into `03-current/`, control.yaml version bumped, diffs rebuilt, merged regenerated.
 Reminder: developer updates app manifest iteration_id manually afterward.
 
 ## Script-First Execution (REQ-042)

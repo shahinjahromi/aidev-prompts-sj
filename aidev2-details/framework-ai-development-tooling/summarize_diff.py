@@ -18,6 +18,7 @@ from common import (
     implementation_structured_diff_path,
     read_yaml,
     resolve_target_implementations,
+    safe_main,
 )
 
 
@@ -151,4 +152,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    safe_main(main, 'summarize_diff')

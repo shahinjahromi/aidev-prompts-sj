@@ -23,6 +23,7 @@ from common import (
     now_iso,
     read_yaml,
     requirements_manifest_path,
+    safe_main,
     sync_technology_selection_mirrors,
     app_manifest_path,
     bump_patch,
@@ -462,4 +463,4 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    main()
+    safe_main(main, 'bootstrap_sixert')

@@ -20,6 +20,7 @@ from common import (
     now_iso,
     read_yaml,
     resolve_target_implementations,
+    safe_main,
     validate_target_for_app,
     write_yaml,
 )
@@ -285,4 +286,4 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    main()
+    safe_main(main, 'generate_structured_diff')

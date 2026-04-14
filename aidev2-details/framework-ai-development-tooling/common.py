@@ -975,3 +975,24 @@ def compare_versions(a: str, b: str) -> int:
     if av > bv:
         return 1
     return 0
+
+
+def safe_main(main_func, script_name: str) -> None:
+    """Wrap a main() function with structured error handling (REQ-051).
+
+    On any exception, prints a structured error message to stderr and exits 1.
+    Never prints raw tracebacks to stdout.
+    """
+    import sys
+    import traceback
+    try:
+        main_func()
+    except SystemExit:
+        raise
+    except Exception as exc:
+        error_class = type(exc).__name__
+        msg = str(exc)
+        print(f"ERROR [{script_name}]: {error_class}: {msg}", file=sys.stderr)
+        if "--debug" in sys.argv:
+            traceback.print_exc(file=sys.stderr)
+        sys.exit(1)

@@ -122,5 +122,7 @@ def main():
                 sys.exit(1)
 
 
+from common import safe_main
+
 if __name__ == "__main__":
-    main()
+    safe_main(main, 'repair_yaml')
