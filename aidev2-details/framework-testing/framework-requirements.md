@@ -1217,6 +1217,28 @@ Based on findings above, the following gaps are not covered by existing REQs:
 
 ---
 
+### REQ-055 Pipeline log first entry includes AI model and version
+
+#### Acceptance Criteria
+- AC-055a: The first line of the pipeline activity log (`[PIPELINE START]`) shall include a `model=<name and version>` field that identifies the exact AI model and version powering the current session (e.g. `model=Claude Opus 4.6`, `model=GPT-4o 2025-04-14`).
+- AC-055b: The model value shall be obtained from the runtime environment or the agent's self-identification — it shall not be hardcoded or guessed.
+- AC-055c: The full first-line format shall be: `[<timestamp>][dispatcher] [PIPELINE START] model=<AI model and version> implementation_id=<ID> stages=<list>`.
+- AC-055d: If the model identity cannot be determined, the agent shall write `model=unknown` rather than omitting the field.
+
+#### Acceptance Test — AT-055 Verify AI model and version in log first entry
+- Precondition: A pipeline run produces a log file under `BLUEPRINT_ROOT/10-logs/`.
+- Steps:
+  1. Open the log file and read the first line.
+  2. Verify the line contains `[PIPELINE START]`.
+  3. Verify a `model=` field is present with a non-empty value.
+  4. Verify the model value matches the AI model actually used for the session.
+  5. Verify the field appears before `implementation_id=`.
+- Expected:
+  - First log line includes `model=<name and version>` between `[PIPELINE START]` and `implementation_id=`.
+  - The value is accurate and non-empty.
+
+---
+
 ### REQ-052 Pipeline aborts on unrecoverable stage errors
 
 #### Acceptance Criteria
@@ -1351,6 +1373,7 @@ Based on findings above, the following gaps are not covered by existing REQs:
 - REQ-052 -> AC-052 -> AT-052
 - REQ-053 -> AC-053 -> AT-053
 - REQ-054 -> AC-054 -> AT-054
+- REQ-055 -> AC-055 -> AT-055
 
 ## Notes
 - This specification is intentionally strict on implementation-id-specific preset files and merged-field parity, including module, to prevent silent schema drift during setup automation.
@@ -1398,3 +1421,4 @@ Based on findings above, the following gaps are not covered by existing REQs:
 - AC-052/AT-052 enforce pipeline abort semantics: the dispatcher must terminate the entire pipeline on specialist failure (`blocked`/`fail`), missing handoff payload, incomplete handoff fields, or unrecoverable system errors — no recovery, retry, or fallback is permitted.
 - AC-053/AT-053 enforce target app folder validation: the dispatcher must verify `APP_ROOT` exists on disk before invoking any specialist; a missing app folder is an unrecoverable abort condition; the dispatcher never creates the app repo directory.
 - AC-054/AT-054 enforce auto-bootstrap of `.aidev` files: when `APP_ROOT` exists but `.aidev/requirements/requirements-state.yaml` is absent, the dispatcher creates it with default values during pre-flight; an existing file is never overwritten.
+- AC-055/AT-055 enforce that the first pipeline log entry includes the AI model name and version (`model=<value>`), obtained from runtime self-identification; this enables traceability of which model produced a given pipeline run.
