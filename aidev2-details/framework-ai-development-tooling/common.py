@@ -110,7 +110,7 @@ def read_yaml(path: str) -> Dict[str, Any]:
 def write_yaml(path: str, data: Dict[str, Any]) -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
-        yaml.safe_dump(data, f, sort_keys=False, allow_unicode=False)
+        yaml.safe_dump(data, f, sort_keys=False, allow_unicode=False, indent=2, default_flow_style=False)
 
 
 def get_artifact_doc_path(requirements_path: str, requirement_type: str, create_dirs: bool = False) -> str:

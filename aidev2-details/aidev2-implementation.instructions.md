@@ -8,6 +8,16 @@ This file replaces blueprint-local implementation instructions for aidev2 prompt
 
 Do not read blueprint-local implementation instructions other than `.instructions/config.yaml`.
 
+## YAML Output Rules
+
+All YAML written by agents during the implementation pipeline must follow these formatting rules:
+
+1. **Indent with 2 spaces. Never use tabs.** Every nesting level is exactly 2 spaces.
+2. **Block style only.** Use `|` or `>` for multi-line strings. Do not use inline `{key: value}` or `[a, b]` flow notation for mappings or sequences.
+3. **Quote strings containing special characters.** Any value containing `{`, `}`, `[`, `]`, `:`, `#`, `&`, `*`, `!`, `|`, `>`, `'`, `"`, `%`, `@`, or backtick must be double-quoted.
+4. **No trailing whitespace** on any line.
+5. **Single newline at end of file.**
+
 ## Core Rules
 
 - Use the local schema bundle at `/home/parallels/.config/Code/User/prompts/aidev2-schemas`.
@@ -19,6 +29,15 @@ Do not read blueprint-local implementation instructions other than `.instruction
 - Module reassignment (a requirement's `module` field changed between current and manifest baseline) triggers undo/redo logic: remove the requirement's contributions from the old module location, then re-implement under the new module.
 
 ## IM-00 Pre-Step Verification
+
+### YAML Read Efficiency
+
+Minimize redundant file I/O across implementation sub-steps:
+
+1. **Batch reads at step entry.** When a sub-step (diff, plan, execute) needs merged requirements, the manifest, and config, read all three in one parallel batch at the start of the step.
+2. **Do not re-read files already in memory.** If a file was loaded earlier in the same sub-step and has not been written to since, reuse the in-memory copy.
+3. **Carry forward across sub-steps.** When sub-steps run sequentially in the same session (e.g. plan → execute), data loaded in a prior step that has not been modified may be reused without re-reading.
+4. **Diff output reuse.** The structured diff generated in IM-01 should be read once and passed by reference to IM-02, IM-03, and IM-04 — not re-read from disk for each step.
 
 1. Read `BLUEPRINT_ROOT/.instructions/config.yaml` (if present) — extract `IMPLEMENTATION_ID`, `APP_ROOT`, `STARTUP_HINT`, `APP_TEST_STARTUP_HINT`, `MANIFEST`, `TOOLING_CMD`, and DB contract alignment settings. See **Config Resolution** in `aidev2-blueprint.instructions.md`.
 2. Resolve `IMPLEMENTATION_ID`.

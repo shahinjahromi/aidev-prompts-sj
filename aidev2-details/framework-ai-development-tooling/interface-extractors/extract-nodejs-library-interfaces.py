@@ -311,7 +311,8 @@ def run(project_root: Path, output_path: Path, source_dirs):
         Dumper=NoAliasDumper,
         sort_keys=False,
         allow_unicode=False,
-        default_flow_style=False
+        default_flow_style=False,
+        indent=2
     )
     output_path.write_text(rendered, encoding='utf-8')
     print(f'Wrote {output_path}')

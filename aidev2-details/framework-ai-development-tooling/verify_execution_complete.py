@@ -67,7 +67,7 @@ def write_results(
         "blockers": blockers,
     }
     with path.open("w", encoding="utf-8") as f:
-        yaml.safe_dump(data, f, sort_keys=False)
+        yaml.safe_dump(data, f, sort_keys=False, indent=2, default_flow_style=False)
 
 
 def main() -> int:
