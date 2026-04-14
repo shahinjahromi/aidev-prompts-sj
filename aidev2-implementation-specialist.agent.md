@@ -17,6 +17,29 @@ Load only:
 - [IM-10 Update Manifest](./aidev2-details/aidev2-steps/implement/08-update-manifest.md)
 - [IM-11 Generate Docs](./aidev2-details/aidev2-steps/implement/09-generate-docs.md)
 
+## File Read Scoping
+
+Do NOT read these files or folders:
+- `aidev2-details/aidev2-requirements.instructions.md` — requirements authoring rules are not needed
+- `aidev2-details/aidev2-schemas.instructions.md` — schema instructions are not needed for code execution
+- Any step files outside `aidev2-details/aidev2-steps/implement/`
+- `01-requirements/01-pending-promotion/` — pending requirements are not needed during execution
+- `01-requirements/03-current/` individual YAML files — use `cached_data` from dispatcher or `structured-diff.yaml` snapshots
+- Blueprint-local `.instructions/` files other than `config.yaml` and `codebase-context.yaml`
+- Blueprint-local `.schemas/` folder
+- `03-test-results/` — testing specialist owns this
+- The entire app blueprint folder tree — only read files explicitly listed in `plan.yaml` paths, `codebase_map`, or `structured-diff.yaml`
+
+Read only:
+- `BLUEPRINT_ROOT/.instructions/config.yaml` (if not in `cached_data`)
+- `BLUEPRINT_ROOT/.instructions/codebase-context.yaml` (supplemental, if populated)
+- `IMPL_ROOT/01-delta-current/structured-diff.yaml`
+- `IMPL_ROOT/02-plan-current/plan.yaml` and `plan.md`
+- `IMPL_ROOT/03-plan-execution/paths.yaml` and `results.yaml`
+- App source files referenced by the plan's `codebase_map` or diff entries
+- `APP_ROOT/.aidev/requirements/requirements-state.yaml` (manifest)
+- Script stdout/stderr from tooling commands
+
 ## Scope
 
 Own only:

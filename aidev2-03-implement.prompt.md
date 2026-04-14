@@ -12,9 +12,6 @@ Expected step tokens: `01-diff` through `07-run-tests`, or ranges.
 
 Use these relative references only:
 - [Dispatcher Agent](./aidev2-dispatcher.agent.md)
-- [Planning Specialist](./aidev2-planning-specialist.agent.md)
-- [Implementation Specialist](./aidev2-implementation-specialist.agent.md)
-- [Testing Specialist](./aidev2-testing-specialist.agent.md)
-- [Validation Specialist](./aidev2-validation-specialist.agent.md)
 - [Agent Handoff Contract](./aidev2-details/aidev2-agent-handoff.md)
-- [Implementation Pipeline](./aidev2-details/aidev2-implementation.instructions.md)
+
+Do NOT load Implementation Pipeline, Blueprint Policy, or specialist agent files here — each specialist loads only what it needs.

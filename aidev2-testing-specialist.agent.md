@@ -15,6 +15,30 @@ Load only:
 - [IM-07 Run Tests](./aidev2-details/aidev2-steps/implement/07-run-tests.md)
 - [Reporter Templates README](./aidev2-details/e2e-playwright-templates/README.txt)
 
+## File Read Scoping
+
+Do NOT read these files or folders:
+- `aidev2-details/aidev2-requirements.instructions.md` — requirements authoring rules are not needed
+- `aidev2-details/aidev2-schemas.instructions.md` — schema instructions are not needed for testing
+- Any step files outside `aidev2-details/aidev2-steps/implement/06-create-tests.md` and `aidev2-details/aidev2-steps/implement/07-run-tests.md`
+- `01-requirements/01-pending-promotion/` — use `cached_data` or plan's `test_coverage_mapping`
+- `01-requirements/03-current/` individual YAML files — use `cached_data` or plan's `test_coverage_mapping` for requirement details and AC/AT IDs
+- `01-requirements/02-diff/` — diff artifacts not needed; use plan data
+- Blueprint-local `.instructions/` files other than `config.yaml` and `codebase-context.yaml`
+- Blueprint-local `.schemas/` folder
+- `02-implementation/01-implementations/<ID>/01-delta-current/` — diff not needed at test stage
+- `02-implementation/01-implementations/<ID>/02-plan-current/` — only read if `test_coverage_mapping` missing from `cached_data`
+
+Read only:
+- `BLUEPRINT_ROOT/.instructions/config.yaml` (if not in `cached_data`)
+- `BLUEPRINT_ROOT/.instructions/codebase-context.yaml` (supplemental, for ports/startup)
+- `IMPL_ROOT/06-e2e-tests/` (existing test files)
+- `03-test-results/<IMPLEMENTATION_ID>/` (for report verification)
+- `plan.yaml` test_coverage_mapping section (only if not in `cached_data`)
+- E2E reporter templates from `aidev2-details/e2e-playwright-templates/`
+- App source files only for startup verification
+- Script stdout/stderr from test execution
+
 ## Scope
 
 Own only:

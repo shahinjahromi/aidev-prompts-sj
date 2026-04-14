@@ -14,6 +14,27 @@ Load only:
 - [IM-01 Diff](./aidev2-details/aidev2-steps/implement/01-diff.md)
 - [IM-02 Plan](./aidev2-details/aidev2-steps/implement/02-plan.md)
 
+## File Read Scoping
+
+Do NOT read these files or folders:
+- `aidev2-details/aidev2-requirements.instructions.md` — requirements authoring rules are not needed
+- `aidev2-details/aidev2-schemas.instructions.md` — schema instructions are not needed for planning
+- Any step files outside `aidev2-details/aidev2-steps/implement/01-diff.md` and `aidev2-details/aidev2-steps/implement/02-plan.md`
+- `01-requirements/01-pending-promotion/` — pending requirements are not consumed during diff/plan
+- Individual `01-requirements/03-current/` YAML files when `cached_data` or `structured-diff.yaml` already provides the data
+- Blueprint-local `.instructions/` files other than `config.yaml` and `codebase-context.yaml`
+- Blueprint-local `.schemas/` folder
+- `03-test-results/` — testing specialist owns this
+- `02-implementation/01-implementations/<ID>/06-e2e-tests/` — not relevant to planning
+
+Read only:
+- `BLUEPRINT_ROOT/.instructions/config.yaml` (if not in `cached_data`)
+- `BLUEPRINT_ROOT/.instructions/codebase-context.yaml` (supplemental, if populated)
+- `IMPL_ROOT/01-delta-current/structured-diff.yaml` (after running diff script)
+- Existing `IMPL_ROOT/02-plan-current/plan.yaml` (if resuming)
+- App source files only as needed for `codebase_map` construction in the plan
+- Script stdout/stderr from tooling commands
+
 ## Scope
 
 Own only:

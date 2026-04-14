@@ -1,5 +1,6 @@
 ---
 description: "Embedded AI-dev v2 implementation pipeline for aidev2 prompts. Covers diff, plan, execute, interface extraction, fix, test creation, and test execution using fixed blueprint layout and local user-level schemas."
+applyTo: "**/.aidev2-no-auto-include"
 ---
 
 # Aidev2 Implementation Pipeline

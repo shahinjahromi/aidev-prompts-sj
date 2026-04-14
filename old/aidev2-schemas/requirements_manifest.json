@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Requirements Manifest",
+  "description": "Tracks which requirement versions are implemented in an app, per implementation. Dates use the timezone configured in .instructions/config.yaml → variables.timezone.",
+  "type": "object",
+  "required": ["manifest_version", "requirement_set_id", "app_identifier", "implementation_id", "iteration_id", "requirements_version_target", "requirements_version_implemented", "requirement_baseline"],
+  "additionalProperties": false,
+  "properties": {
+    "manifest_version": {
+      "type": "string",
+      "description": "Schema version of this manifest file.",
+      "example": "1.0"
+    },
+    "requirement_set_id": {
+      "type": "string",
+      "description": "Canonical requirement set identifier from config.yaml → identity.requirement_set_id."
+    },
+    "app_identifier": {
+      "type": "string",
+      "description": "App identifier from config.yaml → identity.app_identifier."
+    },
+    "implementation_id": {
+      "type": "string",
+      "description": "Implementation identifier. Must match a key under config.yaml → implementations."
+    },
+    "iteration_id": {
+      "type": "integer",
+      "description": "Monotonically increasing iteration counter. Increment before each diff/plan/execute cycle.",
+      "minimum": 1
+    },
+    "requirements_version_target": {
+      "type": "string",
+      "description": "Semver of the requirement set version that this iteration targets."
+    },
+    "requirements_version_implemented": {
+      "type": "string",
+      "description": "Semver of the requirement set version last fully implemented and verified."
+    },
+    "requirement_baseline": {
+      "type": "array",
+      "description": "One entry per requirement tracked in this implementation.",
+      "items": {
+        "type": "object",
+        "required": ["requirement_id", "pinned_version"],
+        "additionalProperties": false,
+        "properties": {
+          "requirement_id": {
+            "type": "string",
+            "description": "Normalized requirement ID. Format: <TYPE>-<7-digit-sequence>-<short-title>.",
+            "pattern": "^(FR|NFR|TS|MAC|UIC|AC|AT)-[0-9]{7}-[a-z0-9-]+(-v[0-9]+)?$"
+          },
+          "pinned_version": {
+            "type": "string",
+            "description": "Semver of the requirement version implemented."
+          },
+          "implementation_initial_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 datetime (with timezone offset) when this requirement was first implemented. Timezone from config.yaml → variables.timezone."
+          },
+          "implementation_last_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 datetime (with timezone offset) when this requirement was last updated/re-implemented. Timezone from config.yaml → variables.timezone."
+          },
+          "e2e_test_status": {
+            "type": "string",
+            "enum": ["NOT_TESTED", "PASSED", "FAILED"],
+            "description": "End-to-end test status for this requirement in the current iteration.",
+            "default": "NOT_TESTED"
+          }
+        }
+      }
+    }
+  }
+}

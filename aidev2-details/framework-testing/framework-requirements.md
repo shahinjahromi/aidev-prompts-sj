@@ -41,6 +41,11 @@ This document defines acceptance criteria and acceptance tests for the framework
 - Process instructions file named `aidev2-instructions.md`; README named `aidev2-readme.md` pointing to it
 - Framework template's `initial-folder-structure` lives under `aidev2-details/`
 - All YAML output uses 2-space indentation, block style, no tabs; `.editorconfig` enforces this at repository level
+- Instruction files (`.instructions.md`) use `applyTo` frontmatter to prevent auto-inclusion; each agent and prompt loads only the instruction files it explicitly references via markdown links
+- The dispatcher agent loads only handoff contract and blueprint policy; it does not load requirements pipeline or implementation pipeline files
+- Each specialist agent declares a "File Read Scoping" section listing files/folders it must NOT read and files it MAY read
+- Prompt files reference only the dispatcher agent and handoff contract; they do not load pipeline instruction files, blueprint policy, or specialist agent files — specialists load their own dependencies
+- No `.instructions.md` file under `old/` shall be auto-included in any conversation
 
 ## Requirements
 
@@ -1318,6 +1323,89 @@ Based on findings above, the following gaps are not covered by existing REQs:
 
 ---
 
+### REQ-056 Instruction files shall not be auto-included globally
+
+#### Acceptance Criteria
+- AC-056a: Every `.instructions.md` file under `aidev2-details/` shall have an `applyTo` YAML frontmatter field set to a pattern that never matches any real workspace file (e.g. `**/.aidev2-no-auto-include`).
+- AC-056b: Every `.instructions.md` file under `old/` shall have the same `applyTo` guard.
+- AC-056c: When a conversation starts without invoking any aidev2 prompt or agent, zero `.instructions.md` files from `aidev2-details/` or `old/` shall appear in the system context.
+- AC-056d: Agents that explicitly reference an instruction file via a markdown link shall still resolve and load that file regardless of the `applyTo` guard.
+
+#### Acceptance Test — AT-056 Verify instruction auto-inclusion is disabled
+- Steps:
+  1. Open a new chat session without invoking any aidev2 prompt.
+  2. Inspect the system context for instruction file references from `aidev2-details/` and `old/`.
+  3. Invoke an aidev2 agent (e.g. requirements specialist) and verify it loads only its explicitly referenced instruction files.
+- Expected:
+  - No aidev2 instruction files appear in the system context of a vanilla session.
+  - Specialist agents still load their scoped instruction files via explicit markdown links.
+
+---
+
+### REQ-057 Dispatcher shall load only routing-essential references
+
+#### Acceptance Criteria
+- AC-057a: The dispatcher agent file shall reference only the handoff contract and blueprint policy instruction files.
+- AC-057b: The dispatcher agent file shall NOT reference the requirements pipeline, implementation pipeline, or schema instructions.
+- AC-057c: The dispatcher agent file shall contain a "File Read Scoping" section listing files and folders it must not read (requirements YAML, implementation artifacts, test results, step files) and files it may read (config.yaml, session cache, script output).
+- AC-057d: All routing rules, pipeline sequencing, pre-flight checks, and abort logic shall remain inline in the dispatcher agent file — no external instruction file is needed for routing.
+
+#### Acceptance Test — AT-057 Verify dispatcher loads minimal context
+- Steps:
+  1. Inspect the dispatcher agent file's markdown link references.
+  2. Verify only handoff contract and blueprint policy are linked.
+  3. Verify a "File Read Scoping" section exists with explicit DO NOT READ and READ ONLY lists.
+  4. Invoke the dispatcher for a full pipeline and verify it does not read requirements pipeline, implementation pipeline, or schema instruction files.
+- Expected:
+  - Dispatcher references exactly 2 instruction files.
+  - File Read Scoping section is present and complete.
+
+---
+
+### REQ-058 Each specialist shall declare file read scoping
+
+#### Acceptance Criteria
+- AC-058a: Every specialist agent file (implementation, planning, requirements, testing, validation) shall contain a "File Read Scoping" section before its "Scope" section.
+- AC-058b: The "File Read Scoping" section shall list files and folders the specialist must NOT read and files it MAY read.
+- AC-058c: No specialist shall read instruction files it does not need:
+  - Implementation specialist: must NOT read requirements instructions or schemas instructions.
+  - Planning specialist: must NOT read requirements instructions or schemas instructions.
+  - Requirements specialist: must NOT read implementation instructions.
+  - Testing specialist: must NOT read requirements instructions or schemas instructions.
+  - Validation specialist: must NOT read requirements instructions or implementation instructions.
+- AC-058d: Specialists shall prefer `cached_data` from the dispatcher and script output over direct YAML file reads for any data the dispatcher or a prior stage already parsed.
+
+#### Acceptance Test — AT-058 Verify specialist read scoping
+- Steps:
+  1. Inspect each specialist agent file for a "File Read Scoping" section.
+  2. Verify the DO NOT READ list excludes instruction files outside the specialist's domain.
+  3. Invoke each specialist with `cached_data` containing pre-parsed requirement data and verify it does not re-read the source YAML files.
+- Expected:
+  - All 5 specialists have File Read Scoping sections.
+  - No cross-domain instruction file reads occur.
+  - `cached_data` is consumed before any YAML file read.
+
+---
+
+### REQ-059 Prompts shall reference only dispatcher and handoff contract
+
+#### Acceptance Criteria
+- AC-059a: Prompt files that delegate to the dispatcher (`aidev2-02-requirements`, `aidev2-03-implement`, `aidev2-05-all-steps`, `aidev2-08-run-tests`) shall reference only the dispatcher agent file and the agent handoff contract.
+- AC-059b: Prompt files shall NOT reference blueprint policy, requirements pipeline, implementation pipeline, schema instructions, or individual specialist agent files.
+- AC-059c: Each trimmed prompt file shall include a comment or note explaining that specialists load their own dependencies.
+
+#### Acceptance Test — AT-059 Verify prompt reference minimization
+- Steps:
+  1. Inspect each dispatcher-delegating prompt file for markdown link references.
+  2. Verify only the dispatcher agent and handoff contract are linked.
+  3. Verify no pipeline instruction files or specialist agent files are linked.
+  4. Run each prompt and verify the pipeline works correctly with specialists loading their own instructions.
+- Expected:
+  - Each prompt references exactly 2 files (dispatcher + handoff contract).
+  - Pipeline execution succeeds with specialists self-loading their instruction files.
+
+---
+
 ## Traceability Matrix
 - REQ-001 -> AC-001 -> AT-001
 - REQ-002 -> AC-002 -> AT-002
@@ -1374,6 +1462,10 @@ Based on findings above, the following gaps are not covered by existing REQs:
 - REQ-053 -> AC-053 -> AT-053
 - REQ-054 -> AC-054 -> AT-054
 - REQ-055 -> AC-055 -> AT-055
+- REQ-056 -> AC-056 -> AT-056
+- REQ-057 -> AC-057 -> AT-057
+- REQ-058 -> AC-058 -> AT-058
+- REQ-059 -> AC-059 -> AT-059
 
 ## Notes
 - This specification is intentionally strict on implementation-id-specific preset files and merged-field parity, including module, to prevent silent schema drift during setup automation.
@@ -1422,3 +1514,7 @@ Based on findings above, the following gaps are not covered by existing REQs:
 - AC-053/AT-053 enforce target app folder validation: the dispatcher must verify `APP_ROOT` exists on disk before invoking any specialist; a missing app folder is an unrecoverable abort condition; the dispatcher never creates the app repo directory.
 - AC-054/AT-054 enforce auto-bootstrap of `.aidev` files: when `APP_ROOT` exists but `.aidev/requirements/requirements-state.yaml` is absent, the dispatcher creates it with default values during pre-flight; an existing file is never overwritten.
 - AC-055/AT-055 enforce that the first pipeline log entry includes the AI model name and version (`model=<value>`), obtained from runtime self-identification; this enables traceability of which model produced a given pipeline run.
+- AC-056/AT-056 enforce that all `.instructions.md` files use `applyTo` frontmatter with a never-matching pattern to prevent global auto-inclusion; agents load instruction files only via explicit markdown link references.
+- AC-057/AT-057 enforce that the dispatcher loads only routing-essential references (handoff contract + blueprint policy); it must not load requirements pipeline, implementation pipeline, or schema instruction files; includes a File Read Scoping section.
+- AC-058/AT-058 enforce that each specialist agent declares a File Read Scoping section listing files/folders it must NOT read and files it MAY read; no specialist reads instruction files outside its domain; `cached_data` is consumed before any YAML file read.
+- AC-059/AT-059 enforce that dispatcher-delegating prompts reference only the dispatcher agent and handoff contract; no pipeline instruction files or specialist agent files are linked from prompts; specialists self-load their dependencies.

@@ -25,6 +25,5 @@ Pipeline abort: If any stage returns `status: blocked` or `status: fail`, or if 
 Use these relative references only:
 - [Dispatcher Agent](./aidev2-dispatcher.agent.md)
 - [Agent Handoff Contract](./aidev2-details/aidev2-agent-handoff.md)
-- [Blueprint Policy](./aidev2-details/aidev2-blueprint.instructions.md)
-- [Requirements Pipeline](./aidev2-details/aidev2-requirements.instructions.md)
-- [Implementation Pipeline](./aidev2-details/aidev2-implementation.instructions.md)
+
+Do NOT load Blueprint Policy, Requirements Pipeline, or Implementation Pipeline here — the dispatcher and specialists load only what they need.

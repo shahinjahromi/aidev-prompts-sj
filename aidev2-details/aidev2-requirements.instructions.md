@@ -1,5 +1,6 @@
 ---
 description: "Embedded AI-dev v2 requirements pipeline for aidev2 prompts. Covers authoring, promotion, and reconciliation rules including module property handling, ID uniqueness, contract reference structure, design-first authoring, and models/contracts authoring."
+applyTo: "**/.aidev2-no-auto-include"
 ---
 
 # Aidev2 Requirements Pipeline

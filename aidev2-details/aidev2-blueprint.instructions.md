@@ -1,5 +1,6 @@
 ---
 description: "Embedded AI-dev v2 blueprint policy for aidev2 prompts. Covers folder-layout detection, config.yaml resolution, path inference, tooling discovery, and app-root heuristics."
+applyTo: "**/.aidev2-no-auto-include"
 ---
 
 # Aidev2 Blueprint Policy

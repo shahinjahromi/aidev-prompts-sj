@@ -16,6 +16,26 @@ Load only:
 - [RQ-02 Promote](./aidev2-details/aidev2-steps/requirements/02-promote.md)
 - [RQ-03 Reconcile](./aidev2-details/aidev2-steps/requirements/03-reconcile.md)
 
+## File Read Scoping
+
+Do NOT read these files or folders:
+- `aidev2-details/aidev2-implementation.instructions.md` — implementation rules are not needed
+- Any step files outside `aidev2-details/aidev2-steps/requirements/`
+- `02-implementation/` — implementation artifacts are not consumed during requirements authoring
+- `03-test-results/` — test results are not relevant
+- `01-requirements/02-diff/` — diff artifacts are not needed during authoring
+- Blueprint-local `.instructions/` files other than `config.yaml`
+- Blueprint-local `.schemas/` folder
+- App source code files — requirements authoring does not read app code
+
+Read only:
+- `BLUEPRINT_ROOT/.instructions/config.yaml` (if not in `cached_data`)
+- `01-requirements/01-pending-promotion/` YAML files (for ID uniqueness scans and authoring)
+- `01-requirements/03-current/` YAML files (for ID uniqueness scans)
+- `01-requirements/control.yaml`
+- Schema shapes from `aidev2-details/aidev2-schemas/` (only the specific schema for the type being authored)
+- Script stdout/stderr from promote commands
+
 ## Scope
 
 Own only:

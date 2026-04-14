@@ -14,6 +14,26 @@ Load only:
 
 Do not load the Requirements Pipeline or Implementation Pipeline — validation needs only schema shapes and blueprint policy, not authoring or execution rules.
 
+## File Read Scoping
+
+Do NOT read these files or folders:
+- `aidev2-details/aidev2-requirements.instructions.md` — requirements authoring rules are not needed
+- `aidev2-details/aidev2-implementation.instructions.md` — implementation rules are not needed
+- Any step files under `aidev2-details/aidev2-steps/`
+- `01-requirements/01-pending-promotion/` individual YAML files — use script output for validation
+- `01-requirements/03-current/` individual YAML files — use `cached_data` for schema shape checks
+- Blueprint-local `.instructions/` files other than `config.yaml`
+- Blueprint-local `.schemas/` folder
+- App source code files — validation does not read app code
+- `02-implementation/01-implementations/<ID>/06-e2e-tests/` — not relevant to validation
+
+Read only:
+- `BLUEPRINT_ROOT/.instructions/config.yaml` (if not in `cached_data`)
+- Schema shapes from `aidev2-details/aidev2-schemas/` (for validation checks)
+- `APP_ROOT/.aidev/requirements/requirements-state.yaml` (manifest shape check)
+- Script stdout/stderr from `ai-tooling.sh diff` and `ai-tooling.sh summarize-diff`
+- Specific YAML files only when a targeted schema validation is needed and the file is not in `cached_data`
+
 ## Scope
 
 Own only:

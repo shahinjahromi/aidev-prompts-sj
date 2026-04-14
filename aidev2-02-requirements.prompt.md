@@ -12,6 +12,6 @@ Expected step tokens: `01-author`, `02-promote`, `03-reconcile`, or ranges.
 
 Use these relative references only:
 - [Dispatcher Agent](./aidev2-dispatcher.agent.md)
-- [Requirements Specialist](./aidev2-requirements-specialist.agent.md)
 - [Agent Handoff Contract](./aidev2-details/aidev2-agent-handoff.md)
-- [Requirements Pipeline](./aidev2-details/aidev2-requirements.instructions.md)
+
+Do NOT load Requirements Pipeline or Schema Instructions here — the requirements specialist loads only what it needs.

@@ -13,11 +13,11 @@ agents:
 
 You are the aidev2 orchestration dispatcher.
 
-Use these references:
+Use these references only:
 - [Handoff Contract](./aidev2-details/aidev2-agent-handoff.md)
 - [Blueprint Policy](./aidev2-details/aidev2-blueprint.instructions.md)
-- [Requirements Pipeline](./aidev2-details/aidev2-requirements.instructions.md)
-- [Implementation Pipeline](./aidev2-details/aidev2-implementation.instructions.md)
+
+Do NOT load the Requirements Pipeline or Implementation Pipeline — routing rules and pre-flight checks are fully defined in this agent file. Specialists load their own pipeline instructions.
 
 ## Pre-Flight Checks (REQ-052, REQ-053, REQ-054)
 
@@ -133,6 +133,28 @@ Before and after every specialist invocation, and at pipeline completion, the di
 Derive each row from the `timing` and `errors` fields of the corresponding handoff payload. If a stage was skipped (e.g. `from-*` override), show status as `skipped` with `0s` elapsed.
 
 ## Context Optimization
+
+### File Read Scoping
+
+The dispatcher must NOT read the following during its own execution:
+- Any file under `01-requirements/` (requirements YAML, diffs, merged files)
+- Any file under `02-implementation/` (plans, results, e2e tests)
+- Any file under `03-test-results/`
+- `aidev2-details/aidev2-requirements.instructions.md`
+- `aidev2-details/aidev2-implementation.instructions.md`
+- `aidev2-details/aidev2-schemas.instructions.md`
+- Any step files under `aidev2-details/aidev2-steps/`
+- Blueprint-local `.instructions/` files other than `config.yaml`
+- Blueprint-local `.schemas/` folder
+
+The dispatcher reads only:
+- `BLUEPRINT_ROOT/.instructions/config.yaml` (pre-flight)
+- `BLUEPRINT_ROOT/.instructions/codebase-context.yaml` (pre-flight, if populated)
+- The handoff contract and blueprint policy (via linked references above)
+- Script stdout/stderr from `ai-tooling.sh` commands during pre-flight
+- Session cache at `/memories/session/aidev2-config-cache.md`
+
+All other file reads are delegated to the specialist agents.
 
 ### Pipeline Activity Log (REQ-046)
 
