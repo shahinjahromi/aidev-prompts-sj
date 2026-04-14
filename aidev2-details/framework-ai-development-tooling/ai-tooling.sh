@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="/media/psf/z-work-ai-enablement/projects/ai-development-tooling"
+# Resolve tooling root from this script location by default.
+# Allow override for advanced environments.
+ROOT="${AI_TOOLING_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
+
+print_usage() {
+  cat <<EOF
+Usage: ai-tooling.sh <action> [args]
+Actions: bootstrap delta plan apply merge update-merged refresh-merged diff promote sync-diff summarize-diff verify repair-yaml all
+EOF
+}
 
 if [ $# -lt 1 ]; then
-  echo "Usage: ai-tooling.sh <action> [args]"
-  echo "Actions: bootstrap delta plan apply merge update-merged refresh-merged diff promote sync-diff summarize-diff repair-yaml all"
+  print_usage
   exit 1
 fi
 
@@ -13,6 +21,9 @@ action="$1"
 shift
 
 case "$action" in
+  -h|--help|help)
+    print_usage
+    ;;
   bootstrap)
     python3 "$ROOT/bootstrap.py" "$@"
     ;;
@@ -40,6 +51,9 @@ case "$action" in
   summarize-diff)
     python3 "$ROOT/summarize_diff.py" "$@"
     ;;
+  verify)
+    python3 "$ROOT/verify_execution_complete.py" "$@"
+    ;;
   repair-yaml)
     python3 "$ROOT/repair_yaml.py" "$@"
     ;;
@@ -52,6 +66,7 @@ case "$action" in
     ;;
   *)
     echo "Unknown action: $action"
+    print_usage
     exit 1
     ;;
 esac
