@@ -285,6 +285,23 @@ fi
 
 mkdir -p "${BLUEPRINT_DIR}/.instructions"
 cp "$CONFIG_YAML_SRC" "${BLUEPRINT_DIR}/.instructions/config.yaml"
+# Apply placeholder substitution to the newly copied config.yaml
+sed -i \
+  -e "s|<<APP_SLUG>>|${APP_SLUG}|g" \
+  -e "s|<<APP_REPO_DIR>>|${APP_REPO_DIR}|g" \
+  -e "s|<<SPECS_REPO_DIR>>|${SPECS_REPO_DIR}|g" \
+  -e "s|<<IMPLEMENTATION_ID>>|${IMPL_ID}|g" \
+  -e "s|<<WORKSPACE_ROOT>>|${WORKSPACE_ROOT}|g" \
+  -e "s|<<APP_STARTUP_SCRIPT>>|${STARTUP_SCRIPT}|g" \
+  -e "s|<<E2E_REPORTS_DIR>>|${E2E_REPORTS_DIR}|g" \
+  -e "s|<<DB_CONTRACT_LOGICAL_ID>>|${DB_CONTRACT_ID}|g" \
+  -e "s|<<DB_CONTRACT_ENABLED>>|${DB_CONTRACT_ENABLED}|g" \
+  -e "s|<<SECRETS_INSTRUCTIONS_PATH>>|${SECRETS_PATH}|g" \
+  -e "s|<<TIMEZONE>>|${TIMEZONE}|g" \
+  -e "s|<<EMAIL_FIXED>>|${EMAIL_FIXED}|g" \
+  -e "s|<<EMAIL_RANDOM_DOMAIN>>|${EMAIL_DOMAIN}|g" \
+  -e "s|<<DATE>>|${TODAY}|g" \
+  "${BLUEPRINT_DIR}/.instructions/config.yaml"
 echo "  Ensured .instructions/config.yaml is copied"
 
 # ─── Rename __IMPL_ID__ directory to actual implementation ID ────
