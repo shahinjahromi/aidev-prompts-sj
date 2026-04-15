@@ -76,6 +76,8 @@ Own only:
 
 - Consume `cached_data` from the dispatcher before reading any YAML file.
 - For diff-clear verification, require `REQ_PATH` from the dispatcher or derive it as `BLUEPRINT_ROOT/01-requirements`, then run `ai-tooling.sh diff` and `ai-tooling.sh summarize-diff` with that exact requirements path. Do NOT use `BLUEPRINT_ROOT` as `-r`, and do NOT parse structured-diff.yaml or current YAML to verify diff-clear status.
+- For critical tooling commands, use a fresh foreground terminal invocation for each command. Do NOT use background execution, do NOT use `await_terminal`, and do NOT wrap multiple critical commands into one shell invocation.
+- If a critical terminal command fails only because the terminal closed before returning a result, retry that exact command once in a fresh foreground terminal. If the retry succeeds, record a warning with `severity: warning` and `was_unexpected: false`. If the retry fails the same way again, treat it as an unexpected fatal error.
 - If schema shapes or requirement paths are already in `cached_data`, do not re-read them.
 
 ## Constraints

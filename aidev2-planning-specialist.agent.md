@@ -69,8 +69,11 @@ Own only:
 ## Script-First Execution (REQ-042, REQ-045)
 
 - **IM-01 Diff is mechanical.** Run `ai-tooling.sh diff` then `ai-tooling.sh summarize-diff` via terminal. Read the text summary from stdout for counts and IDs. Do NOT parse structured-diff.yaml, merged_requirements.yaml, or current-requirements YAML to generate counts.
+- For critical tooling commands, use a fresh foreground terminal invocation for each command. Do NOT use background execution, do NOT use `await_terminal`, and do NOT wrap multiple critical commands into one shell invocation.
+- If a critical terminal command fails only because the terminal closed before returning a result, retry that exact command once in a fresh foreground terminal. If the retry succeeds, record a warning with `severity: warning` and `was_unexpected: false`. If the retry fails the same way again, treat it as an unexpected fatal error.
 - You may read `structured-diff.yaml` during IM-02 Plan if you need full requirement snapshots for plan construction.
 - Consume `cached_data` from the dispatcher before reading any YAML file. If requirement paths, implementation_id, or config values are in `cached_data`, use them.
+- **Standing constraints (NFR/GLOBAL):** Use `cached_data.standing_constraints` as the primary source. If more detail is needed, `read_file` `REQ_PATH/03-current/merged/merged_requirements.yaml` and extract the relevant sections. Do NOT use `grep_search` or VS Code search view to discover standing constraints — those tools return poor results for structured YAML content.
 - Do not read current-requirements YAML files when the structured diff already contains the requirement snapshots.
 
 ## Constraints

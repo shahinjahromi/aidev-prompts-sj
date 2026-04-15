@@ -84,6 +84,8 @@ Own only:
 - Consume `cached_data` from the dispatcher before reading any YAML file. If requirement data, plan data, config paths, or implementation_id are in `cached_data`, use them.
 - Do not re-read current-requirements YAML if the plan.yaml or structured diff already contains the requirement details you need.
 - When running `ai-tooling.sh apply` for IM-10, read only stdout/stderr — do not re-read the manifest to verify the script's output.
+- For critical tooling commands (`ai-tooling.sh apply`, `ai-tooling.sh diff`, `ai-tooling.sh summarize-diff`, build/test commands used for execution verification), use a fresh foreground terminal invocation for each command. Do NOT use background execution, do NOT use `await_terminal`, and do NOT wrap multiple critical commands into one shell invocation.
+- If a critical terminal command fails only because the terminal closed before returning a result, retry that exact command once in a fresh foreground terminal. If the retry succeeds, record a warning with `severity: warning` and `was_unexpected: false`. If the retry fails the same way again, treat it as an unexpected fatal error.
 
 ## Constraints
 

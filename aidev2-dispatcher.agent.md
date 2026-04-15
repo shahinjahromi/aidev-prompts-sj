@@ -186,6 +186,8 @@ At pipeline start, before invoking the first specialist:
 - If the session cache (`/memories/session/aidev2-config-cache.md`) exists, reference it in the specialist prompt so it can skip IM-00 / RQ-01 discovery overhead.
 - When running a full pipeline, warm the cache before the first specialist if it is not already populated.
 - For any specialist that runs mechanical tooling (`promote`, `diff`, `summarize-diff`, `apply`, `verify-execution`), explicitly include `REQ_PATH=BLUEPRINT_ROOT/01-requirements` in the invocation prompt unless a more specific requirements root was already resolved.
+- For any specialist that runs mechanical tooling (`promote`, `diff`, `summarize-diff`, `apply`, `verify-execution`), instruct it to use fresh foreground terminal invocations for each critical command. Do NOT use background terminal execution, do NOT rely on `await_terminal`, and do NOT batch multiple critical tooling commands into a single wrapped shell command.
+- If a critical terminal command fails only because the terminal closed before returning a result, allow exactly one retry in a fresh foreground terminal using the exact same command. If the retry succeeds, record a warning with `was_unexpected: false`. If the retry fails the same way again, treat it as an unexpected fatal error.
 
 ### Pipeline Context Accumulation (REQ-044)
 

@@ -76,6 +76,8 @@ Own only:
 ## Script-First Execution (REQ-042, REQ-045)
 
 - **RQ-02 Promote is mechanical.** Run `ai-tooling.sh promote` via terminal. Read only stdout/stderr and exit code. Do NOT read pending-promotion YAML files, current YAML files, or control.yaml to replicate promote logic.
+- For critical tooling commands, use a fresh foreground terminal invocation for each command. Do NOT use background execution, do NOT use `await_terminal`, and do NOT wrap multiple critical commands into one shell invocation.
+- If a critical terminal command fails only because the terminal closed before returning a result, retry that exact command once in a fresh foreground terminal. If the retry succeeds, record a warning with `severity: warning` and `was_unexpected: false`. If the retry fails the same way again, treat it as an unexpected fatal error.
 - After promote, if you need current state, trust that the script updated `03-current/` — do not re-read inputs.
 - Consume `cached_data` from the dispatcher before reading any YAML file. If requirement paths, implementation_id, or config values are in `cached_data`, use them.
 

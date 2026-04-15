@@ -3,6 +3,11 @@ Inputs: structured diff, CURRENT requirements, MANIFEST, TECH_STACK_SUMMARY.
 Action: produce plan.yaml + plan.md + paths.yaml in IMPL_ROOT.
 Rules: include standing nfr-and-global-cr constraints, scoped impacted files/symbols, validation and risks.
 
+Standing constraint lookup order:
+1. `cached_data.standing_constraints` — use if provided by the dispatcher (preferred).
+2. `read_file` on `REQ_PATH/03-current/merged/merged_requirements.yaml` — read directly if cached_data is insufficient.
+3. Do NOT use `grep_search` or VS Code search view for constraint discovery — they return unreliable results for structured YAML.
+
 Read efficiency: batch-read `structured-diff.yaml`, current requirements, manifest, and any existing plan/paths/results files in a single parallel read at the start of this step. Do not re-read files already cached from IM-00.
 
 Pre-computed maps (include in plan.yaml):
