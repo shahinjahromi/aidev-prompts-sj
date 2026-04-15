@@ -80,14 +80,20 @@ Argument `refresh` → overwrite existing cache section.
 ## §SETUP-APP
 
 1. Parse user message for `APP_SLUG`, `IMPL_SUFFIX`, `OUTPUT_DIR`. Ask for missing. Convert to kebab-case.
-2. Find `framework-ai-blueprint-template-v2` in workspace → `FRAMEWORK_ROOT`.
+   If `CORE_STACK` is provided (e.g. `stack go`), pass `--core-stack` to the setup script.
+2. Resolve `FRAMEWORK_ROOT` from this prompt's own bundled template:
+   `<PROMPTS_DIR>/aidev2-combined-details/initial-folder-structure/framework-ai-blueprint-template-v2`
+   where `<PROMPTS_DIR>` = `{{VSCODE_USER_PROMPTS_FOLDER}}`.
+   Never search the workspace for `framework-ai-blueprint-template-v2`.
 3. Pre-flight: OUTPUT_DIR exists, neither destination exists.
 4. Confirm via `vscode_askQuestions`.
 5. Run:
    ```bash
    bash "${FRAMEWORK_ROOT}/setup/setup-for-user-prompts.sh" \
      --output-dir "${OUTPUT_DIR}" --app-slug "${APP_SLUG}" \
-     --impl-suffix "${IMPL_SUFFIX}" --workspace-root "${OUTPUT_DIR}"
+     --impl-suffix "${IMPL_SUFFIX}" --workspace-root "${OUTPUT_DIR}" \
+     --user-prompts-dir "${PROMPTS_DIR}" \
+     ${CORE_STACK:+--core-stack "${CORE_STACK}"}
    ```
 6. Report blueprint path, app repo path, implementation id.
 
@@ -187,10 +193,13 @@ Safety: never delete app-specific content, no destructive git commands, no files
 
 ## §BACKUP
 
-1. Find `framework-ai-blueprint-template-v2` in workspace → `FRAMEWORK_ROOT`.
-2. Verify `FRAMEWORK_ROOT/scripts/backup-user-prompts.sh` exists.
+1. Resolve `FRAMEWORK_ROOT` from this prompt's own bundled template:
+   `<PROMPTS_DIR>/aidev2-combined-details/initial-folder-structure/framework-ai-blueprint-template-v2`
+   where `<PROMPTS_DIR>` = `{{VSCODE_USER_PROMPTS_FOLDER}}`.
+   Never search the workspace for `framework-ai-blueprint-template-v2`.
+2. Verify `FRAMEWORK_ROOT/scripts/backup-user-prompts-linux.sh` exists.
 3. Confirm via `vscode_askQuestions`. If declined, stop.
-4. Run: `bash "${FRAMEWORK_ROOT}/scripts/backup-user-prompts.sh"`.
+4. Run: `bash "${FRAMEWORK_ROOT}/scripts/backup-user-prompts-linux.sh"`.
 5. Report copied/skipped files.
 
 ---
