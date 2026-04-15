@@ -1,7 +1,7 @@
 ---
 name: "aidev2-combined"
 description: "Unified aidev2 prompt — all pipeline stages in a single default-agent prompt. No subagents. Self-contained under aidev2-combined-details/."
-argument-hint: "warmup | setup-app | requirements [step] | implement [step] | all-steps [from-*] | upgrade | backup-prompts | run-tests [mode]"
+argument-hint: "warmup | setup-app | requirements [step] | implement [step] | all-steps [from-*] | upgrade | backup-prompts | run-tests [mode] — or plain English describing which tasks to run"
 agent: "agent"
 ---
 
@@ -29,7 +29,7 @@ Parse the first token of the user message:
 | `backup-prompts`, `backup` | → §BACKUP |
 | `run-tests`, `test`, `tests` | → §RUN-TESTS |
 
-No recognized command → infer intent from free-text.
+No recognized command → infer intent from free-text. The user may describe tasks in plain language (e.g. "run requirements then implement steps 1 through 5", "do everything from the plan step onwards", "author new requirements and promote them"). Map natural language to the corresponding pipeline stages and step ranges, then execute in sequence.
 
 ---
 
@@ -96,17 +96,28 @@ Argument `refresh` → overwrite existing cache section.
 ## §REQUIREMENTS
 
 Parse step tokens: `01-author`, `02-promote`, `03-reconcile`, or ranges like `01-02`.
+Also accepts plain language (e.g. "author new requirements", "promote and reconcile").
 
 1. Run §PRE-FLIGHT if cache not warm.
 2. Execute requested steps per requirements pipeline (RQ-01, RQ-02, RQ-03).
 
 All authoring rules (ID uniqueness, module, contract_refs, design-first, YAML format, tech selection mirrors) are in the requirements pipeline reference.
 
+### Acceptance Criteria & Acceptance Tests Quality Gate
+
+Every authored FR, NFR, and GLOBAL requirement **MUST** include both `acceptance_criteria` and `acceptance_tests`. These are not optional summaries — they are the **specification contract** that drives Playwright test generation.
+
+- **Acceptance criteria:** Each AC must have `criteria` (atomic verifiable conditions) and `scenarios` (Given/When/Then) that fully specify observable behavior.
+- **Acceptance tests:** Each AT must have 6-12 `steps` that are precise enough to translate directly into Playwright test code with minimal interpretation. Steps must specify exact user actions (click, type, navigate), expected DOM states, HTTP status codes, response shapes, and timing constraints where relevant.
+- **Low variability:** AT steps must leave little room for implementation variability — two developers reading the same AT should produce near-identical Playwright test code.
+- **Playwright basis:** ATs are the primary input for IM-07 (Create Tests). AT step language should map naturally to Playwright actions (`page.goto`, `page.click`, `page.fill`, `expect(locator).toBeVisible`, `request.post`, etc.).
+
 ---
 
 ## §IMPLEMENT
 
 Parse step tokens: `01-diff` through `09-generate-docs`, or ranges like `02-07`.
+Also accepts plain language (e.g. "run from planning through tests", "just execute the code").
 
 Mapping: `01-diff`→IM-01, `02-plan`→IM-02, `03-execute`→IM-03, `04-extract`→IM-04, `05-fix`→IM-05, `06-create-tests`→IM-07, `07-run-tests`→IM-08, `08-update-manifest`→IM-09, `09-generate-docs`→IM-10.
 
@@ -201,7 +212,7 @@ Arguments: `headed`, `debug`, `<feature>.spec.ts`, `run all tests`.
 
 Validation gate — run between implementation stages and as final gate.
 
-1. **Schema validation:** Check changed requirement artifacts against schemas in `SCHEMAS_ROOT`.
+1. **Schema validation:** Check changed requirement artifacts against schemas in `SCHEMAS_ROOT` (the local `aidev2-combined-details/aidev2-schemas/` folder). **Never copy schema files to the app blueprint `.schemas/` folder.** Schemas are always read from the prompt's own bundled location.
 2. **Manifest shape:** Validate `MANIFEST` against `SCHEMAS_ROOT/in-application/requirements-state-schema.json`.
 3. **Diff-clear:** Run:
    ```bash

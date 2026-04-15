@@ -28,7 +28,7 @@ All rules and steps for diff, planning, execution, testing, manifest updates, an
 ### Verification
 1. Read `config.yaml` (if not cached) → extract `IMPLEMENTATION_ID`, `APP_ROOT`, `STARTUP_HINT`, `APP_TEST_STARTUP_HINT`, `MANIFEST`, `TOOLING_CMD`, DB settings.
 2. Resolve `IMPL_ROOT`, `AI_TOOLING`, startup hints.
-3. Validate manifest shape against `SCHEMAS_ROOT/in-application/requirements-state-schema.json`.
+3. Validate manifest shape against `SCHEMAS_ROOT/in-application/requirements-state-schema.json`. (`SCHEMAS_ROOT` = bundled `aidev2-combined-details/aidev2-schemas/` — never read from the app blueprint's `.schemas/` folder.)
 4. Confirm `iteration_id` and version targets are sensible.
 
 ### Archive & Clear (fresh-start default)
@@ -153,6 +153,16 @@ Re-run IM-01. Complete only when structured diff has **zero** remaining entries 
 
 **Inputs:** Plan, results, AC/AT content, `E2E_ROOT`.
 **Output:** Playwright tests under `IMPL_ROOT/06-e2e-tests`.
+
+### AT-Driven Test Generation
+
+Acceptance tests (AT) in the requirements are the **primary specification** for Playwright test code. Each AT's `steps` array maps directly to Playwright actions:
+
+1. Read each requirement's `acceptance_tests` from current requirements YAML.
+2. For each AT, translate `steps` into Playwright code in order — each step becomes one or more Playwright calls.
+3. The AT `expected_result` becomes the final assertion block.
+4. AT step language maps to Playwright: "Navigate to X" → `page.goto(X)`, "Click Y" → `page.click(Y)`, "Type Z into field W" → `page.fill(W, Z)`, "Expect element V visible" → `expect(page.locator(V)).toBeVisible()`, "POST /api/... returns 200" → `expect(response.status()).toBe(200)`.
+5. Do not add assertions or flows beyond what the AT specifies. The AT is the contract — tests must verify exactly what the AT describes.
 
 ### Scaffold reuse
 If `06-e2e-tests/` has files from prior iteration, reuse config/fixtures/helpers/reporters. Only add/update test files for current diff requirements.

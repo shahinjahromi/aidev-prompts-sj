@@ -82,11 +82,33 @@ After any TS write, refresh the relevant mirror. Mirrors contain only entries fo
 
 ## RQ-01 Author
 
-**Inputs:** Task description, artifact type, pending/current files, schemas.
+**Inputs:** Task description, artifact type, pending/current files, schemas (from `SCHEMAS_ROOT` — never from app blueprint `.schemas/`).
 **Action:** Write/update pending artifacts only.
 **Rules:** FR/NFR/GLOBAL drive code; MAC is metadata only; UI contracts are screen-only.
 
 ID allocation: run uniqueness scan (above) before every new ID. Module handling: apply module rules (above). Contract refs: apply contract_refs rules (above).
+
+### Acceptance Criteria & Acceptance Tests (Mandatory)
+
+Every FR, NFR, and GLOBAL requirement **MUST** include both `acceptance_criteria` and `acceptance_tests`. Omitting either is a pipeline violation.
+
+**Acceptance Criteria (AC):**
+- Each AC has `id` (AC-NNNNNN), `title`, `criteria` (list of atomic verifiable conditions), and `scenarios` (Given/When/Then).
+- Criteria must be specific and measurable — no vague language like "should work correctly" or "handles errors appropriately".
+- Scenarios must cover happy path, key edge cases, and error conditions.
+
+**Acceptance Tests (AT):**
+- Each AT has `id` (AT-NNNNNN), `name`, `steps` (6-12 items), and `expected_result`.
+- Steps are the **primary input for Playwright test generation** (IM-07). They must be precise enough that two developers produce near-identical Playwright code from the same AT.
+- Steps must specify:
+  - Exact user actions: "Click the Submit button", "Type 'test@example.com' into the Email field"
+  - Navigation targets: "Navigate to /auth/login"
+  - Expected DOM states: "The error banner with text 'Invalid credentials' is visible"
+  - HTTP details where relevant: "POST /api/auth/login returns 200 with JSON body containing 'token' field"
+  - Timing/sequencing: "After redirect completes, the dashboard page is visible"
+  - Data preconditions: "Given a test user exists with email 'test@example.com'"
+- **Low variability rule:** AT steps must leave minimal room for interpretation. Avoid abstract steps like "verify the page loads correctly" — instead specify which elements, text, or responses to assert.
+- **Playwright mapping:** AT step language should map naturally to Playwright actions (`page.goto`, `page.click`, `page.fill`, `expect(locator).toBeVisible`, `expect(response).toHaveStatus`, `request.post`, etc.).
 
 ### Deletion (`action: delete`)
 

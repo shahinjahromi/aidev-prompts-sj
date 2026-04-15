@@ -38,6 +38,12 @@ Read `BLUEPRINT_ROOT/.instructions/config.yaml` early in every run.
 
 Do NOT read other `.instructions/` files. Do NOT read `.schemas/`.
 
+## Schema Sourcing Rule
+
+Schemas are always read from `SCHEMAS_ROOT` (`<USER_PROMPTS>/aidev2-combined-details/aidev2-schemas/`). This is the single source of truth for all JSON schema files used by the pipeline.
+
+**Never copy schema files to the app blueprint's `.schemas/` folder.** The app blueprint may contain its own `.schemas/` directory for other tooling, but the combined prompt must not write to it, synchronize with it, or read from it. All schema validation uses the bundled local schemas exclusively.
+
 ## Codebase Context Resolution
 
 Read `BLUEPRINT_ROOT/.instructions/codebase-context.yaml` when populated (non-placeholder).
