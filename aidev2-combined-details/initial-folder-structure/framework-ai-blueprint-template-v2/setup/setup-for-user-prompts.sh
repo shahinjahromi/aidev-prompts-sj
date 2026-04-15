@@ -273,14 +273,31 @@ if [[ "$ADD_IMPL" != "true" ]]; then
   # Ensure no generic instructions markdown survives in user-prompts mode.
   rm -f "${BLUEPRINT_DIR}/.instructions/instructions.md"
 
-  if [[ ! -f "$CONFIG_YAML_SRC" ]]; then
-    echo "ERROR: Missing required source file: ${CONFIG_YAML_SRC}"
-    exit 1
+  # Verify config.yaml survived the cleanup (it was already copied by cp -r
+  # above, and placeholders were substituted by the find/sed pass).
+  if [[ ! -f "${BLUEPRINT_DIR}/.instructions/config.yaml" ]]; then
+    if [[ ! -f "$CONFIG_YAML_SRC" ]]; then
+      echo "ERROR: Missing required source file: ${CONFIG_YAML_SRC}"
+      exit 1
+    fi
+    mkdir -p "${BLUEPRINT_DIR}/.instructions"
+    cp "$CONFIG_YAML_SRC" "${BLUEPRINT_DIR}/.instructions/config.yaml"
+    # Re-run placeholder substitution on the freshly copied config
+    sed -i \
+      -e "s|<<APP_SLUG>>|${APP_SLUG}|g" \
+      -e "s|<<APP_REPO_DIR>>|${APP_REPO_DIR}|g" \
+      -e "s|<<SPECS_REPO_DIR>>|${SPECS_REPO_DIR}|g" \
+      -e "s|<<IMPLEMENTATION_ID>>|${IMPL_ID}|g" \
+      -e "s|<<APP_STARTUP_SCRIPT>>|${STARTUP_SCRIPT}|g" \
+      -e "s|<<DB_CONTRACT_LOGICAL_ID>>|${DB_CONTRACT_ID}|g" \
+      -e "s|<<TIMEZONE>>|${TIMEZONE}|g" \
+      -e "s|<<EMAIL_FIXED>>|${EMAIL_FIXED}|g" \
+      -e "s|<<EMAIL_RANDOM_DOMAIN>>|${EMAIL_DOMAIN}|g" \
+      "${BLUEPRINT_DIR}/.instructions/config.yaml"
+    echo "  Restored and substituted .instructions/config.yaml"
+  else
+    echo "  Verified .instructions/config.yaml is present"
   fi
-
-  mkdir -p "${BLUEPRINT_DIR}/.instructions"
-  cp "$CONFIG_YAML_SRC" "${BLUEPRINT_DIR}/.instructions/config.yaml"
-  echo "  Ensured .instructions/config.yaml is copied"
 
   # ─── Rename __IMPL_ID__ directory to actual implementation ID ────
   echo "Renaming implementation directory..."
