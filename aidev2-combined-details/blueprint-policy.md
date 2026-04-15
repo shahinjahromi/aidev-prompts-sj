@@ -93,16 +93,24 @@ Implementation sub-layout under `IMPL_ROOT`:
 Requirement file paths (relative to BLUEPRINT_ROOT):
 - `01-requirements/control.yaml`
 - `PENDING/functional_requirements.yaml`
-- `PENDING/nfr-and-global-cr/nfr_and_global_cr_<IMPLEMENTATION_ID>.yaml`
-- `PENDING/technology-selection/technology_selection_<IMPLEMENTATION_ID>.yaml`
+- `PENDING/nfr-and-global-cr/nfr-and-global-cr-<IMPLEMENTATION_ID>.yaml`
+- `PENDING/technology-selection/technology-selection-<IMPLEMENTATION_ID>.yaml`
 - `PENDING/models_and_contracts.yaml`
 - `PENDING/models_and_contracts/<spec-files>`
 - `CURRENT/functional_requirements.yaml`
-- `CURRENT/nfr-and-global-cr/nfr_and_global_cr_<IMPLEMENTATION_ID>.yaml`
-- `CURRENT/technology-selection/technology_selection_<IMPLEMENTATION_ID>.yaml`
+- `CURRENT/nfr-and-global-cr/nfr-and-global-cr-<IMPLEMENTATION_ID>.yaml`
+- `CURRENT/technology-selection/technology-selection-<IMPLEMENTATION_ID>.yaml`
 - `CURRENT/models_and_contracts.yaml`
 - `CURRENT/models_and_contracts/<spec-files>`
 - `CURRENT/merged/merged_requirements.yaml`
+
+### Per-Implementation File Naming Convention
+
+Per-implementation requirement files use **all-hyphen prefixes** matching their directory name:
+- Technology selection: `technology-selection-<IMPLEMENTATION_ID>.yaml`
+- NFR and Global CR: `nfr-and-global-cr-<IMPLEMENTATION_ID>.yaml`
+
+Where `<IMPLEMENTATION_ID>` is the full implementation identifier (e.g. `fakebank-omb-bff-web-go`).
 
 ## Implementation Discovery
 

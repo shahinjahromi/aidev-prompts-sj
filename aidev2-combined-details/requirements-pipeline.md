@@ -66,7 +66,7 @@ When a MAC entry wraps a multi-item spec file:
 ## Technology Selection Mirrors
 
 Canonical files: `PENDING/technology_selection.yaml` and `CURRENT/technology_selection.yaml`.
-Per-implementation mirrors: `PENDING_TECH_DIR/technology_selection_<ID>.yaml` and `CURRENT_TECH_DIR/technology_selection_<ID>.yaml`.
+Per-implementation mirrors: `PENDING_TECH_DIR/technology-selection-<ID>.yaml` and `CURRENT_TECH_DIR/technology-selection-<ID>.yaml`.
 
 After any TS write, refresh the relevant mirror. Mirrors contain only entries for that implementation with `implementation_id`/`implementation_ids` stripped.
 
@@ -151,7 +151,7 @@ Rules:
 **Action:** Backfill implemented TS entries and sync diff. Only for already-implemented tech choices.
 
 After writes:
-- Refresh `CURRENT_TECH_DIR/technology_selection_<IMPLEMENTATION_ID>.yaml`.
+- Refresh `CURRENT_TECH_DIR/technology-selection-<IMPLEMENTATION_ID>.yaml`.
 
 ### Narration
 - `[RQ-03] Reconcile started at <ts>` / `Syncing <N> entries` / `Reconcile completed at <ts> (elapsed: <N>s)`

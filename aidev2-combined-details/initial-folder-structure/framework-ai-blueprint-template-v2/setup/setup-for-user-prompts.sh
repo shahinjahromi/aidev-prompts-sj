@@ -370,11 +370,11 @@ fi
 # ─── Seed core-stack presets into pending-promotion ──────────────
 # Detect the user prompts folder relative to this script's location.
 # The script ships inside the user prompts folder tree; walk up until we find
-# the folder that contains aidev2-details/.
+# the folder that contains aidev2-combined-details/.
 _PROMPTS_ROOT=""
 _CANDIDATE="${SCRIPT_DIR}"
 for _i in 1 2 3 4 5; do
-  if [[ -d "${_CANDIDATE}/aidev2-details" ]]; then
+  if [[ -d "${_CANDIDATE}/aidev2-combined-details" ]]; then
     _PROMPTS_ROOT="$_CANDIDATE"
     break
   fi
@@ -384,11 +384,11 @@ done
 if [[ -n "$CORE_STACK" && -n "$_PROMPTS_ROOT" ]]; then
   echo "Seeding ${CORE_STACK} presets for ${IMPL_ID}..."
 
-  _NFR_PRESET="${_PROMPTS_ROOT}/aidev2-details/preset-requirements/nfr-and-global-cr-by-core-stack/${CORE_STACK}/nfr_and_global_cr-[implementation id].yaml"
-  _TS_PRESET="${_PROMPTS_ROOT}/aidev2-details/preset-requirements/tech_selections_by-core-stack/${CORE_STACK}/technology_selection_[implementation_id].yaml"
+  _NFR_PRESET="${_PROMPTS_ROOT}/aidev2-combined-details/preset-requirements/nfr-and-global-cr-by-core-stack/${CORE_STACK}/nfr-and-global-cr-[implementation id].yaml"
+  _TS_PRESET="${_PROMPTS_ROOT}/aidev2-combined-details/preset-requirements/tech_selections_by-core-stack/${CORE_STACK}/technology-selection-[implementation_id].yaml"
 
-  _NFR_DEST="${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/nfr-and-global-cr/nfr_and_global_cr_${IMPL_ID}.yaml"
-  _TS_DEST="${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/technology-selection/technology_selection_${IMPL_ID}.yaml"
+  _NFR_DEST="${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/nfr-and-global-cr/nfr-and-global-cr-${IMPL_ID}.yaml"
+  _TS_DEST="${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/technology-selection/technology-selection-${IMPL_ID}.yaml"
 
   if [[ -f "$_NFR_PRESET" ]]; then
     mkdir -p "$(dirname "$_NFR_DEST")"
@@ -397,7 +397,7 @@ if [[ -n "$CORE_STACK" && -n "$_PROMPTS_ROOT" ]]; then
     sed -i "s|\[implementation id\]|${IMPL_ID}|g" "$_NFR_DEST"
     echo "  Seeded NFR preset → ${_NFR_DEST}"
     # Register an impl-specific copy in the prompts preset folder
-    _NFR_REGISTRY="${_PROMPTS_ROOT}/aidev2-details/preset-requirements/nfr-and-global-cr-by-core-stack/${CORE_STACK}/nfr_and_global_cr_${IMPL_ID}.yaml"
+    _NFR_REGISTRY="${_PROMPTS_ROOT}/aidev2-combined-details/preset-requirements/nfr-and-global-cr-by-core-stack/${CORE_STACK}/nfr-and-global-cr-${IMPL_ID}.yaml"
     cp "$_NFR_DEST" "$_NFR_REGISTRY"
     echo "  Registered NFR preset → ${_NFR_REGISTRY}"
   else
@@ -412,7 +412,7 @@ if [[ -n "$CORE_STACK" && -n "$_PROMPTS_ROOT" ]]; then
     sed -i "s|implementation_id: .*|implementation_id: ${IMPL_ID}|g" "$_TS_DEST"
     echo "  Seeded TS preset → ${_TS_DEST}"
     # Register an impl-specific copy in the prompts preset folder
-    _TS_REGISTRY="${_PROMPTS_ROOT}/aidev2-details/preset-requirements/tech_selections_by-core-stack/${CORE_STACK}/technology_selection_${IMPL_ID}.yaml"
+    _TS_REGISTRY="${_PROMPTS_ROOT}/aidev2-combined-details/preset-requirements/tech_selections_by-core-stack/${CORE_STACK}/technology-selection-${IMPL_ID}.yaml"
     cp "$_TS_DEST" "$_TS_REGISTRY"
     echo "  Registered TS preset → ${_TS_REGISTRY}"
   else

@@ -308,7 +308,7 @@ def technology_selection_mirror_path(
         requirements_path,
         stage_dir,
         "technology-selection",
-        f"technology_selections_{implementation_id}.yaml",
+        f"technology-selection-{implementation_id}.yaml",
     )
     if create_dirs:
         os.makedirs(os.path.dirname(fp), exist_ok=True)
