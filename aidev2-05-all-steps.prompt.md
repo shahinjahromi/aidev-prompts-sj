@@ -20,7 +20,7 @@ Required sequence when not overridden:
 5. Testing stage (partial by default)
 6. Final validation gate
 
-Pipeline abort: If any stage returns `status: blocked` or `status: fail`, or if a specialist fails to return a valid handoff, the pipeline must abort immediately — do not continue to the next stage.
+Pipeline abort: If any stage returns `status: blocked` or `status: fail`, if any stage reports an unexpected error (`was_unexpected: true`), or if a specialist fails to return a valid handoff, the pipeline must abort immediately — do not continue to the next stage.
 
 Use these relative references only:
 - [Dispatcher Agent](./aidev2-dispatcher.agent.md)

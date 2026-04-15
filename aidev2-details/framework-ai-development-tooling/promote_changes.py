@@ -10,6 +10,7 @@ from common import (
     CURRENT_DIR,
     DEFAULT_ITERATION_ID,
     DIFF_DIR,
+    GROUPED_REQUIREMENT_REL_DIRS,
     PENDING_PROMOTION_DIR,
     apply_diff_sequence,
     build_parser,
@@ -21,6 +22,9 @@ from common import (
     get_app_manifest,
     get_artifact_doc_path,
     get_diff_files,
+    grouped_current_target_path,
+    is_grouped_pending_file,
+    iter_grouped_current_files,
     iter_pending_promotion_doc_paths,
     merged_path,
     now_iso,
@@ -230,6 +234,45 @@ def rebuild_requirement_diffs(requirements_path: str) -> None:
                 },
             )
 
+    # Also include items from per-implementation grouped folders.
+    for group_type, group_dir in GROUPED_REQUIREMENT_REL_DIRS.items():
+        bucket = DIFF_BUCKETS_BY_ARTIFACT_TYPE.get(group_type)
+        if not bucket:
+            bucket = "nfr-and-global-cr" if "nfr" in group_type else "technology_selection"
+        bucket_path = os.path.join(requirements_path, DIFF_DIR, bucket)
+        os.makedirs(bucket_path, exist_ok=True)
+        for gfp in iter_grouped_current_files(requirements_path, group_dir):
+            gdoc = read_yaml(gfp)
+            g_items = gdoc.get("items") or gdoc.get("entries") or []
+            for it in g_items:
+                if not isinstance(it, dict):
+                    continue
+                rid_raw = it.get("id")
+                if not rid_raw:
+                    continue
+                rid = str(rid_raw)
+                out = os.path.join(requirements_path, DIFF_DIR, bucket, f"{rid}.yaml")
+                if os.path.exists(out):
+                    continue
+                req_for_diff = dict(it)
+                req_for_diff["requirement_id"] = rid
+                req_for_diff.setdefault("type", group_type)
+                write_yaml(
+                    out,
+                    {
+                        "requirement_id": rid,
+                        "diffs": [
+                            {
+                                "seq": 1,
+                                "op": "create",
+                                "version": (it.get("versioning") or {}).get("updated_on_version") or it.get("updated_version"),
+                                "at": now_iso(),
+                                "requirement": req_for_diff,
+                            }
+                        ],
+                    },
+                )
+
 
 def promote_contract_spec_files(requirements_path: str) -> int:
     """Copy contract/model spec files from pending models_and_contracts/ to current models_and_contracts/.
@@ -245,7 +288,7 @@ def promote_contract_spec_files(requirements_path: str) -> int:
     count = 0
     for entry in sorted(os.listdir(pending_specs)):
         src = os.path.join(pending_specs, entry)
-        if os.path.isfile(src) and entry.endswith((".yaml", ".yml", ".json")):
+        if os.path.isfile(src) and entry.endswith((".yaml", ".yml", ".json", ".sql", ".prisma", ".graphql")):
             dst = os.path.join(current_specs, entry)
             shutil.copy2(src, dst)
             count += 1
@@ -285,6 +328,24 @@ def main() -> None:
                 promoted_ids.extend(ids)
             pending_doc["items"] = []
             write_yaml(pfp, pending_doc)
+            continue
+
+        if is_grouped_pending_file(args.requirements_path, pfp):
+            target_fp = grouped_current_target_path(args.requirements_path, pfp)
+            if target_fp:
+                os.makedirs(os.path.dirname(target_fp), exist_ok=True)
+                items_key = "entries" if "entries" in pending_doc else "items"
+                for it in pending_doc.get(items_key, []) or []:
+                    it.setdefault("created_version", to_v)
+                    it["updated_version"] = to_v
+                shutil.copy2(pfp, target_fp)
+                write_yaml(target_fp, pending_doc)
+                count = len(pending_doc.get(items_key, []) or [])
+                promoted_counts[req_type] = promoted_counts.get(req_type, 0) + count
+                for it in pending_doc.get(items_key, []) or []:
+                    rid = it.get("id")
+                    if rid:
+                        promoted_ids.append(str(rid))
             continue
 
         target_fp = get_artifact_doc_path(args.requirements_path, req_type, create_dirs=True)

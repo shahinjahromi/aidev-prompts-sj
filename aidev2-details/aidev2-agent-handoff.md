@@ -69,5 +69,6 @@ handoff:
 - Every error encountered (tool failures, script non-zero exits, validation failures) must be recorded in `errors[]`.
 - Set `severity: error` for blocking failures and `severity: warning` for non-blocking issues.
 - Set `was_unexpected: true` for unplanned errors (crashes, missing files, schema mismatches, tool timeouts, retries) — these are narrated in **bold** by both the specialist and the dispatcher.
+- Any error with `was_unexpected: true` is unrecoverable for the current stage. The specialist must stop executing remaining step tokens, set `status: fail`, and include the reason in `blockers`.
 - Set `was_unexpected: false` for known validation gate failures (e.g. diff not clear, manifest shape mismatch).
 - `errors` may be an empty list when no errors occurred.

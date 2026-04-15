@@ -949,6 +949,7 @@ Based on findings above, the following gaps are not covered by existing REQs:
 #### Acceptance Criteria
 - AC-040: Unplanned errors — crashes, missing files not anticipated by the plan, schema mismatches, tool timeouts, retries, and fallback paths — shall be narrated in **bold** Markdown formatting.
 - The format shall be: `[<step>] **UNEXPECTED: <description>**`.
+- Any unexpected issue is unrecoverable for the current stage: the specialist shall stop further step execution, return `status: fail`, and populate `blockers` with the reason.
 - In the handoff `errors[]` entry, `was_unexpected` shall be set to `true` for these errors.
 - Known validation failures (e.g. diff not clear, manifest shape mismatch at a gate) are not unexpected and shall use the standard `ERROR` format without bold.
 
@@ -1248,6 +1249,7 @@ Based on findings above, the following gaps are not covered by existing REQs:
 
 #### Acceptance Criteria
 - AC-052a: The dispatcher shall abort the entire pipeline — no further specialists invoked — when any specialist returns `status: blocked` or `status: fail`.
+- AC-052aa: The dispatcher shall also abort when any specialist handoff contains an `errors[]` entry with `was_unexpected: true`, even if the reported stage `status` is `pass`.
 - AC-052b: The dispatcher shall abort when a specialist invocation completes without returning a parseable `handoff` object. The abort message shall be: `**PIPELINE ABORT: Specialist <stage> did not return a valid handoff payload.**`
 - AC-052c: The dispatcher shall abort when a specialist returns a handoff with missing required fields (`stage`, `status`, or `summary`). The abort message shall identify the missing fields.
 - AC-052d: The dispatcher shall abort when it encounters an unrecoverable system error (e.g., cannot write to the log file, cannot invoke a subagent).
@@ -1258,11 +1260,12 @@ Based on findings above, the following gaps are not covered by existing REQs:
 - Precondition: A full pipeline run is initiated.
 - Steps:
   1. Simulate a specialist returning `status: fail`; verify the dispatcher halts immediately and does not invoke any further specialists.
-  2. Simulate a specialist returning no handoff payload; verify the dispatcher emits `**PIPELINE ABORT: ...**` and stops.
-  3. Simulate a specialist returning a handoff with `status` missing; verify the dispatcher aborts with the specific missing-field message.
-  4. Verify the pipeline activity log contains the abort reason.
-  5. Verify the pipeline summary table is emitted with the aborted stage marked as `abort`.
-  6. Verify the final handoff has `status: fail` with the reason in `blockers`.
+  2. Simulate a specialist returning `status: pass` but with an `errors[]` entry flagged `was_unexpected: true`; verify the dispatcher emits `**PIPELINE ABORT: ...**` and stops.
+  3. Simulate a specialist returning no handoff payload; verify the dispatcher emits `**PIPELINE ABORT: ...**` and stops.
+  4. Simulate a specialist returning a handoff with `status` missing; verify the dispatcher aborts with the specific missing-field message.
+  5. Verify the pipeline activity log contains the abort reason.
+  6. Verify the pipeline summary table is emitted with the aborted stage marked as `abort`.
+  7. Verify the final handoff has `status: fail` with the reason in `blockers`.
 - Expected:
   - Pipeline terminates immediately on any unrecoverable error.
   - No further specialists are invoked after abort.

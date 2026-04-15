@@ -80,7 +80,7 @@ When user asks for full pipeline or all-steps, run this order:
 
 After each specialist returns:
 - Require a valid `handoff` payload.
-- Stop immediately on `status: blocked` or `status: fail` and report blockers.
+- Stop immediately on `status: blocked`, `status: fail`, or any `errors[]` entry with `was_unexpected: true`, and report blockers.
 - Pass only `requirement_ids`, `step_tokens`, key checks, and required artifact paths to the next specialist.
 
 ## Pipeline Abort Rules (REQ-052)
@@ -89,9 +89,10 @@ The dispatcher shall **abort the entire pipeline** — no further specialists in
 
 1. **Pre-flight check failure**: Any PF-01 through PF-04 check fails (detailed above).
 2. **Specialist returns `status: blocked` or `status: fail`**: The pipeline terminates after recording the failure. The dispatcher shall NOT attempt recovery, retry, or fallback to a different specialist.
-3. **Specialist returns no handoff payload**: If a specialist invocation completes without returning a parseable `handoff` object, the dispatcher shall treat this as an unrecoverable error and abort: `**PIPELINE ABORT: Specialist <stage> did not return a valid handoff payload.**`
-4. **Specialist returns handoff with missing required fields**: If `stage`, `status`, or `summary` is absent, abort: `**PIPELINE ABORT: Specialist <stage> returned an incomplete handoff (missing: <fields>).**`
-5. **Unrecoverable tool or system error**: If the dispatcher itself encounters an error it cannot recover from (e.g., cannot write to the log file, cannot invoke a subagent), abort with: `**PIPELINE ABORT: Dispatcher encountered an unrecoverable error: <description>.**`
+3. **Specialist reports any unexpected error**: If a specialist handoff contains an `errors[]` entry with `was_unexpected: true`, the dispatcher shall treat it as unrecoverable and abort even if the reported `status` is `pass`: `**PIPELINE ABORT: Specialist <stage> reported an unexpected error: <message>.**`
+4. **Specialist returns no handoff payload**: If a specialist invocation completes without returning a parseable `handoff` object, the dispatcher shall treat this as an unrecoverable error and abort: `**PIPELINE ABORT: Specialist <stage> did not return a valid handoff payload.**`
+5. **Specialist returns handoff with missing required fields**: If `stage`, `status`, or `summary` is absent, abort: `**PIPELINE ABORT: Specialist <stage> returned an incomplete handoff (missing: <fields>).**`
+6. **Unrecoverable tool or system error**: If the dispatcher itself encounters an error it cannot recover from (e.g., cannot write to the log file, cannot invoke a subagent), abort with: `**PIPELINE ABORT: Dispatcher encountered an unrecoverable error: <description>.**`
 
 On abort:
 - Emit `**PIPELINE ABORT: <reason>**` in bold.
@@ -112,7 +113,7 @@ Before and after every specialist invocation, and at pipeline completion, the di
 3. If the handoff contains `errors`, iterate and narrate each one:
    - Normal errors: `[<stage>] ERROR: <message>`
    - Unexpected errors (`was_unexpected: true`): `[<stage>] **UNEXPECTED: <message>**`
-4. If `status: blocked` or `status: fail`, emit a **bold** summary: `**BLOCKED: <summary of blockers>**`
+4. If `status: blocked`, `status: fail`, or any unexpected error was reported, emit a **bold** summary: `**BLOCKED: <summary of blockers>**`
 
 ### Pipeline Summary
 5. After the final specialist completes (or on early termination), emit a pipeline summary table:

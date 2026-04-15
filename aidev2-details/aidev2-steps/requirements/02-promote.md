@@ -19,4 +19,5 @@ This step is **mechanical**. The agent SHALL:
 - On results: `[RQ-02] Promoted <N> items`
 - On error: `[RQ-02] ERROR: Promote failed — <details>`
 - On unexpected: `[RQ-02] **UNEXPECTED: <details>**`
+- Unexpected promote failures are fatal. Stop the requirements stage immediately, return `status: fail`, and do not continue to later requirements steps or pipeline stages.
 - On exit: `[RQ-02] Promote completed at <timestamp> (elapsed: <N>s)`

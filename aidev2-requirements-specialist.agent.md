@@ -63,6 +63,7 @@ Own only:
 
 4. **Unexpected issues in bold:** When an error is unplanned (unexpected crash, missing file, schema mismatch, tool timeout, or retry), narrate in **bold**:
    `[requirements] **UNEXPECTED: <description>**`
+   Any unexpected issue is fatal to the current stage. Stop immediately, do not continue to later step tokens, record the error in `errors[]`, set `status: fail`, and include the reason in `blockers`.
 
 5. **Per-item narration:**
    - Before authoring: `[requirements] Authoring <TYPE>-<ID> — <short-title>`

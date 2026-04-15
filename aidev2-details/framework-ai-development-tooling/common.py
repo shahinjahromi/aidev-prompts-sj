@@ -50,6 +50,7 @@ GROUPED_REQUIREMENT_REL_DIRS: Dict[str, str] = {
 DIFF_BUCKETS_BY_ARTIFACT_TYPE = {
     "functional_requirements": "functional",
     "non_functional_requirements": "non_functional",
+    "nfr_and_global_cr": "nfr-and-global-cr",
     "acceptance_tests": "acceptance_tests",
     "acceptance_criteria": "acceptance_criteria",
     "technology_selection": "technology_selection",
@@ -162,6 +163,47 @@ def iter_pending_promotion_doc_paths(requirements_path: str) -> List[str]:
             continue
         out.append(str(fp))
     return out
+
+
+def _grouped_pending_rel_path(requirements_path: str, pending_file_path: str) -> Optional[str]:
+    pending_root = os.path.abspath(os.path.join(requirements_path, PENDING_PROMOTION_DIR))
+    candidate = os.path.abspath(pending_file_path)
+    try:
+        rel_path = os.path.relpath(candidate, pending_root)
+    except ValueError:
+        return None
+    if rel_path == ".." or rel_path.startswith(f"..{os.sep}"):
+        return None
+    parts = Path(rel_path).parts
+    if len(parts) < 2:
+        return None
+    if parts[0] not in set(GROUPED_REQUIREMENT_REL_DIRS.values()):
+        return None
+    if Path(candidate).suffix.lower() not in {".yaml", ".yml"}:
+        return None
+    return rel_path
+
+
+def is_grouped_pending_file(requirements_path: str, pending_file_path: str) -> bool:
+    return _grouped_pending_rel_path(requirements_path, pending_file_path) is not None
+
+
+def grouped_current_target_path(requirements_path: str, pending_file_path: str) -> Optional[str]:
+    rel_path = _grouped_pending_rel_path(requirements_path, pending_file_path)
+    if rel_path is None:
+        return None
+    return os.path.join(requirements_path, CURRENT_DIR, rel_path)
+
+
+def iter_grouped_current_files(requirements_path: str, group_dir: str) -> List[str]:
+    root = os.path.join(requirements_path, CURRENT_DIR, group_dir)
+    if not os.path.isdir(root):
+        return []
+    out: List[str] = []
+    for pattern in ("*.yaml", "*.yml"):
+        for fp in sorted(Path(root).rglob(pattern)):
+            out.append(str(fp))
+    return sorted(set(out))
 
 
 def implementation_dir(requirements_path: str, implementation_id: str, create_dirs: bool = False) -> str:
