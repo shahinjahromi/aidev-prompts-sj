@@ -13,22 +13,32 @@ All rules and steps for diff, planning, execution, testing, manifest updates, an
 
 ## Read Efficiency
 
-1. **Batch-read on entry:** At IM-00, read all current YAML and manifest in parallel. Cache for the run.
-2. **Batch implementation YAML:** At IM-02 Plan, read `structured-diff.yaml`, existing plan/paths/results together.
+1. **Batch-read on entry:** At IM-00, read current YAML and manifest in parallel. Cache for the run.
+2. **Batch implementation YAML:** At IM-02 Plan, read `structured-diff.yaml` and manifest together.
 3. **Re-read only on write.** After writing, refresh only that file.
 4. **Module-scoped reads:** When targeting a specific module, limit source reads to the module's folder, shared entry points, and diff-referenced files.
-5. **Consume `cached_data` first.** Use data from prior stages before re-reading YAML.
-6. **Script-first for mechanical steps.** IM-01 Diff and IM-08 Manifest use `ai-tooling.sh` scripts — read only stdout/stderr, not input YAML.
+5. **Same-run `cached_data` only.** Consume data from earlier stages in the **current run** before re-reading YAML. Never inherit cached_data or artifacts from a prior run.
+6. **Script-first for mechanical steps.** IM-01 Diff and IM-09 Manifest use `ai-tooling.sh` scripts — read only stdout/stderr, not input YAML.
 7. **Use `summarize-diff`.** After `ai-tooling.sh diff`, run `summarize-diff` for counts/IDs as text. Parse `structured-diff.yaml` only when full snapshots needed for planning.
 
 ---
 
-## IM-00 Pre-Step Verification
+## IM-00 Pre-Step Verification & Fresh Start
 
+### Verification
 1. Read `config.yaml` (if not cached) → extract `IMPLEMENTATION_ID`, `APP_ROOT`, `STARTUP_HINT`, `APP_TEST_STARTUP_HINT`, `MANIFEST`, `TOOLING_CMD`, DB settings.
 2. Resolve `IMPL_ROOT`, `AI_TOOLING`, startup hints.
 3. Validate manifest shape against `SCHEMAS_ROOT/in-application/requirements-state-schema.json`.
 4. Confirm `iteration_id` and version targets are sensible.
+
+### Archive & Clear (fresh-start default)
+Unless user explicitly said "reuse", "continue", or "resume":
+5. If `IMPL_ROOT/01-delta-current` has files → move to `IMPL_ROOT/50-delta-history/<timestamp>/`.
+6. If `IMPL_ROOT/02-plan-current` has files → move to `IMPL_ROOT/51-plan-history/<timestamp>/`.
+7. If `IMPL_ROOT/03-plan-execution` has files → move to `IMPL_ROOT/52-plan-execution-history/<timestamp>/`.
+8. `<timestamp>` = `YYYY-MM-DD-HH-MM-SS` at archive time.
+
+This ensures every implementation run starts from a clean slate — diff, plan, and execution are always regenerated from current script output.
 
 ---
 
@@ -116,10 +126,10 @@ Both required before DB gate clears. If no prior schema, migration = full schema
 
 Prefer stack-aware extractor from `AI_TOOLING/interface-extractors/` if available.
 
-**Skip optimization:** If `ref-library-methods.yaml` exists and plan added no new dependencies, reuse and skip.
+Always regenerate — do not reuse prior `ref-library-methods.yaml` unless user explicitly requests it.
 
 ### Narration
-`[IM-04] Extract interfaces started/completed at <ts>` or `Skipped: no dependency changes`
+`[IM-04] Extract interfaces started/completed at <ts>`
 
 ---
 

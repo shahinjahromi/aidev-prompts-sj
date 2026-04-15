@@ -55,18 +55,23 @@ Log all outcomes before proceeding.
 
 ## §WARMUP
 
-Eagerly load and cache all runtime values.
+Load and cache **path/config data only** — defer content reads to the stages that need them.
 
 1. Detect `BLUEPRINT_ROOT` per blueprint policy (template guard applies).
 2. Read `config.yaml` → extract all variables per config resolution table.
-3. Read `codebase-context.yaml` if populated.
+3. Read `codebase-context.yaml` only if it has non-placeholder values (check first few fields).
 4. Resolve all derived paths: `REQ_PATH`, `PENDING`, `CURRENT`, `IMPL_ROOT`, `E2E_ROOT`, `E2E_REPORTS`, `MANIFEST`, `AI_TOOLING`.
 5. Discover tooling per tooling discovery order.
-6. Infer `APP_ROOT` per app root inference. Verify exists.
-7. Batch-read pending + current YAML → compute `max_sequence` per type (FR, NFR, TS, MAC, UIC, AC, AT).
-8. List requirement YAML paths. Summarize standing NFR/Global CR titles (one line each).
+6. Infer `APP_ROOT` per app root inference. Verify directory exists on disk.
+7. Bootstrap `.aidev` if `MANIFEST` missing (PF-03 logic).
+8. `list_dir` on `PENDING` and `CURRENT` — record **file names only** (no content reads).
 9. Write to `/memories/session/aidev2-config-cache.md` under `## <BLUEPRINT_ROOT>`.
-10. Report resolved values. No file modifications.
+10. Report resolved values in a compact table. No YAML content reads. No file modifications.
+
+**What warmup does NOT do** (deferred to consuming stages):
+- Does NOT read requirement YAML content (FR, NFR, MAC, TS files).
+- Does NOT compute `max_sequence` per type — deferred to §REQUIREMENTS / IM-02.
+- Does NOT summarize NFR/Global CR standing constraints — deferred to IM-02.
 
 Argument `refresh` → overwrite existing cache section.
 
@@ -106,7 +111,10 @@ Parse step tokens: `01-diff` through `09-generate-docs`, or ranges like `02-07`.
 Mapping: `01-diff`→IM-01, `02-plan`→IM-02, `03-execute`→IM-03, `04-extract`→IM-04, `05-fix`→IM-05, `06-create-tests`→IM-07, `07-run-tests`→IM-08, `08-update-manifest`→IM-09, `09-generate-docs`→IM-10.
 
 1. Run §PRE-FLIGHT if cache not warm.
-2. Execute requested steps per implementation pipeline.
+2. **Fresh-start (default):** Run IM-00 archive/clear before first step — moves leftover `01-delta-current`, `02-plan-current`, `03-plan-execution` to history folders. Always regenerate diff and plan from scratch based on current script output. Never reuse plans, deltas, or results from a prior run.
+3. Execute requested steps per implementation pipeline.
+
+Override: user says "reuse plan", "continue", or "resume" → skip fresh-start and reuse existing artifacts.
 
 ---
 
@@ -137,7 +145,9 @@ On abort: emit `**PIPELINE ABORT: <reason>**`, log to activity log, emit summary
 
 ### Pipeline Context
 
-Maintain `cached_data` across stages. After each stage, merge computed state. Later stages consume before re-reading YAML.
+Maintain `cached_data` across stages **within the same run only**. After each stage, merge computed state. Later stages consume before re-reading YAML.
+
+**Cross-run isolation:** Never inherit plans, deltas, results, or cached_data from a prior run. Each pipeline invocation starts fresh unless user explicitly says "reuse", "continue", or "resume".
 
 ---
 
@@ -255,3 +265,4 @@ stage_result:
 
 File: `/memories/session/aidev2-config-cache.md`
 Section: `## <absolute BLUEPRINT_ROOT>` — isolated by exact header match.
+Contents: resolved config variables and directory file listings only. No YAML content or computed sequences.
