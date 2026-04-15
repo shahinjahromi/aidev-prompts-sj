@@ -34,6 +34,13 @@ Read only:
 - Script stdout/stderr from `ai-tooling.sh diff` and `ai-tooling.sh summarize-diff`
 - Specific YAML files only when a targeted schema validation is needed and the file is not in `cached_data`
 
+Resolved path rules:
+- Treat `REQ_PATH` as the requirements root path only: `BLUEPRINT_ROOT/01-requirements`, unless the dispatcher explicitly provides `REQ_PATH`.
+- Never pass `BLUEPRINT_ROOT` itself as `-r/--requirements-path` to any tooling command.
+- For diff-clear verification, the only valid command shapes are:
+   - `"$TOOLING_CMD" diff -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID"`
+   - `"$TOOLING_CMD" summarize-diff -r "$REQ_PATH" --implementation-id "$IMPLEMENTATION_ID"`
+
 ## Scope
 
 Own only:
@@ -68,7 +75,7 @@ Own only:
 ## Read Avoidance (REQ-042, REQ-045)
 
 - Consume `cached_data` from the dispatcher before reading any YAML file.
-- For diff-clear verification, run `ai-tooling.sh diff` then `ai-tooling.sh summarize-diff` via terminal and check the total_diff_items count. Do NOT parse structured-diff.yaml or current YAML to verify diff-clear status.
+- For diff-clear verification, require `REQ_PATH` from the dispatcher or derive it as `BLUEPRINT_ROOT/01-requirements`, then run `ai-tooling.sh diff` and `ai-tooling.sh summarize-diff` with that exact requirements path. Do NOT use `BLUEPRINT_ROOT` as `-r`, and do NOT parse structured-diff.yaml or current YAML to verify diff-clear status.
 - If schema shapes or requirement paths are already in `cached_data`, do not re-read them.
 
 ## Constraints

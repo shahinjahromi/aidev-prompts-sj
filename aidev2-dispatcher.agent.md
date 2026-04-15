@@ -81,7 +81,8 @@ When user asks for full pipeline or all-steps, run this order:
 After each specialist returns:
 - Require a valid `handoff` payload.
 - Stop immediately on `status: blocked`, `status: fail`, or any `errors[]` entry with `was_unexpected: true`, and report blockers.
-- Pass only `requirement_ids`, `step_tokens`, key checks, and required artifact paths to the next specialist.
+- Pass only `requirement_ids`, `step_tokens`, key checks, required artifact paths, and resolved execution paths needed by the next specialist.
+- Always carry forward these resolved path variables when available: `BLUEPRINT_ROOT`, `REQ_PATH`, `APP_ROOT`, `IMPLEMENTATION_ID`, `TOOLING_CMD`, and `LOG_FILE`.
 
 ## Pipeline Abort Rules (REQ-052)
 
@@ -184,6 +185,7 @@ At pipeline start, before invoking the first specialist:
 - Forward `cached_data` from the previous handoff to the next specialist. This avoids re-reading YAML files that a prior stage already parsed.
 - If the session cache (`/memories/session/aidev2-config-cache.md`) exists, reference it in the specialist prompt so it can skip IM-00 / RQ-01 discovery overhead.
 - When running a full pipeline, warm the cache before the first specialist if it is not already populated.
+- For any specialist that runs mechanical tooling (`promote`, `diff`, `summarize-diff`, `apply`, `verify-execution`), explicitly include `REQ_PATH=BLUEPRINT_ROOT/01-requirements` in the invocation prompt unless a more specific requirements root was already resolved.
 
 ### Pipeline Context Accumulation (REQ-044)
 
@@ -197,7 +199,7 @@ When a specialist is skipped (via `from-*` override), discard any pre-built prom
 ### Specialist Pre-warming (REQ-044)
 
 Before the current specialist completes, pre-build the invocation prompt for the **next** specialist in the pipeline sequence:
-1. The next specialist's prompt shall include: implementation_id, requirement_ids, cached_data (from pipeline_context so far), instruction file paths, and step file paths.
+1. The next specialist's prompt shall include: `BLUEPRINT_ROOT`, `REQ_PATH`, `APP_ROOT`, `IMPLEMENTATION_ID`, `TOOLING_CMD`, `LOG_FILE`, requirement_ids, cached_data (from pipeline_context so far), instruction file paths, and step file paths.
 2. When the current specialist returns its handoff, merge its `cached_data` into pipeline_context and finalize the next specialist's prompt.
 3. This eliminates re-discovery of paths and instruction files at each specialist handoff boundary.
 
