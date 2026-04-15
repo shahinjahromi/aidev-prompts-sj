@@ -19,6 +19,7 @@ from common import (
     compare_versions,
     DIFF_BUCKETS_BY_ARTIFACT_TYPE,
     generate_merged,
+    app_manifest_path,
     get_app_manifest,
     get_artifact_doc_path,
     get_diff_files,
@@ -365,6 +366,11 @@ def main() -> None:
             pending_doc["paragraphs"] = []
         write_yaml(pfp, pending_doc)
 
+    total_promoted = sum(promoted_counts.values())
+    if total_promoted == 0:
+        print('WARNING [promote_changes]: No pending items to promote — promote may have already run for this iteration. Skipping version bump.')
+        return
+
     control['current_version'] = to_v
     control['next_version'] = bump_patch(to_v)
     control['iteration_id'] = iteration_id
@@ -392,6 +398,20 @@ def main() -> None:
     if implementation_ids:
         sync_technology_selection_mirrors(args.requirements_path, PENDING_PROMOTION_DIR, implementation_ids)
         sync_technology_selection_mirrors(args.requirements_path, CURRENT_DIR, implementation_ids)
+
+    # Auto-upgrade app requirements_version_target to the promoted version.
+    for t in targets:
+        t_app_path = t.get("app_path")
+        if not t_app_path:
+            continue
+        amp = app_manifest_path(t_app_path)
+        if not os.path.exists(amp):
+            continue
+        app_man = read_yaml(amp)
+        app_man["requirements_version_target"] = to_v
+        write_yaml(amp, app_man)
+        print(f'Updated app requirements_version_target to {to_v} in {amp}')
+
     print('Promoted pending changes and regenerated merged requirements')
 
 

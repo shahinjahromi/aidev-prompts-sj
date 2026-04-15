@@ -869,6 +869,16 @@ _Implementation: fakebank-omb-bff-web-go_
 - **Symptom**: The promote script tried to process `.gitkeep` placeholder files as YAML documents, causing parse errors.
 - **Fix**: Added a skip condition for `.gitkeep` files in `iter_pending_promotion_doc_paths`.
 
+#### FINDING-009: Double promote execution bumped version twice (REQ-060 trigger)
+- **Symptom**: The requirements specialist retried the `ai-tooling.sh promote` terminal command, causing the promote script to run twice. Each run bumped the version (1.0.6 → 1.0.7 → 1.0.8), and the specialist flagged this as `was_unexpected: true`, aborting the pipeline.
+- **Root Cause**: The promote script had no idempotency guard — it unconditionally bumped the version even when there were zero pending items to promote.
+- **Fix**: (a) Added an early return in `promote_changes.py` when `total_promoted == 0`, printing a `WARNING` and skipping the version bump. (b) Updated `02-promote.md` step file to classify the no-items warning as a soft error (`severity: warning`, `was_unexpected: false`). (c) Added REQ-060 to formally require this behavior.
+
+#### FINDING-010: Promote did not auto-upgrade app `requirements_version_target` (REQ-061 trigger)
+- **Symptom**: After promote bumped the requirements version in `control.yaml`, the app's `requirements-state.yaml` still had the old `requirements_version_target`. The developer had to manually update it, which was error-prone and could be missed.
+- **Root Cause**: `promote_changes.py` updated only the blueprint-side `control.yaml` and `manifest.yaml` but never touched the app-side manifest.
+- **Fix**: Added auto-upgrade logic at the end of `promote_changes.py` — after writing `control.yaml` and `req_manifest`, the script iterates over resolved targets and updates `requirements_version_target` in each app's `requirements-state.yaml`. Added REQ-061 to formalize this.
+
 ### New Requirement Candidates
 
 Based on findings above, the following gaps are not covered by existing REQs:
@@ -1409,6 +1419,56 @@ Based on findings above, the following gaps are not covered by existing REQs:
 
 ---
 
+### REQ-060 Duplicate promote execution is a soft warning, not a fatal error
+
+#### Acceptance Criteria
+- AC-060a: When the promote script (`promote_changes.py`) is invoked but all pending-promotion documents have zero items to promote, the script shall print a warning to stdout: `WARNING [promote_changes]: No pending items to promote — promote may have already run for this iteration. Skipping version bump.` and exit with code 0.
+- AC-060b: When zero items are promoted, the script shall NOT bump `current_version` or `next_version` in `control.yaml`, shall NOT update the requirements manifest, and shall NOT update the app manifest.
+- AC-060c: The requirements specialist (RQ-02 step) shall treat a "no pending items" warning from the promote script as a soft error: narrate it as `[RQ-02] WARNING: Promote skipped — no pending items (possible duplicate execution)`, record it in `errors[]` with `severity: warning` and `was_unexpected: false`, and continue to later steps.
+- AC-060d: The dispatcher shall NOT abort the pipeline when the only errors in the requirements handoff are warnings with `was_unexpected: false`.
+
+#### Acceptance Test — AT-060 Verify duplicate promote is a soft warning
+- Precondition: A blueprint with pending-promotion items has already been promoted once (pending items cleared).
+- Steps:
+  1. Run `ai-tooling.sh promote` a second time against the same blueprint.
+  2. Verify stdout contains `WARNING [promote_changes]: No pending items to promote`.
+  3. Verify exit code is 0.
+  4. Verify `control.yaml` `current_version` and `next_version` are unchanged from the first promote.
+  5. Run the full pipeline where the specialist invokes promote twice (e.g. terminal retry); verify the pipeline does NOT abort.
+  6. Verify the requirements handoff `errors[]` contains an entry with `severity: warning` and `was_unexpected: false`.
+  7. Verify the pipeline summary table does NOT mark the requirements stage as `abort` or `fail`.
+- Expected:
+  - Second promote exits cleanly with a warning.
+  - Version is not double-bumped.
+  - Pipeline continues past the requirements stage.
+
+---
+
+### REQ-061 Promote auto-upgrades app `requirements_version_target`
+
+#### Acceptance Criteria
+- AC-061a: After a successful promote (at least one item promoted), the promote script shall automatically update `requirements_version_target` in each target app's `requirements-state.yaml` to match the new `current_version` from `control.yaml`.
+- AC-061b: If the app manifest file (`APP_ROOT/.aidev/requirements/requirements-state.yaml`) does not exist, the script shall skip the update silently (the file may be created later by the bootstrap step).
+- AC-061c: The script shall print `Updated app requirements_version_target to <version> in <path>` for each app manifest it updates.
+- AC-061d: The `requirements_version_implemented` field in the app manifest shall NOT be modified by promote — it is only updated by the implementation apply-delta step.
+- AC-061e: When zero items are promoted (AC-060b), the app manifest shall NOT be updated.
+
+#### Acceptance Test — AT-061 Verify promote auto-upgrades app target version
+- Precondition: A blueprint with pending items and an app repo with an existing `requirements-state.yaml`.
+- Steps:
+  1. Record the `requirements_version_target` in the app manifest before promote.
+  2. Run `ai-tooling.sh promote`.
+  3. Verify stdout contains `Updated app requirements_version_target to <new_version>`.
+  4. Read `APP_ROOT/.aidev/requirements/requirements-state.yaml` and verify `requirements_version_target` equals the new `current_version` from `control.yaml`.
+  5. Verify `requirements_version_implemented` is unchanged.
+  6. Delete the app manifest and run promote again; verify no error occurs (skipped silently).
+- Expected:
+  - App `requirements_version_target` is updated to match the promoted version.
+  - `requirements_version_implemented` is untouched.
+  - Missing app manifest does not cause an error.
+
+---
+
 ## Traceability Matrix
 - REQ-001 -> AC-001 -> AT-001
 - REQ-002 -> AC-002 -> AT-002
@@ -1469,6 +1529,8 @@ Based on findings above, the following gaps are not covered by existing REQs:
 - REQ-057 -> AC-057 -> AT-057
 - REQ-058 -> AC-058 -> AT-058
 - REQ-059 -> AC-059 -> AT-059
+- REQ-060 -> AC-060 -> AT-060
+- REQ-061 -> AC-061 -> AT-061
 
 ## Notes
 - This specification is intentionally strict on implementation-id-specific preset files and merged-field parity, including module, to prevent silent schema drift during setup automation.
