@@ -70,12 +70,14 @@ App-relative:
 |---|---|
 | `MANIFEST` | `APP_ROOT/.aidev/requirements/requirements-state.yaml` |
 
-Shared assets (infrastructure data files):
+Shared assets (all bundled in `aidev2-combined-details`):
 
 | Variable | Path |
 |---|---|
-| `SCHEMAS_ROOT` | `<USER_PROMPTS>/aidev2-details/aidev2-schemas` |
-| `E2E_TEMPLATES` | `<USER_PROMPTS>/aidev2-details/e2e-playwright-templates` |
+| `SCHEMAS_ROOT` | `<USER_PROMPTS>/aidev2-combined-details/aidev2-schemas` |
+| `E2E_TEMPLATES` | `<USER_PROMPTS>/aidev2-combined-details/e2e-playwright-templates` |
+| `INITIAL_FOLDER_STRUCTURE` | `<USER_PROMPTS>/aidev2-combined-details/initial-folder-structure` |
+| `BUNDLED_TOOLING` | `<USER_PROMPTS>/aidev2-combined-details/framework-ai-development-tooling` |
 
 Where `<USER_PROMPTS>` = `/home/parallels/.config/Code/User/prompts`.
 
@@ -138,13 +140,16 @@ When `APP_ROOT` exists but `MANIFEST` doesn't:
 
 ## Tooling Discovery
 
-Search for `framework-ai-development-tooling/ai-tooling.sh`:
-1. Workspace root folders (preferred)
-2. `BLUEPRINT_ROOT/../framework-ai-development-tooling/ai-tooling.sh`
-3. Ancestor walk from BLUEPRINT_ROOT
-4. Not found → ask user
+Resolution order for `ai-tooling.sh`:
+1. **Bundled copy (preferred)** — `BUNDLED_TOOLING/ai-tooling.sh` (always present)
+2. **Workspace root folders** — any workspace root containing `framework-ai-development-tooling/ai-tooling.sh`
+3. **Blueprint sibling** — `BLUEPRINT_ROOT/../framework-ai-development-tooling/ai-tooling.sh`
+4. **Ancestor walk** — walk up from BLUEPRINT_ROOT
+5. Not found → ask user
 
-Set `AI_TOOLING` = parent directory, `TOOLING_CMD` = `$AI_TOOLING/ai-tooling.sh`.
+Set `AI_TOOLING` = parent directory of resolved `ai-tooling.sh`, `TOOLING_CMD` = `$AI_TOOLING/ai-tooling.sh`.
+
+The bundled copy at `BUNDLED_TOOLING` ensures the combined prompt works even without workspace-level tooling.
 
 ## Startup Heuristics
 

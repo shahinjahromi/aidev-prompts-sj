@@ -1,0 +1,4 @@
+requirement_type: acceptance_tests
+default_implementation_ids:
+- '*'
+mappings: []

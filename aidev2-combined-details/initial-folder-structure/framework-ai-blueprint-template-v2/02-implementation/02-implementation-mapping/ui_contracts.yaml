@@ -1,0 +1,4 @@
+requirement_type: ui_contracts
+default_implementation_ids:
+- '*'
+mappings: []

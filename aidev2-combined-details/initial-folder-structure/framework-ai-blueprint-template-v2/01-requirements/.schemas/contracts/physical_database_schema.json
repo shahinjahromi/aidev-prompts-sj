@@ -1,0 +1,6 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Physical Database Schema Contract",
+  "description": "Physical database schema contracts are plain SQL DDL text files (.sql), specific to the target database dialect (e.g. PostgreSQL, MySQL). They are NOT structured YAML/JSON. The spec_path in the MAC entry points to a raw .sql file containing CREATE TABLE, ALTER TABLE, and other DDL statements. This schema exists only to document the convention — validation of SQL content is left to the database engine.",
+  "type": "string"
+}

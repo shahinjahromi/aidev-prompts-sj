@@ -1,0 +1,95 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Requirements State",
+    "description": "Schema for the per-application requirements state file at .aidev/requirements/requirements-state.yaml. Tracks which requirement versions are implemented in an app, per implementation.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "manifest_version",
+        "requirement_set_id",
+        "app_identifier",
+        "implementation_id",
+        "iteration_id",
+        "requirements_version_target",
+        "requirements_version_implemented",
+        "requirement_baseline"
+    ],
+    "properties": {
+        "manifest_version": {
+            "type": "string",
+            "description": "Schema version of this state file.",
+            "pattern": "^[0-9]+\\.[0-9]+$",
+            "examples": [
+                "1.0"
+            ]
+        },
+        "requirement_set_id": {
+            "type": "string",
+            "description": "Canonical requirement set identifier from config.yaml.",
+            "minLength": 1
+        },
+        "app_identifier": {
+            "type": "string",
+            "description": "App identifier from config.yaml.",
+            "minLength": 1
+        },
+        "implementation_id": {
+            "type": "string",
+            "description": "Implementation identifier. Must match a key under config.yaml implementations.",
+            "minLength": 1
+        },
+        "iteration_id": {
+            "type": "integer",
+            "description": "Monotonically increasing iteration counter. Incremented before each diff/plan/execute cycle.",
+            "minimum": 0
+        },
+        "requirements_version_target": {
+            "type": "string",
+            "description": "Semver of the requirement set version that this iteration targets.",
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "requirements_version_implemented": {
+            "type": "string",
+            "description": "Semver of the requirement set version last fully implemented and verified.",
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "requirement_baseline": {
+            "type": "array",
+            "description": "One entry per requirement tracked in this implementation.",
+            "items": {
+                "type": "object",
+                "required": [
+                    "requirement_id",
+                    "pinned_version"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                    "requirement_id": {
+                        "type": "string",
+                        "description": "Normalized requirement ID. Format: <TYPE>-<7-digit-sequence>-<short-title>.",
+                        "pattern": "^(FR|NFR|GLOBAL|TS|MAC|UIC|AC|AT)-[0-9]{7}-[a-z0-9-]+(-v[0-9]+)?$"
+                    },
+                    "pinned_version": {
+                        "type": "string",
+                        "description": "Semver of the requirement version last implemented.",
+                        "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+                    },
+                    "module": {
+                        "type": "string",
+                        "description": "Logical module the requirement belongs to at the time it was implemented. Tracked to detect module reassignment across iterations."
+                    },
+                    "e2e_test_status": {
+                        "type": "string",
+                        "enum": [
+                            "NOT_TESTED",
+                            "PASSED",
+                            "FAILED"
+                        ],
+                        "description": "End-to-end test status for this requirement.",
+                        "default": "NOT_TESTED"
+                    }
+                }
+            }
+        }
+    }
+}

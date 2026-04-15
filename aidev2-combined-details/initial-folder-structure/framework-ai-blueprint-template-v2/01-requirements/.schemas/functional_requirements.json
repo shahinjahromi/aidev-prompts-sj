@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Functional Requirements Schema (Structured)",
+  "type": "object",
+  "required": ["schema_version", "type", "items"],
+  "properties": {
+    "schema_version": { "type": "integer" },
+    "type": { "const": "functional_requirements" },
+    "generated_at": { "type": "string", "format": "date" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "text", "section"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^FR-[0-9]{6}(-v[0-9]+)?$" },
+          "replaces_id": { "type": "string", "pattern": "^FR-[0-9]{6}(-v[0-9]+)?$" },
+          "text": { "type": "string", "description": "Requirement text. If replaces_id is set and text is empty, the original requirement is marked for removal. The original entry remains in the list with superseded_by set; look up its full history in 02-diff/functional/<ID>.yaml." },
+          "section": { "type": "string" },
+          "contract_refs": { "type": "array", "items": { "type": "object" } },
+          "implements_contract_ids": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^MAC-[a-z0-9-]+(-v[0-9]+)?$" },
+            "description": "MAC item ids of contracts this requirement implements (provides/exposes)."
+          },
+          "consumes_upstream_contract_ids": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^MAC-[a-z0-9-]+(-v[0-9]+)?$" },
+            "description": "MAC item ids of upstream contracts this requirement consumes (calls/depends on)."
+          },
+          "acceptance_criteria": { "type": "array", "items": { "$ref": "_ac_definition.json" } },
+          "acceptance_tests": { "type": "array", "items": { "$ref": "_at_definition.json" } }
+        }
+      }
+    }
+  }
+}

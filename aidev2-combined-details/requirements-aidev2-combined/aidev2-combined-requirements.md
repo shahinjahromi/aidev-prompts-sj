@@ -12,7 +12,7 @@ Parse first token as command. Supported: `warmup`, `setup-app`, `requirements`, 
 
 ## REQ-C03 Self-Contained References
 
-The prompt references only files under `aidev2-combined-details/`. No dependencies on `aidev2-details/` instruction or step files. Shared data assets (JSON schemas, TypeScript reporter templates) are referenced by absolute path constants in `blueprint-policy.md`.
+The prompt references only files under `aidev2-combined-details/`. No dependencies on `aidev2-details/`. JSON schemas, TypeScript reporter templates, and all shared data assets are bundled locally under `aidev2-combined-details/aidev2-schemas/` and `aidev2-combined-details/e2e-playwright-templates/`.
 
 ## REQ-C04 Warmup
 

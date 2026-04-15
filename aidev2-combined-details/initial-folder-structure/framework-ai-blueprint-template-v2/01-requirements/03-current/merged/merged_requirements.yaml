@@ -1,0 +1,12 @@
+requirements_version: 1.0.0
+requirement_set_id: <<APP_SLUG>>
+merged_at: "<<DATE>>"
+functional_requirements: []
+nfr_and_global_cr: []
+technology_selection: []
+acceptance_criteria: []
+acceptance_tests: []
+data_and_api_contracts: []
+ui_contracts: []
+decisions: []
+glossary: []

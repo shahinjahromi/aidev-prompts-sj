@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Models and Contracts Schema",
+  "type": "object",
+  "required": ["schema_version", "type", "generated_at", "items"],
+  "properties": {
+    "schema_version": { "type": "integer" },
+    "type": { "const": "models_and_contracts" },
+    "generated_at": { "type": "string", "format": "date" },
+    "version": { "type": "string" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "summary", "spec_format", "spec_path"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^MAC-[a-z0-9-]+(-v[0-9]+)?$" },
+          "replaces_id": {
+            "type": "string",
+            "pattern": "^MAC-[a-z0-9-]+(-v[0-9]+)?$",
+            "description": "Original MAC id superseded by this entry. Required for versioned/update entries."
+          },
+          "title": { "type": "string" },
+          "summary": { "type": "string" },
+          "spec_format": { "type": "string", "enum": ["openapi_yaml", "graphql_sdl_yaml", "logical_database_schema", "physical_database_schema", "domain_model"] },
+          "spec_path": { "type": "string" }
+        },
+        "additionalProperties": false,
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "id": { "pattern": "-v[0-9]+$" }
+              },
+              "required": ["id"]
+            },
+            "then": {
+              "required": ["replaces_id"]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

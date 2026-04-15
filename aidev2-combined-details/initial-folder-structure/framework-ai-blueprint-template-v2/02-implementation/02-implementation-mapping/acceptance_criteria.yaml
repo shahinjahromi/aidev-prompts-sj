@@ -1,0 +1,4 @@
+requirement_type: acceptance_criteria
+default_implementation_ids:
+- '*'
+mappings: []
