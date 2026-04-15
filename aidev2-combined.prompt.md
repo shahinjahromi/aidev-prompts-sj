@@ -237,6 +237,13 @@ At pipeline start:
 4. Append all narration, decisions, errors via `echo >> "$LOG_FILE"`.
 5. Final: `[<ts>][combined] [PIPELINE END] total_elapsed=<N>s total_errors=<N>`.
 
+**CRITICAL — Log Enforcement Rules:**
+- Every stage **MUST** `echo` its `STAGE START` line to `$LOG_FILE` **before** any stage work begins.
+- Every stage **MUST** `echo` its `STAGE END` line to `$LOG_FILE` **immediately after** stage work completes (before proceeding to the next stage).
+- Within a stage, every script invocation, key decision, error, and artifact write **MUST** be logged as it happens — not batched at the end.
+- Use `run_in_terminal` with `echo "[<ts>][combined] ..." >> "$LOG_FILE"` as a **separate tool call** before and after stage work. Do not rely on appending log entries in a later stage or at pipeline end.
+- If a conversation is interrupted mid-pipeline, the log must reflect all stages that actually completed.
+
 ## Terminal Execution Rules
 
 - Fresh foreground terminal for each critical tooling command.
