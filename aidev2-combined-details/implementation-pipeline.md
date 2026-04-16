@@ -183,6 +183,41 @@ If `06-e2e-tests/` has files from prior iteration, reuse config/fixtures/helpers
 - Capture HTTP traffic into `http-traffic` attachment for `traffic-html-reporter`/`traffic-json-reporter`.
 - Run: `TEST_MODE=api npx playwright test --project=api`
 
+**MANDATORY — Every API test must attach http-traffic. Pattern:**
+```typescript
+test('AT-XXXXXX — ...', async ({ request }, testInfo) => {
+  const response = await request.get('/path');
+  const body = await response.text();
+  const responseHeaders = response.headers() as Record<string, string>;
+  const traffic = [{
+    acceptanceTestId: 'AT-XXXXXX',
+    acceptanceTestTitle: '...',
+    exchangeRole: 'direct',
+    exchangePurpose: '...',
+    requestLabel: 'GET /path',
+    responseLabel: `HTTP ${response.status()}`,
+    rawHttpRequest: `GET /path HTTP/1.1\nHost: ${new URL(response.url()).host}\nAccept: text/plain`,
+    rawHttpResponse: `HTTP/1.1 ${response.status()}\n${Object.entries(responseHeaders).map(([k,v])=>`${k}: ${v}`).join('\n')}\n\n${body}`,
+    request: { method: 'GET', url: response.url(), headers: {}, body: null },
+    response: { status: response.status(), headers: responseHeaders, body },
+  }];
+  expect(response.status()).toBe(200);
+  // ... other assertions ...
+  await testInfo.attach('http-traffic', { body: Buffer.from(JSON.stringify(traffic)), contentType: 'application/json' });
+});
+```
+Without this attachment, `traffic-html-reporter` and `traffic-json-reporter` produce empty traffic sections.
+
+**MANDATORY — `playwright.config.ts` must use the custom reporters, not built-in ones:**
+```typescript
+reporter: [
+  ['list'],
+  ['./helpers/traffic-html-reporter.ts', { outputFile: path.resolve(reportsRoot, 'traffic-report.html') }],
+  ['./helpers/traffic-json-reporter.ts', { outputFile: path.resolve(reportsRoot, 'traffic-report.json') }],
+],
+```
+Do NOT use `['json', ...]` or `['html', ...]` built-in reporters for API test projects. They will not produce the required traffic HTML.
+
 Reporter templates: copy `traffic-html-reporter.ts`, `traffic-json-reporter.ts`, `ui-html-reporter.ts` from `E2E_TEMPLATES/helpers/` into `06-e2e-tests/helpers/` verbatim.
 
 ### Narration
