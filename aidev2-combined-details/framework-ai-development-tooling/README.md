@@ -35,7 +35,7 @@ Examples:
 ## Required identifiers
 
 - `requirement_set_id` must match between app manifest and requirements.
-- `app_identifier` must be defined once in requirements manifest `01-requirements/manifest.yaml` and must match app manifest.
+- `app_identifier` must be defined once in `01-requirements/control.yaml` and must match app manifest.
 - Keep implementation runtime state in `02-implementation-state/01-implementations/<implementation_id>/`.
 - Terminal tooling commands fail when app and requirements `app_identifier` do not match.
 - App manifest must define:

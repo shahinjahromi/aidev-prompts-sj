@@ -315,8 +315,8 @@ fi
 
 # ─── Seed per-implementation preset files into pending-promotion ────────────
 echo "Seeding pending-promotion presets (core stack)..."
-mkdir -p "${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/nfr_and_global_cr"
-mkdir -p "${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/technology_selection"
+mkdir -p "${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/nfr-and-global-cr"
+mkdir -p "${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/technology-selection"
 
 if [[ -n "${CORE_STACK}" ]]; then
   PROMPTS_ROOT=""
@@ -325,7 +325,7 @@ if [[ -n "${CORE_STACK}" ]]; then
 
     # ── Technology selection preset ──
     TS_SRC="${PRESET_ROOT}/tech_selections_by-core-stack/${CORE_STACK}/technology-selection-[implementation_id].yaml"
-    TS_DEST="${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/technology_selection/technology_selection_${IMPL_ID}.yaml"
+    TS_DEST="${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/technology-selection/technology-selection-${IMPL_ID}.yaml"
     if [[ -f "${TS_SRC}" ]]; then
       cp "${TS_SRC}" "${TS_DEST}"
       echo "  Seeded technology selection preset: ${TS_DEST}"
@@ -335,7 +335,7 @@ if [[ -n "${CORE_STACK}" ]]; then
 
     # ── NFR / GLOBAL CR preset ──
     NFR_SRC="${PRESET_ROOT}/nfr-and-global-cr-by-core-stack/${CORE_STACK}/nfr-and-global-cr-[implementation id].yaml"
-    NFR_DEST="${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/nfr_and_global_cr/nfr_and_global_cr_${IMPL_ID}.yaml"
+    NFR_DEST="${BLUEPRINT_DIR}/01-requirements/01-pending-promotion/nfr-and-global-cr/nfr-and-global-cr-${IMPL_ID}.yaml"
     if [[ -f "${NFR_SRC}" ]]; then
       cp "${NFR_SRC}" "${NFR_DEST}"
       echo "  Seeded NFR/GLOBAL preset: ${NFR_DEST}"
@@ -388,11 +388,11 @@ merged = {
 merged_path.write_text(yaml.safe_dump(merged, sort_keys=False, allow_unicode=False), encoding="utf-8")
 PY
 
-# ─── Create app directory with manifest ──────────────────────────
-APP_MANIFEST_DIR="${APP_DIR}/manifests"
+# ─── Create app .aidev manifest ──────────────────────────────────
+APP_MANIFEST_DIR="${APP_DIR}/.aidev/requirements"
 mkdir -p "$APP_MANIFEST_DIR"
-if [[ ! -f "${APP_MANIFEST_DIR}/requirements-manifest.yaml" ]]; then
-  cat > "${APP_MANIFEST_DIR}/requirements-manifest.yaml" <<MANIFEST
+if [[ ! -f "${APP_MANIFEST_DIR}/requirements-state.yaml" ]]; then
+  cat > "${APP_MANIFEST_DIR}/requirements-state.yaml" <<MANIFEST
 manifest_version: '1.0'
 requirement_set_id: ${APP_SLUG}
 app_identifier: ${APP_SLUG}
@@ -402,9 +402,9 @@ requirements_version_target: 1.0.0
 requirements_version_implemented: 0.0.0
 requirement_baseline: []
 MANIFEST
-  echo "Created app directory and manifest: ${APP_MANIFEST_DIR}/requirements-manifest.yaml"
+  echo "Created app directory and manifest: ${APP_MANIFEST_DIR}/requirements-state.yaml"
 else
-  echo "App manifest already exists: ${APP_MANIFEST_DIR}/requirements-manifest.yaml"
+  echo "App manifest already exists: ${APP_MANIFEST_DIR}/requirements-state.yaml"
 fi
 
 # ─── Create E2E test-results directory ──────────────────────────

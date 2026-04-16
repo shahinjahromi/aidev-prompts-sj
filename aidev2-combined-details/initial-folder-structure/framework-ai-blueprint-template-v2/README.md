@@ -94,7 +94,6 @@ Generic framework conventions (fixed tooling paths, requirements directory layou
 │   ├── ai-tooling-hints.yaml            -- Layout conventions, gotchas, patterns (generic)
 │   └── add-or-update-pending-requirement-prompt.txt
 ├── 01-requirements/
-│   ├── manifest.yaml                    -- Requirements manifest
 │   ├── .instructions/                   -- Requirement-authoring onboarding pack
 │   │   ├── README.md
 │   │   ├── config.yaml
@@ -117,7 +116,6 @@ Generic framework conventions (fixed tooling paths, requirements directory layou
 │   │       ├── graphql_sdl_yaml.json
 │   │       ├── physical_database_schema.json
 │   │       └── ui_contracts.json
-│   ├── manifest.yaml                    -- Requirements manifest
 │   ├── control.yaml                     -- Version management
 │   ├── 01-pending-promotion/            -- Staging area (empty YAML templates)
 │   │   ├── technology_selection/        -- Per-implementation pending TS mirrors
@@ -138,7 +136,6 @@ Generic framework conventions (fixed tooling paths, requirements directory layou
 │   │   ├── 01-delta-current/            -- structured-diff.yaml
 │   │   ├── 02-plan-current/             -- plan.yaml, plan.md
 │   │   ├── 03-plan-execution/           -- paths.yaml, results.yaml
-│   │   ├── 04-extract-library-interfaces/
 │   │   ├── 05-fix/
 │   │   ├── 06-e2e-tests/               -- Playwright tests
 │   │   └── 50-53-*-history/            -- Historical archives

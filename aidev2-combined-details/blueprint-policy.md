@@ -88,10 +88,12 @@ Shared assets (all bundled in `aidev2-combined-details`):
 Where `<USER_PROMPTS>` = `/home/parallels/.config/Code/User/prompts`.
 
 Implementation sub-layout under `IMPL_ROOT`:
-`01-delta-current`, `02-plan-current`, `03-plan-execution`, `04-extract-library-interfaces`, `05-fix`, `06-e2e-tests`, `50-delta-history`, `51-plan-history`, `52-plan-execution-history`, `53-update-history`.
+`01-delta-current`, `02-plan-current`, `03-plan-execution`, `05-fix`, `06-e2e-tests`, `50-delta-history`, `51-plan-history`, `52-plan-execution-history`, `53-update-history`.
+
+**Note:** `02-implementation/02-implementation-mapping/` is an obsolete v1 artifact. Do NOT create it, read from it, or reference it. It may exist in legacy blueprints — list it in §UPGRADE obsolete report but do not delete.
 
 Requirement file paths (relative to BLUEPRINT_ROOT):
-- `01-requirements/control.yaml`
+- `01-requirements/control.yaml` — requirements-side iteration/version source of truth. Always read from here; never from any `manifest.yaml` inside `01-requirements`.
 - `PENDING/functional_requirements.yaml`
 - `PENDING/nfr-and-global-cr/nfr-and-global-cr-<IMPLEMENTATION_ID>.yaml`
 - `PENDING/technology-selection/technology-selection-<IMPLEMENTATION_ID>.yaml`
@@ -151,6 +153,7 @@ When `APP_ROOT` exists but `MANIFEST` doesn't:
    requirement_baseline: []
    ```
 3. Never overwrite existing file.
+4. **Never create** `manifests/requirements-manifest.yaml` or any `manifest.yaml` inside the app repo or blueprint. The only app-side manifest is `APP_ROOT/.aidev/requirements/requirements-state.yaml`. The only requirements-side source of truth for iteration/version is `01-requirements/control.yaml`.
 
 ## Tooling Discovery
 

@@ -54,7 +54,6 @@ Types and commands:
   implement 01-diff               IM-01: Generate structured diff.
   implement 02-plan               IM-02: Generate implementation plan.
   implement 03-execute            IM-03: Execute implementation (write code).
-  implement 04-extract            IM-04: Extract library interfaces.
   implement 05-fix                IM-05: Fix build/startup errors.
   implement 06-create-tests       IM-07: Create Playwright tests.
   implement 07-run-tests          IM-08: Run Playwright tests.
@@ -192,7 +191,7 @@ Every authored FR, NFR, and GLOBAL requirement **MUST** include both `acceptance
 Parse step tokens: `01-diff` through `09-generate-docs`, or ranges like `02-07`.
 Also accepts plain language (e.g. "run from planning through tests", "just execute the code").
 
-Mapping: `01-diff`→IM-01, `02-plan`→IM-02, `03-execute`→IM-03, `04-extract`→IM-04, `05-fix`→IM-05, `06-create-tests`→IM-07, `07-run-tests`→IM-08, `08-verify-manifest`→IM-09, `09-generate-docs`→IM-10.
+Mapping: `01-diff`→IM-01, `02-plan`→IM-02, `03-execute`→IM-03, `05-fix`→IM-05, `06-create-tests`→IM-07, `07-run-tests`→IM-08, `08-verify-manifest`→IM-09, `09-generate-docs`→IM-10.
 
 1. Run §PRE-FLIGHT if cache not warm.
 2. **Fresh-start (default):** Run IM-00 archive/clear before first step — moves leftover `01-delta-current`, `02-plan-current`, `03-plan-execution` to history folders. Always regenerate diff and plan from scratch based on current script output. Never reuse plans, deltas, or results from a prior run.
@@ -211,7 +210,7 @@ Sequence (skip earlier stages when `from-*` provided):
 2. §WARMUP (if cache not populated)
 3. Requirements: RQ-02 promote (or RQ-01 author + RQ-02 if no override)
 4. Implementation: IM-01 diff + IM-02 plan
-5. Implementation: IM-03 execute + IM-04 extract + IM-05 fix
+5. Implementation: IM-03 execute + IM-05 fix
 6. Validation: IM-06 verify diff clear + schema + manifest checks
 7. Implementation: IM-07 create tests + IM-08 run tests
 8. Implementation: IM-09 update manifest + IM-10 generate docs
@@ -248,10 +247,10 @@ Phases:
    - Duplicate sequence renumbering: `max + 1` for collisions. Build old→new map. Apply everywhere.
    - Contract refs: consolidate `ui_contracts`→`models_and_contracts` with `child_specifications`. Object form in `specific_ids`. Rename `sub_mac_ids`→`child_specifications`.
    - MAC catalog: add/update `child_specifications` on multi-item entries.
-   - Manifest location: migrate `manifests/requirements-manifest.yaml` → `.aidev/requirements/requirements-state.yaml`. Update `config.yaml` `manifest_path`. Delete old file.
+   - App manifest: verify `APP_ROOT/.aidev/requirements/requirements-state.yaml` exists. If only a legacy `manifests/requirements-manifest.yaml` or `manifests/requirements-manifest.yaml` is present, migrate content to `.aidev/requirements/requirements-state.yaml` and delete the old file.
    - Update all cross-references: `replaces_id`, `specific_ids`, `contract_refs`, `related_*`, manifest baseline.
 5. **Verify:** No stale references, ID uniqueness, contract_refs clean, manifest at new location.
-6. **Report:** List obsolete v1 artifacts (do NOT delete): `02-implementation/00-prompts/`, `github-config/aidev-*.prompt.md`, `github-config/aidev-framework.instructions.md`, `instructions/`. Note: `.instructions/config.yaml` and `codebase-context.yaml` are NOT obsolete.
+6. **Report:** List obsolete v1 artifacts (do NOT delete): `02-implementation/00-prompts/`, `02-implementation/02-implementation-mapping/`, `github-config/aidev-*.prompt.md`, `github-config/aidev-framework.instructions.md`, `instructions/`, `manifests/requirements-manifest.yaml`. Note: `.instructions/config.yaml` and `codebase-context.yaml` are NOT obsolete.
 7. **Optional:** Suggest dry-run diff or syntax checks.
 
 Safety: never delete app-specific content, no destructive git commands, no files outside blueprint root.

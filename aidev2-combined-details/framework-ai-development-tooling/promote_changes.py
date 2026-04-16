@@ -32,7 +32,6 @@ from common import (
     normalize_iteration_id,
     read_yaml,
     REQUIREMENT_TYPE_TO_ARTIFACT,
-    requirements_manifest_path,
     resolve_target_implementations,
     safe_main,
     sync_technology_selection_mirrors,
@@ -376,13 +375,6 @@ def main() -> None:
     control['iteration_id'] = iteration_id
     control['requirement_set_id'] = req_set
     write_yaml(cp, control)
-    req_manifest_file = requirements_manifest_path(args.requirements_path)
-    req_manifest = read_yaml(req_manifest_file)
-    req_manifest["requirement_set_id"] = req_set
-    req_manifest["iteration_id"] = iteration_id
-    req_manifest["current_version"] = control["current_version"]
-    req_manifest["next_version"] = control["next_version"]
-    write_yaml(req_manifest_file, req_manifest)
 
     # Promote contract/model spec definition files to current.
     spec_count = promote_contract_spec_files(args.requirements_path)

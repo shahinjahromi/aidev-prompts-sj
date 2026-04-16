@@ -52,8 +52,6 @@ layout:
         purpose: Current AI implementation plan.
       - pattern: 01-implementations/<implementation_id>/03-plan-execution/*.yaml
         purpose: Plan execution paths and results.
-      - pattern: 01-implementations/<implementation_id>/04-extract-library-interfaces/*
-        purpose: Library API snapshots.
       - pattern: 01-implementations/<implementation_id>/05-fix/*
         purpose: Fix artifacts.
       - pattern: 01-implementations/<implementation_id>/06-e2e-tests/*

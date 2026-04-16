@@ -191,34 +191,6 @@ Apply all standing NFRs and Global CRs (from `plan_metadata.standing_nfr_and_glo
 
 ---
 
-### IM-05 — Extract Library Interfaces
-
-**Instruction:** Extract public API signatures of all imported libraries used by the implementation. Output goes to `<IMPLEMENTATION_ID>/04-extract-library-interfaces/ref-library-methods.yaml`.
-
-**Action:** Execute step `github-config/aidev-05-extract-interfaces.prompt.md`.
-
-**Tech-stack detection:**
-Read `codebase-context.yaml → implementations.<IMPLEMENTATION_ID>.tech_stack` to determine the extractor.
-
-**Node.js / TypeScript:**
-```
-python3 "$AI_TOOLING/interface-extractors/extract-nodejs-library-interfaces.py" \
-  --project-root "$APP_ROOT" \
-  --output "$IMPL_ROOT/04-extract-library-interfaces/ref-library-methods.yaml"
-```
-
-**Other runtimes:** look under `$AI_TOOLING/interface-extractors/`. If no extractor exists for the detected stack, report and skip.
-
-**Extraction rules:**
-- Include all public types: exported, re-exported, aliased, declared.
-- Resolve nested/inherited/aliased type names.
-- Include type aliases even without methods.
-- Omit empty collections from output.
-
-**After:** Report number of libraries processed, number of types/interfaces extracted, and path to the output file. This file is used by IM-07 (fix) and IM-04 (execute) to resolve accurate library API usage.
-
----
-
 ### IM-06 — Verify Diff Clear
 
 **Instruction:** Re-run the diff and confirm execution is complete. Execution is complete ONLY when the regenerated `structured-diff.yaml` has zero `created`, `updated`, `removed`, and `technology_selection` entries.
@@ -238,7 +210,6 @@ python3 "$AI_TOOLING/interface-extractors/extract-nodejs-library-interfaces.py" 
 
 **Pre-read before fixing:**
 - `<IMPLEMENTATION_ID>/02-plan-current/plan.yaml` — intended scope.
-- `<IMPLEMENTATION_ID>/04-extract-library-interfaces/ref-library-methods.yaml` — accurate public API signatures.
 - `<IMPLEMENTATION_ID>/03-plan-execution/paths.yaml` — file roots.
 - `01-requirements/03-current/nfr_and_global_cr.yaml` — ensure fixes remain compliant.
 
@@ -246,11 +217,10 @@ python3 "$AI_TOOLING/interface-extractors/extract-nodejs-library-interfaces.py" 
 1. Use terminal output (startup logs, compiler errors, type errors) to identify the failure.
 2. Fix the root cause — do not suppress errors without understanding them.
 3. **Missing dependency?** Add it to the workspace dependency manifest (`package.json`, `go.mod`, etc.) first, then install.
-4. **Library usage or typing issue?** Consult `ref-library-methods.yaml` for correct API signatures before fixing.
-5. **DB / migration / schema mismatch?** Fix migration/DDL and data-layer alignment before retrying startup.
-6. Iterate: attempt startup → read errors → fix → attempt startup again.
-7. Keep fixes consistent with the plan’s scope and intent.
-8. **No unrelated changes** — only fix what is causing the errors.
+4. **DB / migration / schema mismatch?** Fix migration/DDL and data-layer alignment before retrying startup.
+5. Iterate: attempt startup → read errors → fix → attempt startup again.
+6. Keep fixes consistent with the plan's scope and intent.
+7. **No unrelated changes** — only fix what is causing the errors.
 
 **Attempt startup:**
 Run `implementations.<IMPLEMENTATION_ID>.startup_script` (resolved from `config.yaml`), or use the appropriate start command from `codebase-context.yaml → implementations.<IMPLEMENTATION_ID>.npm_scripts`.
@@ -402,7 +372,6 @@ Every implementation uses this EXACT layout under `02-implementation/01-implemen
 | `01-delta-current/` | `structured-diff.yaml` — created by IM-01 |
 | `02-plan-current/` | `plan.yaml`, `plan.md` — created by IM-03 |
 | `03-plan-execution/` | `paths.yaml` (IM-03), `results.yaml` (IM-04) |
-| `04-extract-library-interfaces/` | `ref-library-methods.yaml` — created by IM-05 |
 | `05-fix/` | Fix artifacts — created by IM-07 |
 | `06-e2e-tests/` | `playwright.config.ts`, `helpers/`, `api/`, `ui/` — created by IM-08 |
 | `50-delta-history/` | Timestamped copies of past deltas |

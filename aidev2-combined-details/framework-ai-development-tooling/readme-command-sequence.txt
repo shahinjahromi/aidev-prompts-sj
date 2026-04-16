@@ -12,7 +12,6 @@ Command:
 - "$TOOL" refresh-merged -r "$REQ" --all-implementations   # alias
 Review before running:
 - $REQ/02-diff/**/*.yaml
-- $REQ/manifest.yaml
 Review after running:
 - $REQ/03-current/**/*.yaml
 - $REQ/03-current/merged/*.yaml
@@ -22,21 +21,19 @@ Review after running:
 Command:
 - "$TOOL" promote -r "$REQ" -a "$APP" --implementation-id "$IMPL"
 Review before running:
-- $REQ/manifest.yaml
 - $REQ/control.yaml
 - $REQ/01-pending-promotion/**/<artifact>.yaml
 Review after running:
 - $REQ/03-current/**/*.yaml
 - $REQ/02-diff/**/*.yaml
 - $REQ/03-current/merged/*.yaml
-- $REQ/manifest.yaml
 
 3) delta
 Command:
 - "$TOOL" delta -r "$REQ" -a "$APP" --implementation-id "$IMPL"
 Review before running:
 - $APP/.aidev/requirements/requirements-state.yaml
-- $REQ/manifest.yaml
+- $REQ/control.yaml
 - $REQ/03-current/merged/requirements.yaml
 Review after running:
 - <spec-root>/02-implementation-state/01-implementations/$IMPL/01-delta-current/structured-diff.yaml

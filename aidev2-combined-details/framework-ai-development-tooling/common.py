@@ -17,8 +17,6 @@ CURRENT_DIR = "03-current"
 IMPLEMENTATIONS_DIR = "02-implementation"
 IMPLEMENTATIONS_CONTAINER_DIR = "01-implementations"
 IMPLEMENTATION_MAPPINGS_DIRNAME = "02-implementation-mapping"
-REQUIREMENTS_MANIFEST_REL_PATH = "manifest.yaml"
-
 MERGED_REL_PATH = f"{CURRENT_DIR}/merged/merged_requirements.yaml"
 DECISIONS_REL_PATH = f"{CURRENT_DIR}/decisions.yaml"
 TECHNOLOGY_SELECTION_REL_PATH = f"{CURRENT_DIR}/technology_selection.yaml"
@@ -451,10 +449,6 @@ def changes_path(requirements_path: str) -> str:
     return os.path.join(requirements_path, CHANGES_REL_PATH)
 
 
-def requirements_manifest_path(requirements_path: str) -> str:
-    return os.path.join(requirements_path, REQUIREMENTS_MANIFEST_REL_PATH)
-
-
 def implementations_root(requirements_path: str) -> str:
     return os.path.join(os.path.dirname(requirements_path), IMPLEMENTATIONS_DIR)
 
@@ -521,7 +515,7 @@ def get_app_implementation_id(app_path: str) -> str:
 
 
 def get_requirements_requirement_set_id(requirements_path: str) -> Optional[str]:
-    for fp in [requirements_manifest_path(requirements_path), merged_path(requirements_path), changes_path(requirements_path)]:
+    for fp in [merged_path(requirements_path), changes_path(requirements_path)]:
         if os.path.exists(fp):
             rid = read_yaml(fp).get("requirement_set_id")
             if rid:
@@ -530,7 +524,7 @@ def get_requirements_requirement_set_id(requirements_path: str) -> Optional[str]
 
 
 def get_requirements_app_identifier(requirements_path: str) -> Optional[str]:
-    fp = requirements_manifest_path(requirements_path)
+    fp = changes_path(requirements_path)
     if not os.path.exists(fp):
         return None
     doc = read_yaml(fp)
@@ -597,7 +591,7 @@ def validate_target_for_app(target: Dict[str, Any], requirements_path: str) -> T
     req_app_id = get_requirements_app_identifier(requirements_path)
     if not req_app_id:
         raise ValueError(
-            f"Requirements manifest missing app_identifier: {requirements_manifest_path(requirements_path)}"
+            f"Requirements manifest missing app_identifier: {changes_path(requirements_path)}"
         )
     if req_app_id != app_id:
         raise ValueError(

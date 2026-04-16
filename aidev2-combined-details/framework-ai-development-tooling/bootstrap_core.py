@@ -22,7 +22,6 @@ from common import (
     normalize_iteration_id,
     now_iso,
     read_yaml,
-    requirements_manifest_path,
     safe_main,
     sync_technology_selection_mirrors,
     app_manifest_path,
@@ -252,7 +251,6 @@ def main() -> None:
     req_root = args.requirements_path
     impl_root_parent = implementations_root(req_root)
     prev_control = read_yaml(changes_path(req_root)) if os.path.exists(changes_path(req_root)) else {}
-    prev_manifest = read_yaml(requirements_manifest_path(req_root)) if os.path.exists(requirements_manifest_path(req_root)) else {}
     app_manifest = {}
     if args.app_path:
         ap = app_manifest_path(args.app_path)
@@ -261,13 +259,11 @@ def main() -> None:
 
     req_set_id = str(
         app_manifest.get("requirement_set_id")
-        or prev_manifest.get("requirement_set_id")
         or prev_control.get("requirement_set_id")
         or REQ_SET_ID
     )
     app_identifier = str(
         app_manifest.get("app_identifier")
-        or prev_manifest.get("app_identifier")
         or prev_control.get("app_identifier")
         or APP_IDENTIFIER
     )
@@ -276,12 +272,10 @@ def main() -> None:
     # App manifest versions are never used as input for requirements versioning.
     base_version = str(
         prev_control.get("current_version")
-        or prev_manifest.get("current_version")
         or BASE_VERSION
     )
     target_version = str(
         prev_control.get("next_version")
-        or prev_manifest.get("next_version")
         or bump_patch(base_version)
         or DEFAULT_TARGET_VERSION
     )
@@ -385,17 +379,6 @@ def main() -> None:
             pending_promotion_doc_path(req_root, dt, create_dirs=True),
             pending_doc,
         )
-    # Ensure per-type implementation mapping files exist.
-    write_yaml(
-        requirements_manifest_path(req_root),
-        {
-        'requirement_set_id': req_set_id,
-        'app_identifier': app_identifier,
-        'iteration_id': normalize_iteration_id(prev_control.get('iteration_id'), DEFAULT_ITERATION_ID),
-        'current_version': base_version,
-        'next_version': target_version,
-        },
-    )
     impls_root = implementations_container_root(req_root)
     os.makedirs(impls_root, exist_ok=True)
     write_yaml(

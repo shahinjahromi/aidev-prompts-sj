@@ -130,20 +130,6 @@ Both required before DB gate clears. If no prior schema, migration = full schema
 
 ---
 
-## IM-04 Extract Interfaces
-
-**Inputs:** `APP_ROOT`, `AI_TOOLING`, tech stack.
-**Output:** `IMPL_ROOT/04-extract-library-interfaces/ref-library-methods.yaml`.
-
-Prefer stack-aware extractor from `AI_TOOLING/interface-extractors/` if available.
-
-Always regenerate — do not reuse prior `ref-library-methods.yaml` unless user explicitly requests it.
-
-### Narration
-`[IM-04] Extract interfaces started/completed at <ts>`
-
----
-
 ## IM-05 Fix
 
 **Inputs:** Startup hint(s), terminal errors, extracted interfaces.

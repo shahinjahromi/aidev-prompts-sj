@@ -32,7 +32,7 @@ if [[ -d "${IMPL_DIR}" ]]; then
     impl_id=$(basename "$impl_path")
     [[ "$impl_id" == "__IMPL_ID__" ]] && continue
     echo "  Implementation: ${impl_id}"
-    for subdir in 01-delta-current 02-plan-current 03-plan-execution 04-extract-library-interfaces 05-fix 06-e2e-tests 50-delta-history 51-plan-history 52-plan-execution-history 53-update-history; do
+    for subdir in 01-delta-current 02-plan-current 03-plan-execution 05-fix 06-e2e-tests 50-delta-history 51-plan-history 52-plan-execution-history 53-update-history; do
       mkdir -p "${impl_path}/${subdir}"
     done
     echo "    Subdirectories: OK"

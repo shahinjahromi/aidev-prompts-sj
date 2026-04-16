@@ -2,3 +2,4 @@ iteration_id: 1
 current_version: 1.0.0
 next_version: 1.0.1
 requirement_set_id: <<APP_SLUG>>
+app_identifier: <<APP_SLUG>>
