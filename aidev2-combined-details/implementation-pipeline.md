@@ -10,6 +10,7 @@ All rules and steps for diff, planning, execution, testing, manifest updates, an
 - Current technology selections constrain all code — no stack deviations unless requirements updated first.
 - Module reassignment (`module` field changed between current and manifest baseline) → undo old module contributions then re-implement under new module.
 - DB schema contract changes are mandatory work in the same run.
+- `MODULE_FILTER` (set at dispatch time) narrows the diff and all downstream steps to requirements with `module == MODULE_FILTER`. Empty = all modules. Carry this value through every step in the run.
 
 ## Read Efficiency
 
@@ -47,9 +48,11 @@ This ensures every implementation run starts from a clean slate — diff, plan, 
 **Mechanical step.** Run two commands in fresh foreground terminals:
 
 ```bash
-"$TOOLING_CMD" diff -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID"
-"$TOOLING_CMD" summarize-diff -r "$REQ_PATH" --implementation-id "$IMPLEMENTATION_ID"
+"$TOOLING_CMD" diff -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID" ${MODULE_FILTER:+--module "$MODULE_FILTER"}
+"$TOOLING_CMD" summarize-diff -r "$REQ_PATH" --implementation-id "$IMPLEMENTATION_ID" ${MODULE_FILTER:+--module "$MODULE_FILTER"}
 ```
+
+If `MODULE_FILTER` is set, only requirements with `module == MODULE_FILTER` are included in the diff output and all downstream steps. Default (empty) includes all modules.
 
 - Read text summary from stdout only — do NOT parse `structured-diff.yaml` or current YAML.
 - Report `created`/`updated`/`removed`/`technology_selection` counts and IDs.
@@ -64,6 +67,8 @@ This ensures every implementation run starts from a clean slate — diff, plan, 
 
 **Inputs:** Structured diff, current requirements, manifest, tech stack summary.
 **Outputs:** `IMPL_ROOT/02-plan-current/plan.yaml`, `plan.md`, `IMPL_ROOT/03-plan-execution/paths.yaml`.
+
+If `MODULE_FILTER` is set, the structured diff already contains only matching requirements. Plan scope is naturally limited to those requirements — do not expand to other modules. Note the active module filter in plan metadata.
 
 Standing constraint lookup: (1) `cached_data.standing_constraints` (2) `read_file CURRENT_MERGED` (3) Never `grep_search` for YAML content.
 

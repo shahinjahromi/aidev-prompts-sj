@@ -22,7 +22,7 @@ from common import (
 )
 
 
-def summarize(diff_doc: Dict[str, Any]) -> str:
+def summarize(diff_doc: Dict[str, Any], module_filter: str = "") -> str:
     lines: List[str] = []
 
     meta = diff_doc.get("diff_metadata") or {}
@@ -31,12 +31,25 @@ def summarize(diff_doc: Dict[str, Any]) -> str:
     lines.append(f"base_version:      {meta.get('base_version', '?')}")
     lines.append(f"target_version:    {meta.get('target_version', '?')}")
     lines.append(f"generated_at:      {meta.get('generated_at', '?')}")
+    if module_filter:
+        lines.append(f"module_filter:     {module_filter}")
+    elif meta.get("module_filter"):
+        lines.append(f"module_filter:     {meta['module_filter']}")
     lines.append("")
 
     req_diff = diff_doc.get("requirements_diff") or {}
     created = req_diff.get("created") or []
     updated = req_diff.get("updated") or []
     removed = req_diff.get("removed") or []
+
+    # Apply module filter when summarizing an unfiltered diff file.
+    if module_filter:
+        def _req_module(entry: Dict[str, Any]) -> str:
+            req = entry.get("new_requirement") or entry.get("original_requirement") or {}
+            return str(req.get("module") or "")
+        created = [e for e in created if _req_module(e) == module_filter]
+        updated = [e for e in updated if _req_module(e) == module_filter]
+        removed = [e for e in removed if _req_module(e) == module_filter]
 
     lines.append("--- Requirements ---")
     lines.append(f"created: {len(created)}")
@@ -134,11 +147,14 @@ def summarize(diff_doc: Dict[str, Any]) -> str:
 def main() -> None:
     parser = build_parser("Summarize a structured-diff.yaml into plain text")
     parser.add_argument("--input", default=None, help="Direct path to structured-diff.yaml (overrides auto-discovery)")
+    parser.add_argument("--module", default=None, help="Filter summarized output to requirements with this module value only.")
     args = parser.parse_args()
+
+    module_filter: str = args.module or ""
 
     if args.input:
         doc = read_yaml(args.input)
-        print(summarize(doc))
+        print(summarize(doc, module_filter=module_filter))
         return
 
     targets = resolve_target_implementations(
@@ -148,7 +164,7 @@ def main() -> None:
         imp_id = str(t.get("implementation_id"))
         diff_path = implementation_structured_diff_path(args.requirements_path, imp_id)
         doc = read_yaml(diff_path)
-        print(summarize(doc))
+        print(summarize(doc, module_filter=module_filter))
 
 
 if __name__ == "__main__":

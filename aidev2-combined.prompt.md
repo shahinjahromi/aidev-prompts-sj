@@ -1,7 +1,7 @@
 ---
 name: "aidev2-combined"
 description: "Unified aidev2 prompt — all pipeline stages in a single default-agent prompt. No subagents. Self-contained under aidev2-combined-details/."
-argument-hint: "warmup | setup-app | requirements [step] | implement [step] | all-steps [from-*] | upgrade | backup-prompts | run-tests [mode] — or plain English describing which tasks to run"
+argument-hint: "warmup | setup-app | requirements <author|promote|reconcile> | implement [step-range] | all-steps [from-*] | upgrade | backup-prompts | run-tests [mode]"
 agent: "agent"
 ---
 
@@ -16,20 +16,84 @@ Load these references:
 
 ## Command Dispatch
 
-Parse the first token of the user message:
+Parse the **first token** of the user message as the **type**. Parse the **second token** (where required) as the **command**. All remaining text after the recognized type+command tokens is **free-form context** that may further refine behavior for that specific invocation (e.g., scope notes, module filter, extra constraints).
 
 | Token | Action |
 |---|---|
 | `warmup`, `cache`, `instructions-cache` | → §WARMUP |
 | `setup-app`, `setup` | → §SETUP-APP |
-| `requirements`, `req` | → §REQUIREMENTS |
-| `implement`, `impl` | → §IMPLEMENT |
+| `requirements`, `req` | → §REQUIREMENTS — second token required (see §COMMAND-REFERENCE) |
+| `implement`, `impl` | → §IMPLEMENT — second token is step range (optional, defaults to all steps) |
 | `all-steps`, `all`, `pipeline` | → §ALL-STEPS |
 | `upgrade` | → §UPGRADE |
 | `backup-prompts`, `backup` | → §BACKUP |
 | `run-tests`, `test`, `tests` | → §RUN-TESTS |
 
-No recognized command → infer intent from free-text. The user may describe tasks in plain language (e.g. "run requirements then implement steps 1 through 5", "do everything from the plan step onwards", "author new requirements and promote them"). Map natural language to the corresponding pipeline stages and step ranges, then execute in sequence.
+**Unrecognized type** → stop and respond with §COMMAND-REFERENCE. Do not infer or proceed.
+
+**`requirements` with no second token, or unrecognized second token** → stop and respond with the requirements sub-commands from §COMMAND-REFERENCE.
+
+### §COMMAND-REFERENCE
+
+```
+Types and commands:
+
+  warmup                          Load and cache path/config data for the current blueprint.
+  setup-app <app-slug> ...        Scaffold a new blueprint + app repo pair.
+
+  requirements author             Author new requirements into pending (RQ-01).
+  requirements promote            Promote pending items to current via script (RQ-02).
+  requirements reconcile          Reconcile implemented tech choices (RQ-03).
+  requirements 01                 Alias: requirements author
+  requirements 02                 Alias: requirements promote
+  requirements 03                 Alias: requirements reconcile
+  requirements 01-02              Run author then promote.
+  requirements 02-03              Run promote then reconcile.
+
+  implement                       Run all implementation steps (IM-01 through IM-10).
+  implement 01-diff               IM-01: Generate structured diff.
+  implement 02-plan               IM-02: Generate implementation plan.
+  implement 03-execute            IM-03: Execute implementation (write code).
+  implement 04-extract            IM-04: Extract library interfaces.
+  implement 05-fix                IM-05: Fix build/startup errors.
+  implement 06-create-tests       IM-07: Create Playwright tests.
+  implement 07-run-tests          IM-08: Run Playwright tests.
+  implement 08-verify-manifest    IM-09: Verify and finalize manifest.
+  implement 09-generate-docs      IM-10: Generate environment variable docs.
+  implement 01-05                 Run steps 01 through 05 (any range supported).
+
+  all-steps                       Run full pipeline (promote → diff → plan → execute → tests → finalize).
+  all-steps from-promote          Start pipeline from promote step.
+  all-steps from-diff             Start pipeline from diff step.
+  all-steps from-plan             Start pipeline from plan step.
+  all-steps from-execute          Start pipeline from execute step.
+  all-steps from-tests            Start pipeline from test creation step.
+
+  upgrade                         Detect and migrate blueprint artifacts to current schema.
+  backup-prompts                  Backup user prompt files.
+  run-tests                       Run existing Playwright tests (headless by default).
+  run-tests headed                Run tests with visible browser.
+  run-tests debug                 Run tests in Playwright debug mode.
+
+Module filter (applies to requirements, implement, all-steps):
+  Add  module <name>  or  --module <name>  anywhere in the free-text portion
+  to restrict diff/plan/execute/tests to requirements with that module value.
+  Default (omitted) = all modules.
+```
+
+### Module Filter Parsing
+
+At command dispatch time, scan the full user message for either:
+- `module <name>` (bare form, where `<name>` is a single non-flag word)
+- `--module <name>` (flag form)
+
+If found, set `MODULE_FILTER = <name>`. Otherwise `MODULE_FILTER = ""` (no filter — all modules included).
+
+`MODULE_FILTER` is forwarded to all tooling commands that accept `--module`:
+- `diff` and `summarize-diff` in §VALIDATE and IM-01.
+- Pass as: `${MODULE_FILTER:+--module "$MODULE_FILTER"}` in bash.
+
+Log the resolved value: `[dispatch] module_filter=<value|none>`.
 
 ---
 
@@ -79,13 +143,16 @@ Argument `refresh` → overwrite existing cache section.
 
 ## §SETUP-APP
 
+**ISOLATION RULE:** Do NOT read, inspect, or reference any existing app or blueprint config files (e.g. other `.instructions/config.yaml`) to infer naming conventions, slug format, or any other values. All inputs come exclusively from the user message and the setup script defaults.
+
 1. Parse user message for `APP_SLUG`, `IMPL_SUFFIX`, `OUTPUT_DIR`. Ask for missing. Convert to kebab-case.
-   If `CORE_STACK` is provided (e.g. `stack go`), pass `--core-stack` to the setup script.
+   - `CORE_STACK`: parse from `stack:<value>` or `stack <value>` in the free-form text (e.g. `stack:go` or `stack go` → `CORE_STACK=go`). If provided, pass `--core-stack` to the setup script.
+   - `IMPL_SUFFIX`: if not explicitly provided, default to `CORE_STACK` value (e.g. `go`). If `CORE_STACK` is also absent, ask.
 2. Resolve `FRAMEWORK_ROOT` from this prompt's own bundled template:
    `<PROMPTS_DIR>/aidev2-combined-details/initial-folder-structure/framework-ai-blueprint-template-v2`
    where `<PROMPTS_DIR>` = `{{VSCODE_USER_PROMPTS_FOLDER}}`.
    Never search the workspace for `framework-ai-blueprint-template-v2`.
-3. Pre-flight: OUTPUT_DIR exists, neither destination exists.
+3. Pre-flight: OUTPUT_DIR exists, neither destination (`<APP_SLUG>-ai-blueprint`, `<APP_SLUG>-<IMPL_SUFFIX>`) exists under OUTPUT_DIR.
 4. Confirm via `vscode_askQuestions`.
 5. Run:
    ```bash
@@ -225,8 +292,8 @@ Validation gate — run between implementation stages and as final gate.
 2. **Manifest shape:** Validate `MANIFEST` against `SCHEMAS_ROOT/in-application/requirements-state-schema.json`.
 3. **Diff-clear:** Run:
    ```bash
-   "$TOOLING_CMD" diff -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID"
-   "$TOOLING_CMD" summarize-diff -r "$REQ_PATH" --implementation-id "$IMPLEMENTATION_ID"
+   "$TOOLING_CMD" diff -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID" ${MODULE_FILTER:+--module "$MODULE_FILTER"}
+   "$TOOLING_CMD" summarize-diff -r "$REQ_PATH" --implementation-id "$IMPLEMENTATION_ID" ${MODULE_FILTER:+--module "$MODULE_FILTER"}
    ```
    `REQ_PATH` = `BLUEPRINT_ROOT/01-requirements`. Never pass `BLUEPRINT_ROOT` itself as `-r`.
 4. **Policy gate:** Verify all pipeline invariants.

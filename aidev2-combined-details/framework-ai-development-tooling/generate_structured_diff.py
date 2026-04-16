@@ -135,6 +135,7 @@ def build_mac_diff(
 def main() -> None:
     parser = build_parser("Generate structured diff from app manifest vs current promoted requirements")
     parser.add_argument('--output', default=None)
+    parser.add_argument('--module', default=None, help='Filter requirements to only those with this module value. Omit to include all modules.')
     args = parser.parse_args()
     targets = resolve_target_implementations(args.requirements_path, args.app_path, args.implementation_id, args.all_implementations)
     if args.output and len(targets) > 1:
@@ -247,6 +248,17 @@ def main() -> None:
                 entry["superseded_by"] = superseded_by
             removed.append(entry)
 
+        # Apply module filter if requested.
+        module_filter = getattr(args, 'module', None) or None
+        if module_filter:
+            def _req_module(entry: Dict[str, Any]) -> str:
+                req = entry.get("new_requirement") or entry.get("original_requirement") or {}
+                return str(req.get("module") or "")
+
+            created = [e for e in created if _req_module(e) == module_filter]
+            updated = [e for e in updated if _req_module(e) == module_filter]
+            removed = [e for e in removed if _req_module(e) == module_filter]
+
         technology_selection_doc = get_technology_selection(args.requirements_path, implementation_id)
         ts_entries = technology_selection_doc.get("entries") or []
         technology_selection_doc["entries"] = [
@@ -265,6 +277,7 @@ def main() -> None:
                 'base_version': implemented_version,
                 'target_version': target_version,
                 'generated_at': now_iso(),
+                **({"module_filter": module_filter} if module_filter else {}),
                 'compare_source': {
                     'app_manifest_path': app_manifest_path(app_path) if app_path else "",
                     'requirements_version_implemented': app_manifest.get('requirements_version_implemented'),
