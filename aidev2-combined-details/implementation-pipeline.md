@@ -92,9 +92,14 @@ Execution order:
 1. Initialize `results.yaml`.
 2. Implement one requirement at a time.
 3. DB work first (if applicable) for each requirement.
-4. Update manifest entry only after code exists.
-5. Re-run diff as needed to verify progress.
-6. Archive plan/results when complete.
+4. **After each requirement's code is written and verified**, immediately update the manifest by running:
+   ```bash
+   "$TOOLING_CMD" apply -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID"
+   ```
+   This keeps `requirements-state.yaml` in sync after every requirement — not deferred to IM-09.
+5. Log the manifest update result for that requirement to `$LOG_FILE`.
+6. Re-run diff as needed to verify progress.
+7. Archive plan/results when complete.
 
 Use `codebase_map` from plan to locate files directly. Batch reads for each requirement.
 
@@ -103,8 +108,9 @@ Module-reassignment execution:
 2. **Redo** — implement under new module per plan.
 3. **Verify** — both modules build correctly.
 4. Update manifest baseline `module` to new value.
+5. Run `ai-tooling.sh apply` after module reassignment completes.
 
-Critical: never bulk-update manifest, never mark requirement complete before code exists, don't finish while diff has outstanding items.
+Critical: update manifest per-requirement (not in bulk at the end), never mark requirement complete before code exists, don't finish while diff has outstanding items.
 
 ### DB Schema File Requirements
 
@@ -115,7 +121,7 @@ When implementing `physical_database_schema` contract changes, produce **two** f
 Both required before DB gate clears. If no prior schema, migration = full schema.
 
 ### Narration
-`[IM-03] Execute started at <ts>` / per requirement: `Requirement <REQ-ID> — starting` / `— done (<N>s)` / `Execute completed at <ts> — <N> requirements implemented`
+`[IM-03] Execute started at <ts>` / per requirement: `Requirement <REQ-ID> — starting` / `— implemented, manifest updated (<N>s)` / `Execute completed at <ts> — <N> requirements implemented`
 
 ---
 
@@ -220,25 +226,24 @@ No app code edits in this step.
 
 ---
 
-## IM-09 Update Manifest
+## IM-09 Verify & Finalize Manifest
 
-After all requirements implemented, diff clear, tests pass.
+By this point, `requirements-state.yaml` should already be up-to-date because IM-03 runs `ai-tooling.sh apply` after each requirement. This step **verifies** completeness and applies any missed updates.
 
-**Preferred:** Run tooling command:
-```bash
-"$TOOLING_CMD" apply -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID"
-```
-
-**Manual fallback:**
-1. For each implemented requirement ID (`created`/`updated`/`models_and_contracts_diff`): add/update `requirement_baseline` entry with `pinned_version: <requirements_version_target>`.
-2. For each `removed` ID: remove from `requirement_baseline`.
-3. Set `requirements_version_implemented = requirements_version_target`.
-4. Write manifest.
+1. Run the apply command one final time to catch any stragglers:
+   ```bash
+   "$TOOLING_CMD" apply -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID"
+   ```
+2. Read manifest and verify:
+   - Every `created`/`updated`/`models_and_contracts_diff` requirement has a `requirement_baseline` entry with `pinned_version: <requirements_version_target>`.
+   - Every `removed` requirement is absent from `requirement_baseline`.
+   - `requirements_version_implemented == requirements_version_target`.
+3. If verification fails, diagnose and fix (manual fallback: add/update/remove entries, set version).
 
 **Mandatory.** Pipeline incomplete if `requirements_version_implemented` differs from target.
 
 ### Narration
-`[IM-09] Update manifest started at <ts>` / `Updated manifest — <N> entries, version: <v>` / `completed at <ts>`
+`[IM-09] Verify manifest started at <ts>` / `Manifest verified — <N> entries, version: <v>` / `completed at <ts>`
 
 ---
 

@@ -125,7 +125,7 @@ Every authored FR, NFR, and GLOBAL requirement **MUST** include both `acceptance
 Parse step tokens: `01-diff` through `09-generate-docs`, or ranges like `02-07`.
 Also accepts plain language (e.g. "run from planning through tests", "just execute the code").
 
-Mapping: `01-diff`→IM-01, `02-plan`→IM-02, `03-execute`→IM-03, `04-extract`→IM-04, `05-fix`→IM-05, `06-create-tests`→IM-07, `07-run-tests`→IM-08, `08-update-manifest`→IM-09, `09-generate-docs`→IM-10.
+Mapping: `01-diff`→IM-01, `02-plan`→IM-02, `03-execute`→IM-03, `04-extract`→IM-04, `05-fix`→IM-05, `06-create-tests`→IM-07, `07-run-tests`→IM-08, `08-verify-manifest`→IM-09, `09-generate-docs`→IM-10.
 
 1. Run §PRE-FLIGHT if cache not warm.
 2. **Fresh-start (default):** Run IM-00 archive/clear before first step — moves leftover `01-delta-current`, `02-plan-current`, `03-plan-execution` to history folders. Always regenerate diff and plan from scratch based on current script output. Never reuse plans, deltas, or results from a prior run.
@@ -257,11 +257,15 @@ At pipeline start:
 4. Append all narration, decisions, errors via `echo >> "$LOG_FILE"`.
 5. Final: `[<ts>][combined] [PIPELINE END] total_elapsed=<N>s total_errors=<N>`.
 
-**CRITICAL — Log Enforcement Rules:**
+**CRITICAL — Log Enforcement Rules (MANDATORY — violations invalidate the run):**
 - Every stage **MUST** `echo` its `STAGE START` line to `$LOG_FILE` **before** any stage work begins.
 - Every stage **MUST** `echo` its `STAGE END` line to `$LOG_FILE` **immediately after** stage work completes (before proceeding to the next stage).
-- Within a stage, every script invocation, key decision, error, and artifact write **MUST** be logged as it happens — not batched at the end.
+- Within a stage, every script invocation, key decision, error, artifact write, and requirement completion **MUST** be logged as it happens — not batched at the end.
+- **Per-requirement logging in IM-03:** After implementing each requirement, log: `[<ts>][combined] Requirement <REQ-ID> — implemented, manifest updated`.
+- **Per-action logging:** Every `run_in_terminal` invocation that runs a tooling command, build, or test **MUST** be immediately followed by a separate `run_in_terminal` that appends the outcome to `$LOG_FILE`.
 - Use `run_in_terminal` with `echo "[<ts>][combined] ..." >> "$LOG_FILE"` as a **separate tool call** before and after stage work. Do not rely on appending log entries in a later stage or at pipeline end.
+- **Minimum log density:** A pipeline run that implements N requirements must produce at least `5 + (3 × N)` log lines (pipeline start/end, per-stage start/end, per-requirement entries). If the log has fewer lines than this after a run, the run is non-compliant.
+- **Never skip logging due to context length or conversation complexity.** If nearing context limits, the log is the last thing to sacrifice — reduce narration verbosity in chat instead.
 - If a conversation is interrupted mid-pipeline, the log must reflect all stages that actually completed.
 
 ## Terminal Execution Rules

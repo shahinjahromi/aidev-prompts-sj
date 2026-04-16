@@ -52,7 +52,11 @@
         "type": "object",
         "required": [
           "requirement_id",
-          "pinned_version"
+          "module",
+          "pinned_version",
+          "implementation_initial_date",
+          "implementation_last_date",
+          "e2e_test_status"
         ],
         "additionalProperties": false,
         "properties": {
@@ -70,18 +74,35 @@
             "description": "Semver of the requirement version implemented."
           },
           "implementation_initial_date": {
-            "type": "string",
-            "format": "date-time",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "string",
+                "maxLength": 0
+              }
+            ],
             "description": "ISO 8601 datetime (with timezone offset) when this requirement was first implemented. Timezone from config.yaml → variables.timezone."
           },
           "implementation_last_date": {
-            "type": "string",
-            "format": "date-time",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "string",
+                "maxLength": 0
+              }
+            ],
             "description": "ISO 8601 datetime (with timezone offset) when this requirement was last updated/re-implemented. Timezone from config.yaml → variables.timezone."
           },
           "e2e_test_status": {
             "type": "string",
             "enum": [
+              "",
               "NOT_TESTED",
               "PASSED",
               "FAILED"
