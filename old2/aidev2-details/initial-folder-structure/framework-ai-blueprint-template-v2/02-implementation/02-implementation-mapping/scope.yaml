@@ -1,6 +1,0 @@
-mapping_type: scope
-description: Global default execution scope per implementation_id.
-global_scopes:
-  - implementation_id: "<<IMPLEMENTATION_ID>>"
-    globs:
-      - "**/*"

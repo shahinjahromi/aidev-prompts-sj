@@ -1,4 +1,0 @@
-requirement_type: nfr_and_global_cr
-default_implementation_ids:
-- '*'
-mappings: []
