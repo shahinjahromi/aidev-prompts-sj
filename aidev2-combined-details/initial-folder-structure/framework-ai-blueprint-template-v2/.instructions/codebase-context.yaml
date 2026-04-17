@@ -13,7 +13,7 @@ implementations:
     project:
       name: "<PROJECT_NAME>"
       monorepo: false
-      package_manager: npm
+      # package_manager: npm   # set to npm for Node projects; omit for Go/JVM/other
       # workspaces: [client, server]
       # root_package_json: package.json
 

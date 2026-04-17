@@ -168,8 +168,8 @@ Load, cache, and **pre-compute** everything downstream stages need — so they n
 4. Discover tooling per tooling discovery order. **Abort if not found.**
 5. Infer `APP_ROOT` per app root inference. **Verify directory exists on disk. Abort if missing.**
 6. Bootstrap `.aidev` if `MANIFEST` missing (create per bootstrap rules). Never overwrite.
-7. `list_dir` on `PENDING` and `CURRENT` — record file names.
-8. **Batch-read all requirement YAML** (FR, NFR/GLOBAL, MAC, TS) from both `PENDING` and `CURRENT` in parallel. Cache full content in `cached_data`. If a directory is empty or a file has zero items, record that as `empty`.
+7. `list_dir` on `PENDING` and `CURRENT` — record top-level file names. Also `list_dir` on `PENDING/nfr-and-global-cr/`, `PENDING/technology-selection/`, and `PENDING/models_and_contracts/` (and their `CURRENT` counterparts) to discover per-implementation and spec files in subdirectories. Files seeded by `--core-stack` live in these subdirs.
+8. **Batch-read all requirement YAML** (FR, NFR/GLOBAL, MAC, TS) from both `PENDING` and `CURRENT` in parallel — using the full paths from the Blueprint Policy fixed layout and the subdirectory listings from step 7. Cache full content in `cached_data`. If a directory is empty or a file has zero items, record that as `empty`.
 9. **In a single pass over cached content, compute:** (a) `max_sequence` per ID type (FR, NFR, GLOBAL, MAC, TS, AC, AT) → `cached_data.max_sequences`; (b) standing constraints one-line summaries → `cached_data.standing_constraints`. For fresh projects (all empty), all values are `0`.
 10. **Read manifest** (`requirements-state.yaml`) and cache `requirements_version_target`, `requirements_version_implemented`, `requirement_baseline` IDs.
 11. Write to `/memories/session/aidev2-config-cache.md` under `## <BLUEPRINT_ROOT>` — include resolved paths, max sequences, standing constraint summaries, and manifest state.
