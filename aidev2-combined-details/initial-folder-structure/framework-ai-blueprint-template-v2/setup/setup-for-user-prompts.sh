@@ -84,6 +84,23 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# ─── WSL-safe mkdir ─────────────────────────────────────────────────────────
+# On WSL/DrvFs, mkdir -p can fail with "File exists" after a partial run and
+# cleanup due to stale NTFS directory metadata. Fall back to powershell.exe.
+safe_mkdir() {
+  local target="$1"
+  if mkdir -p "$target" 2>/dev/null; then
+    return 0
+  fi
+  if command -v powershell.exe &>/dev/null; then
+    local win_path
+    win_path="$(wslpath -w "$target" 2>/dev/null)" || return 1
+    powershell.exe -Command "New-Item -ItemType Directory -Path '$win_path' -Force | Out-Null" \
+      && return 0
+  fi
+  mkdir -p "$target"  # last resort — propagate original error
+}
+
 resolve_user_prompts_dir() {
   if [[ -n "${USER_PROMPTS_DIR}" && -d "${USER_PROMPTS_DIR}" ]]; then
     echo "${USER_PROMPTS_DIR}"
@@ -394,6 +411,7 @@ PY
 
 # ─── Create app .aidev manifest ──────────────────────────────────
 APP_MANIFEST_DIR="${APP_DIR}/.aidev/requirements"
+safe_mkdir "$APP_DIR"
 mkdir -p "$APP_MANIFEST_DIR"
 if [[ ! -f "${APP_MANIFEST_DIR}/requirements-state.yaml" ]]; then
   cat > "${APP_MANIFEST_DIR}/requirements-state.yaml" <<MANIFEST
