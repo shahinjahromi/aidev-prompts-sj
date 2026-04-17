@@ -59,7 +59,7 @@ This ensures every implementation run starts from a clean slate — diff, plan, 
 
 ```bash
 "$TOOLING_CMD" diff -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID" ${MODULE_FILTER:+--module "$MODULE_FILTER"}
-"$TOOLING_CMD" summarize-diff -r "$REQ_PATH" --implementation-id "$IMPLEMENTATION_ID" ${MODULE_FILTER:+--module "$MODULE_FILTER"}
+"$TOOLING_CMD" summarize-diff -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID" ${MODULE_FILTER:+--module "$MODULE_FILTER"}
 ```
 
 If `MODULE_FILTER` is set, only requirements with `module == MODULE_FILTER` are included in the diff output and all downstream steps. Default (empty) includes all modules.
@@ -86,6 +86,14 @@ Plan must include:
 - `standing_nfr_and_global_cr_constraints` — one-line summaries of each NFR/GLOBAL constraint.
 - `codebase_map` — key source files, purpose, relevant symbols. Reduces file-discovery I/O during execute.
 - `test_coverage_mapping` — maps each requirement to test type (ui/api/none) and **full AT data**. For each requirement in the diff, extract all AT entries from `new_requirement.acceptance_tests` (already present in the diff snapshot — do NOT re-read requirements YAML). Each `test_coverage_mapping` entry must include: `requirement_id`, `test_type` (ui/api/none), and `acceptance_tests` (complete list with `id`, `name`, `steps`, `expected_result` copied verbatim from the diff). This is the sole AT source for IM-07 — no separate YAML read needed downstream.
+
+  **`test_type` decision rules (apply in order, first match wins):**
+  | Condition | `test_type` |
+  |---|---|
+  | Requirement describes HTTP endpoints, REST/API calls, or server-side behavior verifiable without a browser | `api` |
+  | Requirement describes DOM layout, visual components, user interactions, or browser-rendered pages | `ui` |
+  | Requirement is infrastructure, config, data model, NFR, or not verifiable via e2e | `none` |
+  When in doubt between `api` and `ui`: if the AT steps contain HTTP status codes or JSON/text response assertions with no DOM selectors → `api`. If AT steps mention "navigate", "click", "visible", CSS selectors, or screenshots → `ui`.
 - Per-change scope: impacted files, symbols, steps, validation, risks.
 
 Module-reassignment planning (for `module_changed` entries):
@@ -186,6 +194,17 @@ If `06-e2e-tests/` has files from prior iteration, reuse config/fixtures/helpers
 - `reportsRoot` must resolve to `TEST_RESULTS` via `E2E_REPORTS_ROOT` env var or relative `path.resolve`.
 - All reports under `TEST_RESULTS`. Nothing under `06-e2e-tests/` (no `test-results/`, `playwright-report/`, `blob-report/`).
 
+### Choosing the directory and project
+Use `test_type` from each requirement's `test_coverage_mapping` in `plan.yaml` (set in IM-02) to determine where test files go and which project runs them:
+
+| `test_type` | Test directory | Playwright project | Reporter |
+|---|---|---|---|
+| `api` | `06-e2e-tests/api/` | `api` | `traffic-html-reporter`, `traffic-json-reporter` |
+| `ui` | `06-e2e-tests/ui/` | `ui` | `ui-html-reporter` |
+| `none` | — | — | — |
+
+`playwright.config.ts` **must** declare both projects with `testDir` pointing to their respective subdirectory. Do NOT use a single flat `testDir` at the config root — the project split is required so `--project=api` and `--project=ui` work independently.
+
 ### UI tests (`06-e2e-tests/ui/`)
 - Full Playwright browser context (`page` fixture). Render real DOM.
 - Expand scoped requirements → `UIC-*` IDs via `contract_refs`/AC/AT/spec files.
@@ -247,17 +266,27 @@ Reporter templates: copy `traffic-html-reporter.ts`, `traffic-json-reporter.ts`,
 **Scope:** Default is **partial** — only tests for requirements in current diff/plan. Full suite only on explicit request.
 
 ### Output naming
-| Run type | Pattern |
-|---|---|
-| Partial | `<timestamp>-<REQ_ID>-partial.<ext>` |
-| Full | `<timestamp>-<REQ_ID>-full.<ext>` |
+Each run produces one timestamped pair of files in `TEST_RESULTS/`:
+- `<timestamp>-traffic.html` — human-readable traffic report
+- `<timestamp>-traffic.json` — machine-readable traffic report (UI runs also produce `<timestamp>-ui.html`)
 
-`<timestamp>` = ISO-8601 with `:`/`.` → `-`.
+`<timestamp>` = ISO-8601 with `:`/`.` replaced by `-` (e.g. `2026-04-17T06-54-28`).
+
+Files accumulate across runs — old files are not deleted. This is intentional: each run is a permanent record. If the folder contains multiple files, the latest timestamp is the most recent run.
 
 ### Execution
 1. Ensure app running (start via startup script if not).
 2. Set `E2E_REPORTS_ROOT` to absolute path of `TEST_RESULTS`.
-3. Run tests.
+3. Run tests — **exact commands**:
+   | Mode | Command |
+   |---|---|
+   | All projects (default) | `cd "$E2E_ROOT" && E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test` |
+   | API only | `cd "$E2E_ROOT" && E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test --project=api` |
+   | UI only | `cd "$E2E_ROOT" && E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test --project=ui` |
+   | Headed | `cd "$E2E_ROOT" && E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test --headed` |
+   | Debug | `cd "$E2E_ROOT" && E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test --debug` |
+   | Single spec | `cd "$E2E_ROOT" && E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test <feature>.spec.ts` |
+   **NEVER pass `--reporter` on the CLI.** Doing so overrides all reporters in `playwright.config.ts`, causing the custom traffic reporters to not run and leaving `TEST_RESULTS/` empty.
 4. Verify: artifacts under `TEST_RESULTS/`, **none** under `06-e2e-tests/`.
 5. UI runs: one result row per UIC, screenshot evidence in artifacts.
 6. API runs: HTTP traffic in artifacts.

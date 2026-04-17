@@ -419,6 +419,25 @@ def sync_technology_selection_mirror(
     stage_dir: str,
     implementation_id: str,
 ) -> str:
+    # Check whether a canonical technology_selection.yaml exists for this stage.
+    # When it doesn't exist, skip overwriting the per-implementation mirror so
+    # that entries seeded directly into the mirror (e.g. by the setup script) are
+    # preserved. Writing an empty mirror from a non-existent canonical file would
+    # silently destroy those entries.
+    canonical_fp = stage_technology_selection_path(requirements_path, stage_dir)
+    fp = technology_selection_mirror_path(
+        requirements_path, stage_dir, implementation_id, create_dirs=True
+    )
+    if not os.path.exists(canonical_fp):
+        # No canonical file — preserve existing mirror if present; create empty
+        # stub only when the mirror itself is also absent.
+        if not os.path.exists(fp):
+            write_yaml(fp, {
+                "schema_version": 1,
+                "type": "technology_selection",
+                "entries": [],
+            })
+        return fp
     doc = get_stage_technology_selection(requirements_path, stage_dir, implementation_id)
     out = {
         "schema_version": doc.get("schema_version", 1),
@@ -427,9 +446,6 @@ def sync_technology_selection_mirror(
     }
     if doc.get("generated_at") is not None:
         out["generated_at"] = doc.get("generated_at")
-    fp = technology_selection_mirror_path(
-        requirements_path, stage_dir, implementation_id, create_dirs=True
-    )
     write_yaml(fp, out)
     return fp
 

@@ -279,7 +279,7 @@ Arguments: `headed`, `debug`, `<feature>.spec.ts`, `run all tests`.
 2. Paths: `E2E_ROOT` = `IMPL_ROOT/06-e2e-tests`, reports at `TEST_RESULTS`.
 3. Pre-checks: `playwright.config.ts` exists. If no `node_modules`, run `npm install && npx playwright install chromium`.
 4. Start app if not running (use startup script).
-5. Set `E2E_REPORTS_ROOT` = absolute `TEST_RESULTS`. Run tests per IM-08 rules (default: headless, partial scope).
+5. Set `E2E_REPORTS_ROOT` = absolute `TEST_RESULTS`. Run: `cd "$E2E_ROOT" && E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test` (add `--headed` or `--debug` per argument). **Never pass `--reporter` on the CLI** — it overrides `playwright.config.ts` reporters and leaves `TEST_RESULTS/` empty.
 6. Verify artifacts under `TEST_RESULTS/`, none under `06-e2e-tests/`.
 
 ---
@@ -293,7 +293,7 @@ Validation gate — run between implementation stages and as final gate.
 3. **Diff-clear:** Run:
    ```bash
    "$TOOLING_CMD" diff -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID" ${MODULE_FILTER:+--module "$MODULE_FILTER"}
-   "$TOOLING_CMD" summarize-diff -r "$REQ_PATH" --implementation-id "$IMPLEMENTATION_ID" ${MODULE_FILTER:+--module "$MODULE_FILTER"}
+   "$TOOLING_CMD" summarize-diff -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID" ${MODULE_FILTER:+--module "$MODULE_FILTER"}
    ```
    `REQ_PATH` = `BLUEPRINT_ROOT/01-requirements`. Never pass `BLUEPRINT_ROOT` itself as `-r`.
 4. **Policy gate:** Verify all pipeline invariants.

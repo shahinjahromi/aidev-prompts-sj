@@ -235,6 +235,10 @@ find "${TEMPLATE_ROOT}" -mindepth 1 -maxdepth 1 ! -name '.git' -exec cp -R {} "$
 # Remove setup folder from destination (it belongs to the template only)
 rm -rf "${BLUEPRINT_DIR}/setup"
 
+# Remove scripts folder from destination (backup/restore utilities belong to
+# the framework prompts, not to individual app blueprints).
+rm -rf "${BLUEPRINT_DIR}/scripts"
+
 # Remove any stray root-level setup script from destination.
 rm -f "${BLUEPRINT_DIR}/setup.sh"
 
@@ -423,9 +427,6 @@ for _dir in \
     touch "${_dir}/.gitkeep"
   fi
 done
-
-# ─── Make scripts executable ────────────────────────────────────
-chmod +x "${BLUEPRINT_DIR}/scripts/"*.sh 2>/dev/null || true
 
 # ─── Initialize git repo ────────────────────────────────────────
 echo ""
