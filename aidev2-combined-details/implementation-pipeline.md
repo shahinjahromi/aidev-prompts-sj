@@ -16,9 +16,13 @@ All rules and steps for diff, planning, execution, testing, manifest updates, an
 
 - **Consume cache aggressively.** `cached_data` from warmup has standing constraints, max sequences, manifest state, and requirement content. Do NOT re-read files for data already in cache.
 - **Minimize terminal calls.** Chain non-critical commands (echo, mkdir, log writes) with `&&` onto the preceding command. Never use a separate terminal call just to append one log line.
+- **Combine IM-00 archive + IM-01 diff.** Archive and diff MUST run in a single terminal call: `mv ... && "$TOOLING_CMD" diff ... && "$TOOLING_CMD" summarize-diff ...`. This saves 1–2 terminal round-trips per run.
 - **Fresh app shortcut:** When `requirements_version_implemented == 0.0.0` and `requirement_baseline` is empty, the app has no existing code. In IM-02, set `codebase_map: fresh_scaffold` and skip file-by-file source scanning. In IM-03, skip "verify existing behavior" steps — there is none.
-- **Skip redundant diff re-runs.** In IM-03, only re-run diff to verify progress when 3+ requirements exist. For 1-2 requirements, verifying at IM-06 is sufficient.
+- **Skip redundant diff re-runs.** In IM-03, only re-run diff to verify progress when 3+ requirements exist. For 1-2 requirements, verifying at the final validation gate is sufficient.
 - **IM-01: combine diff + summarize-diff** in a single terminal call: `"$TOOLING_CMD" diff ... && "$TOOLING_CMD" summarize-diff ...`
+- **IM-06 eliminated.** Diff-clear verification is done once at the final §VALIDATE gate — not as a standalone IM-06 stage. This removes one full diff execution from the pipeline.
+- **IM-09 skip re-apply.** If IM-03 tracked that every requirement was individually applied (all entries in `results.yaml` have `manifest_applied: true`), skip the redundant `ai-tooling.sh apply` in IM-09 and go straight to manifest verification.
+- **Chain delta + log in IM-03.** The `delta` command at IM-03 start MUST be chained with its STAGE START log line in a single terminal call.
 
 ## Read Efficiency
 
@@ -42,34 +46,27 @@ All rules and steps for diff, planning, execution, testing, manifest updates, an
 3. Validate manifest shape against `SCHEMAS_ROOT/in-application/requirements-state-schema.json`. (`SCHEMAS_ROOT` = bundled `aidev2-combined-details/aidev2-schemas/` — never read from the app blueprint's `.schemas/` folder.)
 4. Confirm `iteration_id` and version targets are sensible.
 
-### Archive & Clear (fresh-start default)
+### Archive & Clear + Diff (combined terminal call)
 Unless user explicitly said "reuse", "continue", or "resume":
-5. If `IMPL_ROOT/01-delta-current` has files → move to `IMPL_ROOT/50-delta-history/<timestamp>/`.
-6. If `IMPL_ROOT/02-plan-current` has files → move to `IMPL_ROOT/51-plan-history/<timestamp>/`.
-7. If `IMPL_ROOT/03-plan-execution` has files → move to `IMPL_ROOT/52-plan-execution-history/<timestamp>/`.
-8. `<timestamp>` = `YYYY-MM-DD-HH-MM-SS` at archive time.
-
-This ensures every implementation run starts from a clean slate — diff, plan, and execution are always regenerated from current script output.
-
----
-
-## IM-01 Diff
-
-**Mechanical step.** Run two commands in fresh foreground terminals:
-
-```bash
-"$TOOLING_CMD" diff -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID" ${MODULE_FILTER:+--module "$MODULE_FILTER"}
-"$TOOLING_CMD" summarize-diff -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID" ${MODULE_FILTER:+--module "$MODULE_FILTER"}
-```
-
-If `MODULE_FILTER` is set, only requirements with `module == MODULE_FILTER` are included in the diff output and all downstream steps. Default (empty) includes all modules.
+5. Execute the following in a **single terminal call** — archive, then diff, then summarize:
+   ```bash
+   TS=$(date -u +%Y-%m-%d-%H-%M-%S) && \
+   [[ -n "$(ls -A "$IMPL_ROOT/01-delta-current" 2>/dev/null)" ]] && mkdir -p "$IMPL_ROOT/50-delta-history/$TS" && mv "$IMPL_ROOT/01-delta-current"/* "$IMPL_ROOT/50-delta-history/$TS/" ; \
+   [[ -n "$(ls -A "$IMPL_ROOT/02-plan-current" 2>/dev/null)" ]] && mkdir -p "$IMPL_ROOT/51-plan-history/$TS" && mv "$IMPL_ROOT/02-plan-current"/* "$IMPL_ROOT/51-plan-history/$TS/" ; \
+   [[ -n "$(ls -A "$IMPL_ROOT/03-plan-execution" 2>/dev/null)" ]] && mkdir -p "$IMPL_ROOT/52-plan-execution-history/$TS" && mv "$IMPL_ROOT/03-plan-execution"/* "$IMPL_ROOT/52-plan-execution-history/$TS/" ; \
+   echo "[$(date -u +%Y-%m-%dT%H:%M:%S)][combined] [IM-00] Archive complete" >> "$LOG_FILE" && \
+   "$TOOLING_CMD" diff -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID" ${MODULE_FILTER:+--module "$MODULE_FILTER"} && \
+   "$TOOLING_CMD" summarize-diff -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID" ${MODULE_FILTER:+--module "$MODULE_FILTER"} && \
+   echo "[$(date -u +%Y-%m-%dT%H:%M:%S)][combined] [IM-01] Diff complete" >> "$LOG_FILE"
+   ```
+   This ensures every run starts from a clean slate and immediately produces a fresh diff — in one terminal round-trip instead of three.
 
 - Read text summary from stdout only — do NOT parse `structured-diff.yaml` or current YAML.
 - Report `created`/`updated`/`removed`/`technology_selection` counts and IDs.
-- Module-change detection: `summarize-diff` flags `module_changed: old -> new` automatically. Report from summary; don't compare YAML fields.
+- Module-change detection: `summarize-diff` flags `module_changed: old -> new` automatically.
 
 ### Narration
-`[IM-01] Diff started/completed at <ts> — created: N, updated: N, removed: N`
+`[IM-00+IM-01] Archive + Diff completed at <ts> — created: N, updated: N, removed: N`
 
 ---
 
@@ -113,9 +110,11 @@ Module-reassignment planning (for `module_changed` entries):
 
 Execution order:
 1. Initialize `results.yaml`.
-2. **Run `delta` once at the start of IM-03** to generate the actionable delta document (`02-delta-history/01-delta-current.yaml`) that `apply` reads. This is separate from the `diff` command run in IM-01:
+2. **Run `delta` at the start of IM-03**, chained with the STAGE START log in a single terminal call:
    ```bash
-   "$TOOLING_CMD" delta -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID"
+   echo "[$(date -u +%Y-%m-%dT%H:%M:%S)][combined] [IM-03] STAGE START" >> "$LOG_FILE" && \
+   "$TOOLING_CMD" delta -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID" && \
+   echo "[$(date -u +%Y-%m-%dT%H:%M:%S)][combined] [IM-03] Delta generated" >> "$LOG_FILE"
    ```
    > **Why:** `diff` (IM-01) writes `01-delta-current/structured-diff.yaml` for planning. `delta` writes `02-delta-history/01-delta-current.yaml` for manifest updates. `apply` reads the latter — calling `apply` without running `delta` first causes a `FileNotFoundError`.
 3. Implement one requirement at a time.
@@ -127,8 +126,8 @@ Execution order:
    ```
    > **Why:** The delta file defaults every entry to `implementation_verified: false`. `apply` silently skips entries that are not `true` — the manifest will not be updated unless the flag is set first.
    This keeps `requirements-state.yaml` in sync after every requirement — not deferred to IM-09. The combined command saves 2 terminal round-trips per requirement.
-6. Log the manifest update result for that requirement to `$LOG_FILE`.
-7. Re-run diff as needed to verify progress.
+6. **Track per-requirement apply status** in `results.yaml`: set `manifest_applied: true` for each requirement after successful apply. This enables IM-09 to skip redundant re-apply.
+7. Re-run diff as needed to verify progress (only when 3+ requirements — see Speed Rules).
 8. Archive plan/results when complete.
 
 Use `codebase_map` from plan to locate files directly. Batch reads for each requirement.
@@ -165,9 +164,11 @@ Both required before DB gate clears. If no prior schema, migration = full schema
 
 ---
 
-## IM-06 Verify Diff Clear
+## IM-06 (Eliminated)
 
-Re-run IM-01. Complete only when structured diff has **zero** remaining entries in all buckets.
+**This stage is removed.** Diff-clear verification is performed once at the final §VALIDATE gate instead of as a standalone mid-pipeline stage. This eliminates one full diff+summarize-diff execution per pipeline run.
+
+If running `implement` with an explicit step range that includes `06`, skip it and note in the log: `[IM-06] Skipped — diff-clear check deferred to final validation gate`.
 
 ---
 
@@ -300,9 +301,9 @@ No app code edits in this step.
 
 ## IM-09 Verify & Finalize Manifest
 
-By this point, `requirements-state.yaml` should already be up-to-date because IM-03 runs `ai-tooling.sh apply` after each requirement. This step **verifies** completeness and applies any missed updates.
+By this point, `requirements-state.yaml` should already be up-to-date because IM-03 runs `ai-tooling.sh apply` after each requirement. This step **verifies** completeness and conditionally applies missed updates.
 
-1. Run the apply command one final time to catch any stragglers:
+1. **Check if re-apply is needed:** Read `results.yaml` from IM-03. If every requirement has `manifest_applied: true`, skip the apply command entirely — go straight to verification (step 2). Otherwise, run apply once:
    ```bash
    "$TOOLING_CMD" apply -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID"
    ```

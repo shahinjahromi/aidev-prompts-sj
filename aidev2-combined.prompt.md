@@ -96,44 +96,22 @@ Log the resolved value: `[dispatch] module_filter=<value|none>`.
 
 ---
 
-## §PRE-FLIGHT
-
-Run before first pipeline stage or when cache not warm.
-
-### PF-01 Blueprint Root
-Resolve `BLUEPRINT_ROOT` per blueprint policy. Abort if unresolvable.
-
-### PF-02 App Folder
-Resolve `APP_ROOT` per blueprint policy. Verify exists on disk. Abort if missing.
-
-### PF-03 Bootstrap `.aidev`
-If `MANIFEST` missing → create per bootstrap rules in blueprint policy. Never overwrite.
-
-### PF-04 Tooling
-Resolve `TOOLING_CMD` per blueprint policy. Abort if not found.
-
-Log all outcomes before proceeding.
-
----
-
 ## §WARMUP
 
-Load, cache, and **pre-compute** everything downstream stages need — so they never re-read the same files.
+Load, cache, and **pre-compute** everything downstream stages need — so they never re-read the same files. **Subsumes all pre-flight checks** (blueprint root, app folder, .aidev bootstrap, tooling). No separate pre-flight stage exists.
 
-1. Detect `BLUEPRINT_ROOT` per blueprint policy (template guard applies).
-2. Read `config.yaml` → extract all variables per config resolution table.
-3. Read `codebase-context.yaml` only if it has non-placeholder values (check first few fields).
-4. Resolve all derived paths: `REQ_PATH`, `PENDING`, `CURRENT`, `IMPL_ROOT`, `E2E_ROOT`, `E2E_REPORTS`, `MANIFEST`, `AI_TOOLING`.
-5. Discover tooling per tooling discovery order.
-6. Infer `APP_ROOT` per app root inference. Verify directory exists on disk.
-7. Bootstrap `.aidev` if `MANIFEST` missing (PF-03 logic).
-8. `list_dir` on `PENDING` and `CURRENT` — record file names.
-9. **Batch-read all requirement YAML** (FR, NFR/GLOBAL, MAC, TS) from both `PENDING` and `CURRENT` in parallel. Cache full content in `cached_data`. If a directory is empty or a file has zero items, record that as `empty`.
-10. **Compute `max_sequence` per ID type** (FR, NFR, GLOBAL, MAC, TS, AC, AT) from the cached content. Store as `cached_data.max_sequences`. For fresh projects (all empty), all values are `0`.
-11. **Extract standing constraints:** From cached NFR/GLOBAL items, build one-line summaries. Store as `cached_data.standing_constraints`.
-12. **Read manifest** (`requirements-state.yaml`) and cache `requirements_version_target`, `requirements_version_implemented`, `requirement_baseline` IDs.
-13. Write to `/memories/session/aidev2-config-cache.md` under `## <BLUEPRINT_ROOT>` — include resolved paths, max sequences, standing constraint summaries, and manifest state.
-14. Report resolved values in a compact table.
+1. Detect `BLUEPRINT_ROOT` per blueprint policy (template guard applies). **Abort if unresolvable.**
+2. Read `config.yaml` **and** `codebase-context.yaml` in parallel → extract all variables per config resolution table. Skip codebase-context if placeholder values detected.
+3. Resolve all derived paths: `REQ_PATH`, `PENDING`, `CURRENT`, `IMPL_ROOT`, `E2E_ROOT`, `E2E_REPORTS`, `MANIFEST`, `AI_TOOLING`.
+4. Discover tooling per tooling discovery order. **Abort if not found.**
+5. Infer `APP_ROOT` per app root inference. **Verify directory exists on disk. Abort if missing.**
+6. Bootstrap `.aidev` if `MANIFEST` missing (create per bootstrap rules). Never overwrite.
+7. `list_dir` on `PENDING` and `CURRENT` — record file names.
+8. **Batch-read all requirement YAML** (FR, NFR/GLOBAL, MAC, TS) from both `PENDING` and `CURRENT` in parallel. Cache full content in `cached_data`. If a directory is empty or a file has zero items, record that as `empty`.
+9. **In a single pass over cached content, compute:** (a) `max_sequence` per ID type (FR, NFR, GLOBAL, MAC, TS, AC, AT) → `cached_data.max_sequences`; (b) standing constraints one-line summaries → `cached_data.standing_constraints`. For fresh projects (all empty), all values are `0`.
+10. **Read manifest** (`requirements-state.yaml`) and cache `requirements_version_target`, `requirements_version_implemented`, `requirement_baseline` IDs.
+11. Write to `/memories/session/aidev2-config-cache.md` under `## <BLUEPRINT_ROOT>` — include resolved paths, max sequences, standing constraint summaries, and manifest state.
+12. Report resolved values in a compact table. Log all pre-flight outcomes.
 
 Argument `refresh` → overwrite existing cache section.
 
@@ -171,7 +149,7 @@ Argument `refresh` → overwrite existing cache section.
 Parse step tokens: `01-author`, `02-promote`, `03-reconcile`, or ranges like `01-02`.
 Also accepts plain language (e.g. "author new requirements", "promote and reconcile").
 
-1. Run §PRE-FLIGHT if cache not warm.
+1. Run §WARMUP if cache not warm.
 2. Execute requested steps per requirements pipeline (RQ-01, RQ-02, RQ-03).
 
 All authoring rules (ID uniqueness, module, contract_refs, design-first, YAML format, tech selection mirrors) are in the requirements pipeline reference.
@@ -192,10 +170,10 @@ Every authored FR, NFR, and GLOBAL requirement **MUST** include both `acceptance
 Parse step tokens: `01-diff` through `09-generate-docs`, or ranges like `02-07`.
 Also accepts plain language (e.g. "run from planning through tests", "just execute the code").
 
-Mapping: `01-diff`→IM-01, `02-plan`→IM-02, `03-execute`→IM-03, `05-fix`→IM-05, `06-create-tests`→IM-07, `07-run-tests`→IM-08, `08-verify-manifest`→IM-09, `09-generate-docs`→IM-10.
+Mapping: `01-diff`→IM-00+IM-01 (combined), `02-plan`→IM-02, `03-execute`→IM-03, `05-fix`→IM-05, `06-create-tests`→IM-07, `07-run-tests`→IM-08, `08-verify-manifest`→IM-09, `09-generate-docs`→IM-10. Note: IM-06 (verify diff clear) is eliminated — handled by final §VALIDATE gate.
 
-1. Run §PRE-FLIGHT if cache not warm.
-2. **Fresh-start (default):** Run IM-00 archive/clear before first step — moves leftover `01-delta-current`, `02-plan-current`, `03-plan-execution` to history folders. Always regenerate diff and plan from scratch based on current script output. Never reuse plans, deltas, or results from a prior run.
+1. Run §WARMUP if cache not warm.
+2. **Fresh-start (default):** Run IM-00 archive/clear + IM-01 diff in a **single terminal call** — archive leftover artifacts then immediately generate fresh diff. Always regenerate from scratch. Never reuse plans, deltas, or results from a prior run.
 3. Execute requested steps per implementation pipeline.
 
 Override: user says "reuse plan", "continue", or "resume" → skip fresh-start and reuse existing artifacts.
@@ -207,15 +185,15 @@ Override: user says "reuse plan", "continue", or "resume" → skip fresh-start a
 Optional: `from-promote`, `from-diff`, `from-plan`, `from-execute`, `from-tests`.
 
 Sequence (skip earlier stages when `from-*` provided):
-1. §PRE-FLIGHT (PF-01..PF-04)
-2. §WARMUP (if cache not populated)
-3. Requirements: RQ-02 promote (or RQ-01 author + RQ-02 if no override)
-4. Implementation: IM-01 diff + IM-02 plan
-5. Implementation: IM-03 execute + IM-05 fix
-6. Validation: IM-06 verify diff clear + schema + manifest checks
-7. Implementation: IM-07 create tests + IM-08 run tests
-8. Implementation: IM-09 update manifest + IM-10 generate docs
-9. Final validation gate
+1. §WARMUP (subsumes all pre-flight checks; skips if already warm)
+2. Requirements: RQ-02 promote (or RQ-01 author + RQ-02 if no override)
+3. Implementation: IM-00 archive + IM-01 diff (single terminal call) + IM-02 plan
+4. Implementation: IM-03 execute (per-req manifest apply) + IM-05 fix
+5. Implementation: IM-07 create tests + IM-08 run tests
+6. Implementation: IM-09 verify manifest (skip re-apply if all applied in IM-03) + IM-10 generate docs
+7. Final validation gate (single diff-clear + schema + manifest check)
+
+**Removed stage:** IM-06 (verify diff clear) is eliminated as a standalone stage — its check is folded into the final validation gate (step 7). This avoids running the diff tooling command an extra time.
 
 ### Pipeline Abort Rules
 
@@ -286,16 +264,17 @@ Arguments: `headed`, `debug`, `<feature>.spec.ts`, `run all tests`.
 
 ## §VALIDATE
 
-Validation gate — run between implementation stages and as final gate.
+Validation gate — the **single point** where diff-clear, schema, and manifest are verified. Runs as the final gate in `all-steps` (not between intermediate stages — IM-03 per-requirement apply keeps the manifest current during execution).
 
 1. **Schema validation:** Check changed requirement artifacts against schemas in `SCHEMAS_ROOT` (the local `aidev2-combined-details/aidev2-schemas/` folder). **Never copy schema files to the app blueprint `.schemas/` folder.** Schemas are always read from the prompt's own bundled location.
 2. **Manifest shape:** Validate `MANIFEST` against `SCHEMAS_ROOT/in-application/requirements-state-schema.json`.
-3. **Diff-clear:** Run:
+3. **Diff-clear (single execution):** Run diff + summarize-diff in one terminal call:
    ```bash
-   "$TOOLING_CMD" diff -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID" ${MODULE_FILTER:+--module "$MODULE_FILTER"}
+   "$TOOLING_CMD" diff -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID" ${MODULE_FILTER:+--module "$MODULE_FILTER"} && \
    "$TOOLING_CMD" summarize-diff -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID" ${MODULE_FILTER:+--module "$MODULE_FILTER"}
    ```
    `REQ_PATH` = `BLUEPRINT_ROOT/01-requirements`. Never pass `BLUEPRINT_ROOT` itself as `-r`.
+   This is the **only** diff-clear check in the pipeline — IM-06 is eliminated as a standalone stage.
 4. **Policy gate:** Verify all pipeline invariants.
 
 ---
@@ -333,7 +312,7 @@ At pipeline start:
 - **Per-requirement logging in IM-03:** After implementing each requirement, log: `[<ts>][combined] Requirement <REQ-ID> — implemented, manifest updated`.
 - **Batched log writes are preferred.** Accumulate log entries in a shell variable or heredoc and write them in a single `echo -e "$LOG_ENTRIES" >> "$LOG_FILE"` call at natural checkpoints (after each requirement, after each script invocation, at stage boundaries). Do NOT use a separate `run_in_terminal` for every individual log line — that wastes tool calls.
 - **Inline logging with commands:** When running a tooling command, chain the log entry in the same terminal call: `"$TOOLING_CMD" ... && echo "[<ts>][combined] ..." >> "$LOG_FILE"`. This halves the number of terminal round-trips.
-- **Stage-boundary logging** (STAGE START / STAGE END) may still use dedicated terminal calls for clarity.
+- **Stage-boundary logging MUST also be chained.** Append STAGE START to the stage’s first terminal command and STAGE END to the stage’s last terminal command. Do NOT use dedicated terminal calls for stage boundary log lines.
 - **Minimum log density:** A pipeline run that implements N requirements must produce at least `5 + (3 × N)` log lines (pipeline start/end, per-stage start/end, per-requirement entries). If the log has fewer lines than this after a run, the run is non-compliant.
 - **Never skip logging due to context length or conversation complexity.** If nearing context limits, the log is the last thing to sacrifice — reduce narration verbosity in chat instead.
 - If a conversation is interrupted mid-pipeline, the log must reflect all stages that actually completed.
@@ -341,7 +320,8 @@ At pipeline start:
 ## Terminal Execution Rules
 
 - Fresh foreground terminal for each critical tooling command (`diff`, `delta`, `apply`, `promote`, `build`, `test`).
-- Non-critical commands (echo, mkdir, cp, mv, cat, log writes) **may be chained** with `&&` onto a critical command or grouped together in a single terminal call.
+- Non-critical commands (echo, mkdir, cp, mv, cat, log writes) **MUST be chained** with `&&` onto a critical command or grouped together in a single terminal call. Never use a separate terminal call for a log write, directory creation, or file move that can be appended to an adjacent command.
+- **Archive + diff chaining:** IM-00 archive operations and IM-01 diff MUST execute in a single terminal call when run consecutively.
 - No background execution, no `await_terminal`.
 - Terminal-close-before-result: retry once in fresh terminal. Same failure again → unexpected fatal error.
 
