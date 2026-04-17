@@ -141,6 +141,49 @@ Module-reassignment execution:
 
 Critical: update manifest per-requirement (not in bulk at the end), never mark requirement complete before code exists, don't finish while diff has outstanding items.
 
+### Server PORT env var (mandatory)
+Every HTTP server implemented in IM-03 **must** read its listen port from a `PORT` environment variable, falling back to the default port (e.g. `8080`). This is required so the test suite can spin up additional server instances on distinct ports for scenarios that require different environment configurations.
+
+**Go example:**
+```go
+port := os.Getenv("PORT")
+if port == "" {
+    port = "8080"
+}
+log.Printf("Starting <app> on :%s", port)
+if err := http.ListenAndServe(":"+port, r); err != nil {
+    log.Fatalf("server error: %v", err)
+}
+```
+
+**Node/Express example:**
+```js
+const port = process.env.PORT ?? 8080;
+app.listen(port);
+```
+
+Apply this pattern regardless of whether tests currently need it — it is a baseline requirement for all server implementations.
+
+### Shell Script Line Endings (Windows/WSL)
+
+**Never use `create_file` to write `.sh` files.** VS Code's file-creation tools save with Windows CRLF (`\r\n`) line endings. Bash in WSL interprets `set -euo pipefail\r` as `set: pipefail: invalid option name` and exits 2, crashing anything that calls the script (including the Playwright `webServer`).
+
+**Always write shell scripts via `run_in_terminal` using a heredoc**, which stays entirely in WSL and produces LF-only files:
+```bash
+cat > "$APP_ROOT/scripts/local-dev.sh" << 'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+export PORT="${PORT:-8080}"
+exec go run ./cmd/server
+EOF
+chmod +x "$APP_ROOT/scripts/local-dev.sh"
+```
+
+If a `.sh` file was already created by `create_file` and has CRLF, fix it in the same terminal call before it is ever invoked:
+```bash
+sed -i 's/\r//' "$APP_ROOT/scripts/local-dev.sh"
+```
+
 ### DB Schema File Requirements
 
 When implementing `physical_database_schema` contract changes, produce **two** files per schema change:
@@ -194,6 +237,7 @@ If `06-e2e-tests/` has files from prior iteration, reuse config/fixtures/helpers
 - `outputDir` must point under `TEST_RESULTS` (e.g., `path.resolve(reportsRoot, 'playwright-raw-output')`).
 - `reportsRoot` must resolve to `TEST_RESULTS` via `E2E_REPORTS_ROOT` env var or relative `path.resolve`.
 - All reports under `TEST_RESULTS`. Nothing under `06-e2e-tests/` (no `test-results/`, `playwright-report/`, `blob-report/`).
+- `webServer.reuseExistingServer` **must be `false`**. Setting it to `!process.env.CI` (true locally) lets Playwright silently reuse whatever process is already bound to the port — if a stray or unrelated server is running, tests will hit it and fail with confusing mismatches. Always start a fresh server.
 
 ### Choosing the directory and project
 Use `test_type` from each requirement's `test_coverage_mapping` in `plan.yaml` (set in IM-02) to determine where test files go and which project runs them:
@@ -219,6 +263,51 @@ Use `test_type` from each requirement's `test_coverage_mapping` in `plan.yaml` (
 - Playwright `request` fixture (no browser). Cookie support via `request.storageState`.
 - Capture HTTP traffic into `http-traffic` attachment for `traffic-html-reporter`/`traffic-json-reporter`.
 - Run: `TEST_MODE=api npx playwright test --project=api`
+
+### Multi-environment scenarios — no skipping allowed
+When an AT has scenarios that require **different server environment variable configurations** (e.g., one scenario with `HELLO_WORLD_NAME=TestUser` and another with no `HELLO_WORLD_NAME` set), each scenario must be a fully-executing test — **`testInfo.skip()` is forbidden** as a workaround.
+
+Instead, tests that need a different environment must:
+1. Spawn a dedicated server instance on a **separate port** using Node's `child_process.spawn`.
+2. Wait for the server to be ready by polling with `fetch` or checking stdout.
+3. Direct their requests to the dedicated port via a local `baseUrl` variable.
+4. Kill the spawned process in `test.afterEach` / `test.afterAll`.
+
+**Pattern — spawn a fresh server with different env:**
+```typescript
+import { spawn, type ChildProcess } from 'node:child_process';
+
+let altServer: ChildProcess | undefined;
+const ALT_PORT = '8081';
+const ALT_BASE = `http://localhost:${ALT_PORT}`;
+
+test.beforeAll(async () => {
+  altServer = spawn(
+    'bash',
+    ['scripts/local-dev.sh'],  // or: 'go', ['run', './cmd/server']
+    {
+      cwd: APP_ROOT,           // absolute path resolved from BASE_URL or E2E config
+      env: { ...process.env, PORT: ALT_PORT, HELLO_WORLD_NAME: undefined },
+      detached: false,
+    },
+  );
+  // Wait until the server is accepting connections (max 8 s)
+  for (let i = 0; i < 16; i++) {
+    await new Promise(r => setTimeout(r, 500));
+    try { await fetch(`${ALT_BASE}/hello`); break; } catch { /* not ready yet */ }
+  }
+});
+
+test.afterAll(() => { altServer?.kill(); });
+
+test('fallback scenario', async ({ request }, testInfo) => {
+  const url = `${ALT_BASE}/hello`;
+  const response = await request.get(url);
+  // ... assertions ...
+});
+```
+
+`APP_ROOT` must be resolved from the `BASE_URL` env var or stored in a shared constant at the top of the spec file. The startup script/command must use the `PORT` env var to bind (see IM-03 §Server PORT env var).
 
 **MANDATORY — Every API test must attach http-traffic. Pattern:**
 ```typescript
@@ -278,19 +367,24 @@ Files accumulate across runs — old files are not deleted. This is intentional:
 ### Execution
 1. Ensure app running (start via startup script if not).
 2. Set `E2E_REPORTS_ROOT` to absolute path of `TEST_RESULTS`.
-3. Run tests — **exact commands**:
+3. **Kill stray processes** on test ports before running (prevents `reuseExistingServer` from latching onto a wrong server that happens to be listening):
+   ```bash
+   pkill -f "go run ./cmd/server" 2>/dev/null || true
+   pkill -f "node.*server" 2>/dev/null || true
+   ```
+4. Run tests — **exact commands** (always pass `APP_ROOT` so playwright's `webServer.cwd` resolves correctly):
    | Mode | Command |
    |---|---|
-   | All projects (default) | `cd "$E2E_ROOT" && E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test` |
-   | API only | `cd "$E2E_ROOT" && E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test --project=api` |
-   | UI only | `cd "$E2E_ROOT" && E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test --project=ui` |
-   | Headed | `cd "$E2E_ROOT" && E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test --headed` |
-   | Debug | `cd "$E2E_ROOT" && E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test --debug` |
-   | Single spec | `cd "$E2E_ROOT" && E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test <feature>.spec.ts` |
+   | All projects (default) | `cd "$E2E_ROOT" && APP_ROOT="$APP_ROOT" E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test` |
+   | API only | `cd "$E2E_ROOT" && APP_ROOT="$APP_ROOT" E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test --project=api` |
+   | UI only | `cd "$E2E_ROOT" && APP_ROOT="$APP_ROOT" E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test --project=ui` |
+   | Headed | `cd "$E2E_ROOT" && APP_ROOT="$APP_ROOT" E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test --headed` |
+   | Debug | `cd "$E2E_ROOT" && APP_ROOT="$APP_ROOT" E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test --debug` |
+   | Single spec | `cd "$E2E_ROOT" && APP_ROOT="$APP_ROOT" E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test <feature>.spec.ts` |
    **NEVER pass `--reporter` on the CLI.** Doing so overrides all reporters in `playwright.config.ts`, causing the custom traffic reporters to not run and leaving `TEST_RESULTS/` empty.
-4. Verify: artifacts under `TEST_RESULTS/`, **none** under `06-e2e-tests/`.
-5. UI runs: one result row per UIC, screenshot evidence in artifacts.
-6. API runs: HTTP traffic in artifacts.
+5. Verify: artifacts under `TEST_RESULTS/`, **none** under `06-e2e-tests/`.
+6. UI runs: one result row per UIC, screenshot evidence in artifacts.
+7. API runs: HTTP traffic in artifacts.
 
 No app code edits in this step.
 

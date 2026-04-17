@@ -318,8 +318,8 @@ Arguments: `headed`, `debug`, `<feature>.spec.ts`, `run all tests`.
 1. Resolve `IMPLEMENTATION_ID` from config. Ask if multiple.
 2. Paths: `E2E_ROOT` = `IMPL_ROOT/06-e2e-tests`, reports at `TEST_RESULTS`.
 3. Pre-checks: `playwright.config.ts` exists. If no `node_modules`, run `npm install && npx playwright install chromium`.
-4. Start app if not running (use startup script).
-5. Set `E2E_REPORTS_ROOT` = absolute `TEST_RESULTS`. Run: `cd "$E2E_ROOT" && E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test` (add `--headed` or `--debug` per argument). **Never pass `--reporter` on the CLI** — it overrides `playwright.config.ts` reporters and leaves `TEST_RESULTS/` empty.
+4. Kill stray server processes on test ports to prevent `reuseExistingServer` from picking up a wrong server: `pkill -f "go run ./cmd/server" 2>/dev/null || true`.
+5. Set `E2E_REPORTS_ROOT` = absolute `TEST_RESULTS`. Always pass `APP_ROOT` so playwright's `webServer.cwd` resolves correctly. Run: `cd "$E2E_ROOT" && APP_ROOT="$APP_ROOT" E2E_REPORTS_ROOT="$TEST_RESULTS" npx playwright test` (add `--headed` or `--debug` per argument). **Never pass `--reporter` on the CLI** — it overrides `playwright.config.ts` reporters and leaves `TEST_RESULTS/` empty.
 6. Verify artifacts under `TEST_RESULTS/`, none under `06-e2e-tests/`.
 
 ---
