@@ -3,15 +3,28 @@
   "title": "Acceptance Criteria Definition",
   "description": "Reusable definition for structured acceptance criteria embedded in FR/NFR items",
   "type": "object",
-  "required": ["id", "title"],
+  "required": [
+    "id",
+    "title"
+  ],
   "properties": {
-    "id": { "type": "string", "pattern": "^AC-[0-9]{6}$" },
-    "title": { "type": "string" },
-    "context": { "type": "string", "description": "The precondition or state before the action" },
+    "id": {
+      "type": "string",
+      "pattern": "^AC-[0-9]{7}-[a-z0-9-]+(-v[0-9]+)?$"
+    },
+    "title": {
+      "type": "string"
+    },
+    "context": {
+      "type": "string",
+      "description": "The precondition or state before the action"
+    },
     "criteria": {
       "type": "array",
       "description": "List of atomic conditions that must be true for completion",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "minItems": 1
     },
     "scenarios": {
@@ -19,18 +32,33 @@
       "description": "Behavioral Given/When/Then scenarios",
       "items": {
         "type": "object",
-        "required": ["name", "given", "when", "then"],
+        "required": [
+          "name",
+          "given",
+          "when",
+          "then"
+        ],
         "properties": {
-          "name": { "type": "string" },
-          "given": { "type": "string" },
-          "when": { "type": "string" },
-          "then": { "type": "string" }
+          "name": {
+            "type": "string"
+          },
+          "given": {
+            "type": "string"
+          },
+          "when": {
+            "type": "string"
+          },
+          "then": {
+            "type": "string"
+          }
         }
       }
     },
     "acceptance_tests": {
       "type": "array",
-      "items": { "$ref": "_at_definition.json" }
+      "items": {
+        "$ref": "_at_definition.json"
+      }
     }
   }
 }

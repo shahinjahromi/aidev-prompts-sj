@@ -3,15 +3,27 @@
   "title": "Acceptance Test Definition",
   "description": "Reusable definition for structured acceptance tests embedded in FR/NFR items",
   "type": "object",
-  "required": ["id", "name"],
+  "required": [
+    "id",
+    "name"
+  ],
   "properties": {
-    "id": { "type": "string", "pattern": "^AT-[0-9]{6}$" },
-    "name": { "type": "string" },
+    "id": {
+      "type": "string",
+      "pattern": "^AT-[0-9]{7}-[a-z0-9-]+(-v[0-9]+)?$"
+    },
+    "name": {
+      "type": "string"
+    },
     "steps": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "minItems": 1
     },
-    "expected_result": { "type": "string" }
+    "expected_result": {
+      "type": "string"
+    }
   }
 }

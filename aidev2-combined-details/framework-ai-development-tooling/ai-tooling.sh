@@ -8,7 +8,7 @@ ROOT="${AI_TOOLING_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 print_usage() {
   cat <<EOF
 Usage: ai-tooling.sh <action> [args]
-Actions: bootstrap delta plan apply merge update-merged refresh-merged diff promote sync-diff summarize-diff verify repair-yaml all
+Actions: bootstrap delta plan apply merge update-merged refresh-merged diff promote sync-diff summarize-diff verify repair-yaml rebuild-diffs all
 EOF
 }
 
@@ -56,6 +56,9 @@ case "$action" in
     ;;
   repair-yaml)
     python3 "$ROOT/repair_yaml.py" "$@"
+    ;;
+  rebuild-diffs)
+    python3 "$ROOT/rebuild_diffs.py" "$@"
     ;;
   all)
     # all means delta + plan + merge + diff

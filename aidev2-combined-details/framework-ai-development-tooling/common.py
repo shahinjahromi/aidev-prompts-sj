@@ -827,8 +827,14 @@ def _normalize_artifact_item_to_requirement(item: Dict[str, Any], req_type: str)
         out["entity"] = item.get("entity")
     if item.get("subsection") is not None:
         out["subsection"] = item.get("subsection")
+    if item.get("module") is not None:
+        out["module"] = item.get("module")
     if item.get("acceptance_criteria") is not None:
         out["acceptance_criteria"] = item.get("acceptance_criteria")
+    if item.get("acceptance_tests") is not None:
+        out["acceptance_tests"] = item.get("acceptance_tests")
+    if item.get("contract_refs") is not None:
+        out["contract_refs"] = item.get("contract_refs")
     if req_type == "technology_selection":
         for ts_field in ("capability", "name", "version", "category", "decision_ref", "constraints"):
             if item.get(ts_field) is not None:

@@ -128,8 +128,14 @@ def normalize_item(doc_type: str, item: Dict) -> Dict:
     )
     if item.get('replaces_id'):
         req['replaces_id'] = str(item.get('replaces_id'))
+    if item.get('module') is not None:
+        req['module'] = item.get('module')
     if item.get('acceptance_criteria'):
         req['acceptance_criteria'] = item.get('acceptance_criteria')
+    if item.get('acceptance_tests'):
+        req['acceptance_tests'] = item.get('acceptance_tests')
+    if item.get('contract_refs') is not None:
+        req['contract_refs'] = item.get('contract_refs')
     if doc_type == 'technology_selection':
         for ts_field in ('capability', 'name', 'version', 'category', 'decision_ref', 'constraints'):
             if item.get(ts_field) is not None:

@@ -99,12 +99,12 @@ items:
   replaces_id: "FR-..."          # required for update/delete
   contract_refs: [...]           # optional
   acceptance_criteria:           # MANDATORY
-  - id: "AC-NNNNNN"             # pattern: ^AC-[0-9]{6}$
+  - id: "AC-NNNNNNN-kebab-slug"  # pattern: ^AC-[0-9]{7}-[a-z0-9-]+(-v[0-9]+)?$
     title: "..."
     criteria: ["atomic condition 1", ...]
     scenarios: [{name, given, when, then}]
   acceptance_tests:              # MANDATORY
-  - id: "AT-NNNNNN"             # pattern: ^AT-[0-9]{6}$
+  - id: "AT-NNNNNNN-kebab-slug"  # pattern: ^AT-[0-9]{7}-[a-z0-9-]+(-v[0-9]+)?$
     name: "..."
     steps: ["step1", ..., "step12"]  # 6-12 Playwright-precise steps
     expected_result: "..."
@@ -126,7 +126,7 @@ entries:
   module: "optional"            # optional
 ```
 
-**MAC** (`models_and_contracts.yaml`): `id` pattern `^MAC-[0-9]{7}-[a-z0-9-]+$`, has `items[]` with `contract_type`, `spec_file`, `child_specifications`.
+**MAC** (`models_and_contracts.yaml`): `id` pattern `^MAC-[0-9]{7}-[a-z0-9-]+$`, required fields: `logical_id`, `title`, `summary`, `spec_format` (openapi_yaml|graphql_sdl_yaml|logical_database_schema|physical_database_schema|domain_model), `spec_path`. Optional: `module`, `child_specifications` (list child IDs when spec file contains multiple named items).
 
 Only read the actual schema JSON files when encountering an unusual validation error.
 

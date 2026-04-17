@@ -85,7 +85,7 @@ Shared assets (all bundled in `aidev2-combined-details`):
 | `INITIAL_FOLDER_STRUCTURE` | `<USER_PROMPTS>/aidev2-combined-details/initial-folder-structure` |
 | `BUNDLED_TOOLING` | `<USER_PROMPTS>/aidev2-combined-details/framework-ai-development-tooling` |
 
-Where `<USER_PROMPTS>` = `/home/parallels/.config/Code/User/prompts`.
+Where `<USER_PROMPTS>` = `{{VSCODE_USER_PROMPTS_FOLDER}}` (the VS Code user prompts folder, resolved at runtime from the template variable).
 
 Implementation sub-layout under `IMPL_ROOT`:
 `01-delta-current`, `02-plan-current`, `03-plan-execution`, `05-fix`, `06-e2e-tests`, `50-delta-history`, `51-plan-history`, `52-plan-execution-history`, `53-update-history`.
