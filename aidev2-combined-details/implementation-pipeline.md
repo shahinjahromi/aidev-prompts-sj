@@ -12,15 +12,25 @@ All rules and steps for diff, planning, execution, testing, manifest updates, an
 - DB schema contract changes are mandatory work in the same run.
 - `MODULE_FILTER` (set at dispatch time) narrows the diff and all downstream steps to requirements with `module == MODULE_FILTER`. Empty = all modules. Carry this value through every step in the run.
 
+## Speed Rules
+
+- **Consume cache aggressively.** `cached_data` from warmup has standing constraints, max sequences, manifest state, and requirement content. Do NOT re-read files for data already in cache.
+- **Minimize terminal calls.** Chain non-critical commands (echo, mkdir, log writes) with `&&` onto the preceding command. Never use a separate terminal call just to append one log line.
+- **Fresh app shortcut:** When `requirements_version_implemented == 0.0.0` and `requirement_baseline` is empty, the app has no existing code. In IM-02, set `codebase_map: fresh_scaffold` and skip file-by-file source scanning. In IM-03, skip "verify existing behavior" steps — there is none.
+- **Skip redundant diff re-runs.** In IM-03, only re-run diff to verify progress when 3+ requirements exist. For 1-2 requirements, verifying at IM-06 is sufficient.
+- **IM-01: combine diff + summarize-diff** in a single terminal call: `"$TOOLING_CMD" diff ... && "$TOOLING_CMD" summarize-diff ...`
+
 ## Read Efficiency
 
-1. **Batch-read on entry:** At IM-00, read current YAML and manifest in parallel. Cache for the run.
-2. **Batch implementation YAML:** At IM-02 Plan, read `structured-diff.yaml` and manifest together.
-3. **Re-read only on write.** After writing, refresh only that file.
-4. **Module-scoped reads:** When targeting a specific module, limit source reads to the module's folder, shared entry points, and diff-referenced files.
-5. **Same-run `cached_data` only.** Consume data from earlier stages in the **current run** before re-reading YAML. Never inherit cached_data or artifacts from a prior run.
-6. **Script-first for mechanical steps.** IM-01 Diff and IM-09 Manifest use `ai-tooling.sh` scripts — read only stdout/stderr, not input YAML.
-7. **Use `summarize-diff`.** After `ai-tooling.sh diff`, run `summarize-diff` for counts/IDs as text. Parse `structured-diff.yaml` only when full snapshots needed for planning.
+1. **Use warmup cache first:** `cached_data` from §WARMUP contains requirement YAML content, max_sequences, standing constraints, and manifest state. Always consume cache before reading files.
+2. **Batch-read on entry (if cache miss):** At IM-00, read current YAML and manifest in parallel. Cache for the run.
+3. **Batch implementation YAML:** At IM-02 Plan, read `structured-diff.yaml` and manifest together.
+4. **Re-read only on write.** After writing, refresh only that file.
+5. **Module-scoped reads:** When targeting a specific module, limit source reads to the module’s folder, shared entry points, and diff-referenced files.
+6. **Same-run `cached_data` only.** Consume data from earlier stages in the **current run** before re-reading YAML. Never inherit cached_data or artifacts from a prior run.
+7. **Script-first for mechanical steps.** IM-01 Diff and IM-09 Manifest use `ai-tooling.sh` scripts — read only stdout/stderr, not input YAML.
+8. **Use `summarize-diff`.** After `ai-tooling.sh diff`, run `summarize-diff` for counts/IDs as text. Parse `structured-diff.yaml` only when full snapshots needed for planning.
+9. **Standing constraints from cache:** `cached_data.standing_constraints` was pre-computed in warmup. Consume it directly in IM-02 — do NOT re-read `CURRENT_MERGED` for NFR/GLOBAL items unless cache is missing.
 
 ---
 
@@ -70,12 +80,12 @@ If `MODULE_FILTER` is set, only requirements with `module == MODULE_FILTER` are 
 
 If `MODULE_FILTER` is set, the structured diff already contains only matching requirements. Plan scope is naturally limited to those requirements — do not expand to other modules. Note the active module filter in plan metadata.
 
-Standing constraint lookup: (1) `cached_data.standing_constraints` (2) `read_file CURRENT_MERGED` (3) Never `grep_search` for YAML content.
+Standing constraint lookup: (1) `cached_data.standing_constraints` (pre-computed in warmup — always available) (2) only if cache is missing: `read_file CURRENT_MERGED` (3) Never `grep_search` for YAML content.
 
 Plan must include:
 - `standing_nfr_and_global_cr_constraints` — one-line summaries of each NFR/GLOBAL constraint.
 - `codebase_map` — key source files, purpose, relevant symbols. Reduces file-discovery I/O during execute.
-- `test_coverage_mapping` — maps each requirement to test type (ui/api/none) and AC/AT IDs. Consumed by test creation.
+- `test_coverage_mapping` — maps each requirement to test type (ui/api/none) and **full AT data**. For each requirement in the diff, extract all AT entries from `new_requirement.acceptance_tests` (already present in the diff snapshot — do NOT re-read requirements YAML). Each `test_coverage_mapping` entry must include: `requirement_id`, `test_type` (ui/api/none), and `acceptance_tests` (complete list with `id`, `name`, `steps`, `expected_result` copied verbatim from the diff). This is the sole AT source for IM-07 — no separate YAML read needed downstream.
 - Per-change scope: impacted files, symbols, steps, validation, risks.
 
 Module-reassignment planning (for `module_changed` entries):
@@ -95,16 +105,23 @@ Module-reassignment planning (for `module_changed` entries):
 
 Execution order:
 1. Initialize `results.yaml`.
-2. Implement one requirement at a time.
-3. DB work first (if applicable) for each requirement.
-4. **After each requirement's code is written and verified**, immediately update the manifest by running:
+2. **Run `delta` once at the start of IM-03** to generate the actionable delta document (`02-delta-history/01-delta-current.yaml`) that `apply` reads. This is separate from the `diff` command run in IM-01:
    ```bash
-   "$TOOLING_CMD" apply -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID"
+   "$TOOLING_CMD" delta -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID"
    ```
-   This keeps `requirements-state.yaml` in sync after every requirement — not deferred to IM-09.
-5. Log the manifest update result for that requirement to `$LOG_FILE`.
-6. Re-run diff as needed to verify progress.
-7. Archive plan/results when complete.
+   > **Why:** `diff` (IM-01) writes `01-delta-current/structured-diff.yaml` for planning. `delta` writes `02-delta-history/01-delta-current.yaml` for manifest updates. `apply` reads the latter — calling `apply` without running `delta` first causes a `FileNotFoundError`.
+3. Implement one requirement at a time.
+4. DB work first (if applicable) for each requirement.
+5. **After each requirement's code is written and verified**, set `implementation_verified: true` for that requirement's entry in `02-delta-history/01-delta-current.yaml`, then immediately update the manifest. **Combine into a single terminal call** to minimize round-trips:
+   ```bash
+   # Set verified flag (use sed/python inline) then apply in one call:
+   python3 -c "import yaml; p='$DELTA_FILE'; d=yaml.safe_load(open(p)); [e.__setitem__('implementation_verified',True) for e in d.get('delta',{}).get('added',[])+d.get('delta',{}).get('updated',[]) if str(e.get('requirement_id'))=='<REQ-ID>']; yaml.dump(d,open(p,'w'),default_flow_style=False)" && "$TOOLING_CMD" apply -r "$REQ_PATH" -a "$APP_ROOT" --implementation-id "$IMPLEMENTATION_ID" && echo "[$(date -u +%Y-%m-%dT%H:%M:%S)][$IMPLEMENTATION_ID] Requirement <REQ-ID> — implemented, manifest updated" >> "$LOG_FILE"
+   ```
+   > **Why:** The delta file defaults every entry to `implementation_verified: false`. `apply` silently skips entries that are not `true` — the manifest will not be updated unless the flag is set first.
+   This keeps `requirements-state.yaml` in sync after every requirement — not deferred to IM-09. The combined command saves 2 terminal round-trips per requirement.
+6. Log the manifest update result for that requirement to `$LOG_FILE`.
+7. Re-run diff as needed to verify progress.
+8. Archive plan/results when complete.
 
 Use `codebase_map` from plan to locate files directly. Batch reads for each requirement.
 
@@ -155,7 +172,7 @@ Re-run IM-01. Complete only when structured diff has **zero** remaining entries 
 
 Acceptance tests (AT) in the requirements are the **primary specification** for Playwright test code. Each AT's `steps` array maps directly to Playwright actions:
 
-1. Read each requirement's `acceptance_tests` from current requirements YAML.
+1. Read acceptance tests from `test_coverage_mapping` in `plan.yaml` — AT step data is already embedded there (extracted from the diff's `new_requirement.acceptance_tests` in IM-02). Do NOT re-read current requirements YAML or structured-diff.yaml for AT content.
 2. For each AT, translate `steps` into Playwright code in order — each step becomes one or more Playwright calls.
 3. The AT `expected_result` becomes the final assertion block.
 4. AT step language maps to Playwright: "Navigate to X" → `page.goto(X)`, "Click Y" → `page.click(Y)`, "Type Z into field W" → `page.fill(W, Z)`, "Expect element V visible" → `expect(page.locator(V)).toBeVisible()`, "POST /api/... returns 200" → `expect(response.status()).toBe(200)`.

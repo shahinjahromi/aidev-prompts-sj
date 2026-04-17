@@ -118,7 +118,7 @@ Log all outcomes before proceeding.
 
 ## §WARMUP
 
-Load and cache **path/config data only** — defer content reads to the stages that need them.
+Load, cache, and **pre-compute** everything downstream stages need — so they never re-read the same files.
 
 1. Detect `BLUEPRINT_ROOT` per blueprint policy (template guard applies).
 2. Read `config.yaml` → extract all variables per config resolution table.
@@ -127,14 +127,13 @@ Load and cache **path/config data only** — defer content reads to the stages t
 5. Discover tooling per tooling discovery order.
 6. Infer `APP_ROOT` per app root inference. Verify directory exists on disk.
 7. Bootstrap `.aidev` if `MANIFEST` missing (PF-03 logic).
-8. `list_dir` on `PENDING` and `CURRENT` — record **file names only** (no content reads).
-9. Write to `/memories/session/aidev2-config-cache.md` under `## <BLUEPRINT_ROOT>`.
-10. Report resolved values in a compact table. No YAML content reads. No file modifications.
-
-**What warmup does NOT do** (deferred to consuming stages):
-- Does NOT read requirement YAML content (FR, NFR, MAC, TS files).
-- Does NOT compute `max_sequence` per type — deferred to §REQUIREMENTS / IM-02.
-- Does NOT summarize NFR/Global CR standing constraints — deferred to IM-02.
+8. `list_dir` on `PENDING` and `CURRENT` — record file names.
+9. **Batch-read all requirement YAML** (FR, NFR/GLOBAL, MAC, TS) from both `PENDING` and `CURRENT` in parallel. Cache full content in `cached_data`. If a directory is empty or a file has zero items, record that as `empty`.
+10. **Compute `max_sequence` per ID type** (FR, NFR, GLOBAL, MAC, TS, AC, AT) from the cached content. Store as `cached_data.max_sequences`. For fresh projects (all empty), all values are `0`.
+11. **Extract standing constraints:** From cached NFR/GLOBAL items, build one-line summaries. Store as `cached_data.standing_constraints`.
+12. **Read manifest** (`requirements-state.yaml`) and cache `requirements_version_target`, `requirements_version_implemented`, `requirement_baseline` IDs.
+13. Write to `/memories/session/aidev2-config-cache.md` under `## <BLUEPRINT_ROOT>` — include resolved paths, max sequences, standing constraint summaries, and manifest state.
+14. Report resolved values in a compact table.
 
 Argument `refresh` → overwrite existing cache section.
 
@@ -144,9 +143,11 @@ Argument `refresh` → overwrite existing cache section.
 
 **ISOLATION RULE:** Do NOT read, inspect, or reference any existing app or blueprint config files (e.g. other `.instructions/config.yaml`) to infer naming conventions, slug format, or any other values. All inputs come exclusively from the user message and the setup script defaults.
 
-1. Parse user message for `APP_SLUG`, `IMPL_SUFFIX`, `OUTPUT_DIR`. Ask for missing. Convert to kebab-case.
+1. Parse user message for `APP_SLUG`, `IMPL_SUFFIX`, `OUTPUT_DIR`. Convert to kebab-case.
+   - `OUTPUT_DIR`: if not explicitly provided in the user message, default to the workspace root (first workspace folder visible in Explorer). Do NOT ask for `OUTPUT_DIR` when it can be defaulted this way.
    - `CORE_STACK`: parse from `stack:<value>` or `stack <value>` in the free-form text (e.g. `stack:go` or `stack go` → `CORE_STACK=go`). If provided, pass `--core-stack` to the setup script.
    - `IMPL_SUFFIX`: if not explicitly provided, default to `CORE_STACK` value (e.g. `go`). If `CORE_STACK` is also absent, ask.
+   - Only ask when `APP_SLUG`, `IMPL_SUFFIX`, or `CORE_STACK` are genuinely unresolvable.
 2. Resolve `FRAMEWORK_ROOT` from this prompt's own bundled template:
    `<PROMPTS_DIR>/aidev2-combined-details/initial-folder-structure/framework-ai-blueprint-template-v2`
    where `<PROMPTS_DIR>` = `{{VSCODE_USER_PROMPTS_FOLDER}}`.
@@ -301,12 +302,14 @@ Validation gate — run between implementation stages and as final gate.
 
 ## Narration Protocol
 
-Before/after every stage:
-- `--- STAGE START: <stage> at <ISO-8601> ---`
-- `--- STAGE END: <stage> at <ISO-8601> (elapsed: <N>s) ---`
-- Errors: `[<stage>] ERROR: <message>`
-- Unexpected: `[<stage>] **UNEXPECTED: <message>**` (bold, fatal to current stage)
-- Pipeline summary at end:
+**Keep chat narration minimal.** The log file is the detailed record — chat is for the user.
+
+- **Stage start:** One line: `[<stage>] Starting...`
+- **Stage end:** One line: `[<stage>] Done (<N>s) — <one-line outcome>`
+- **Errors:** `[<stage>] ERROR: <message>`
+- **Unexpected:** `[<stage>] **UNEXPECTED: <message>**` (bold, fatal)
+- **Do NOT repeat** in chat what the log already captures (requirement-by-requirement play-by-play, script stdout, file paths written). The user can read the log.
+- Pipeline summary at end (this IS shown in chat):
 
 ```
 --- PIPELINE SUMMARY ---
@@ -324,20 +327,22 @@ At pipeline start:
 5. Final: `[<ts>][combined] [PIPELINE END] total_elapsed=<N>s total_errors=<N>`.
 
 **CRITICAL — Log Enforcement Rules (MANDATORY — violations invalidate the run):**
-- Every stage **MUST** `echo` its `STAGE START` line to `$LOG_FILE` **before** any stage work begins.
-- Every stage **MUST** `echo` its `STAGE END` line to `$LOG_FILE` **immediately after** stage work completes (before proceeding to the next stage).
-- Within a stage, every script invocation, key decision, error, artifact write, and requirement completion **MUST** be logged as it happens — not batched at the end.
+- Every stage **MUST** log its `STAGE START` line to `$LOG_FILE` **before** any stage work begins.
+- Every stage **MUST** log its `STAGE END` line to `$LOG_FILE` **immediately after** stage work completes (before proceeding to the next stage).
+- Within a stage, every script invocation, key decision, error, artifact write, and requirement completion **MUST** be logged.
 - **Per-requirement logging in IM-03:** After implementing each requirement, log: `[<ts>][combined] Requirement <REQ-ID> — implemented, manifest updated`.
-- **Per-action logging:** Every `run_in_terminal` invocation that runs a tooling command, build, or test **MUST** be immediately followed by a separate `run_in_terminal` that appends the outcome to `$LOG_FILE`.
-- Use `run_in_terminal` with `echo "[<ts>][combined] ..." >> "$LOG_FILE"` as a **separate tool call** before and after stage work. Do not rely on appending log entries in a later stage or at pipeline end.
+- **Batched log writes are preferred.** Accumulate log entries in a shell variable or heredoc and write them in a single `echo -e "$LOG_ENTRIES" >> "$LOG_FILE"` call at natural checkpoints (after each requirement, after each script invocation, at stage boundaries). Do NOT use a separate `run_in_terminal` for every individual log line — that wastes tool calls.
+- **Inline logging with commands:** When running a tooling command, chain the log entry in the same terminal call: `"$TOOLING_CMD" ... && echo "[<ts>][combined] ..." >> "$LOG_FILE"`. This halves the number of terminal round-trips.
+- **Stage-boundary logging** (STAGE START / STAGE END) may still use dedicated terminal calls for clarity.
 - **Minimum log density:** A pipeline run that implements N requirements must produce at least `5 + (3 × N)` log lines (pipeline start/end, per-stage start/end, per-requirement entries). If the log has fewer lines than this after a run, the run is non-compliant.
 - **Never skip logging due to context length or conversation complexity.** If nearing context limits, the log is the last thing to sacrifice — reduce narration verbosity in chat instead.
 - If a conversation is interrupted mid-pipeline, the log must reflect all stages that actually completed.
 
 ## Terminal Execution Rules
 
-- Fresh foreground terminal for each critical tooling command.
-- No background execution, no `await_terminal`, no batching critical commands.
+- Fresh foreground terminal for each critical tooling command (`diff`, `delta`, `apply`, `promote`, `build`, `test`).
+- Non-critical commands (echo, mkdir, cp, mv, cat, log writes) **may be chained** with `&&` onto a critical command or grouped together in a single terminal call.
+- No background execution, no `await_terminal`.
 - Terminal-close-before-result: retry once in fresh terminal. Same failure again → unexpected fatal error.
 
 ## Internal Stage Tracking
@@ -362,4 +367,4 @@ stage_result:
 
 File: `/memories/session/aidev2-config-cache.md`
 Section: `## <absolute BLUEPRINT_ROOT>` — isolated by exact header match.
-Contents: resolved config variables and directory file listings only. No YAML content or computed sequences.
+Contents: resolved config variables, directory file listings, **max_sequences per ID type**, **standing constraint one-line summaries**, **manifest state** (version target/implemented, baseline IDs), and **cached requirement YAML content** (or `empty` markers). This is the primary data source for downstream stages — they consume cache before re-reading files.

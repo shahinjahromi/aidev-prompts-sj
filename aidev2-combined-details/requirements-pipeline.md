@@ -21,7 +21,11 @@ All requirement types support optional `module`:
 
 Sequence numbers must be **globally unique within each type** across pending + current.
 
-### Scan table
+### Fast path (fresh project)
+
+If `cached_data.max_sequences` shows all zeros (or warmup marked the project as `fresh: true` because pending + current directories have no items), skip the scan entirely — start all sequences at `0000001`. This avoids 6+ file reads for a brand-new project.
+
+### Scan table (only when existing items exist)
 
 | Type | Files to scan |
 |---|---|
@@ -33,9 +37,9 @@ Sequence numbers must be **globally unique within each type** across pending + c
 | `AC`, `AT` | All `functional_requirements.yaml` + `nfr_and_global_cr*.yaml` (pending + current) |
 
 Before writing any new item:
-1. Scan all relevant files for the type.
-2. Collect all existing sequence numbers.
-3. `next_seq = max(existing) + 1`. Never reuse.
+1. Use `cached_data.max_sequences` from warmup as the floor. Only re-scan if warmup cache is missing.
+2. `next_seq = max(cached, existing) + 1`. Never reuse.
+3. After allocating, update `cached_data.max_sequences` in memory — don't re-scan for the next item in the same run.
 
 ## Contract References (`contract_refs`)
 
@@ -72,11 +76,59 @@ After any TS write, refresh the relevant mirror. Mirrors contain only entries fo
 
 ## Read Efficiency
 
-1. **Batch-read on entry:** All YAML under `PENDING/` and `CURRENT/` in one parallel batch. Cache for the session.
-2. **Derive from cache:** Use cached contents for `next_seq` — don't re-read.
-3. **Re-read only on write:** After writing a file, refresh only that file.
-4. **Use session cache:** If `aidev2-config-cache.md` has `max_sequence` values, use as floor.
+1. **Use warmup cache first:** `cached_data` from §WARMUP contains requirement YAML content, max_sequences, and standing constraints. Always consume cache before reading files.
+2. **Batch-read on entry (if cache miss):** All YAML under `PENDING/` and `CURRENT/` in one parallel batch. Cache for the session.
+3. **Derive from cache:** Use cached contents for `next_seq` — don't re-read.
+4. **Re-read only on write:** After writing a file, refresh only that file in cache.
 5. **Consume `cached_data` first:** If prior stages provided data, use it.
+
+### Inline Schema Quick-Reference (avoid reading schema JSON files)
+
+The schemas rarely change. Use this quick-reference instead of opening `aidev2-schemas/*.json`:
+
+**FR** (`functional_requirements.yaml`):
+```yaml
+schema_version: 1
+type: functional_requirements
+items:
+- id: "FR-NNNNNNN-kebab-slug"   # pattern: ^FR-[0-9]{7}-[a-z0-9-]+$
+  text: "Requirement text"
+  section: "Section Name"
+  module: "optional-module"      # optional
+  action: update|delete          # omit for create
+  replaces_id: "FR-..."          # required for update/delete
+  contract_refs: [...]           # optional
+  acceptance_criteria:           # MANDATORY
+  - id: "AC-NNNNNN"             # pattern: ^AC-[0-9]{6}$
+    title: "..."
+    criteria: ["atomic condition 1", ...]
+    scenarios: [{name, given, when, then}]
+  acceptance_tests:              # MANDATORY
+  - id: "AT-NNNNNN"             # pattern: ^AT-[0-9]{6}$
+    name: "..."
+    steps: ["step1", ..., "step12"]  # 6-12 Playwright-precise steps
+    expected_result: "..."
+```
+
+**NFR/GLOBAL** (`nfr-and-global-cr-<impl-id>.yaml`): Same structure as FR but `id` pattern is `^(NFR|GLOBAL)-[0-9]{7}-[a-z0-9-]+$`.
+
+**TS** (`technology-selection-<impl-id>.yaml`):
+```yaml
+schema_version: 1
+type: technology_selection
+entries:
+- id: "TS-NNNNNNN-kebab-slug"  # pattern: ^TS-[a-z0-9-]+$
+  category: "..."
+  capability: "..."
+  name: "..."
+  version: "..."
+  description: "..."
+  module: "optional"            # optional
+```
+
+**MAC** (`models_and_contracts.yaml`): `id` pattern `^MAC-[0-9]{7}-[a-z0-9-]+$`, has `items[]` with `contract_type`, `spec_file`, `child_specifications`.
+
+Only read the actual schema JSON files when encountering an unusual validation error.
 
 ---
 

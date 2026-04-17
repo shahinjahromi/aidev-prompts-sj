@@ -185,4 +185,4 @@ Order: (1) `APP_ROOT/scripts/local-dev.sh` (2) `scripts/start.sh` (3) `scripts/d
 
 File: `/memories/session/aidev2-config-cache.md`
 Section header: `## <absolute BLUEPRINT_ROOT>` — isolated by exact header match.
-Contents: all resolved variables, requirement file paths (names only), and directory listings. Does NOT contain YAML content, max sequences, or requirement summaries — those are read fresh by the stages that need them.
+Contents: all resolved variables, requirement file paths (names only), directory listings, **max_sequences per ID type** (FR, NFR, GLOBAL, MAC, TS, AC, AT), **standing constraint one-line summaries**, **manifest state**, and **cached requirement item content** (full YAML items or `empty` markers). Downstream stages consume cache first — re-read only when the cache is stale or a write occurred.
