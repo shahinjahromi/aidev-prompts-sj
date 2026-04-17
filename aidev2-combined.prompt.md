@@ -96,6 +96,68 @@ Log the resolved value: `[dispatch] module_filter=<value|none>`.
 
 ---
 
+## Tooling Quick-Reference
+
+**Never read script files to discover their interface.** All `ai-tooling.sh` and `setup-for-user-prompts.sh` behavior is fully documented here. Use this reference — do not open any `.sh` or `.py` files.
+
+### `ai-tooling.sh` — Command Dispatcher
+
+Delegates to Python scripts in `AI_TOOLING` dir. Invoked as `"$TOOLING_CMD" <subcommand> [flags]`.
+
+**Common flags (all subcommands):**
+
+| Flag | Value |
+|---|---|
+| `-r, --requirements-path` | `BLUEPRINT_ROOT/01-requirements` — **never** pass `BLUEPRINT_ROOT` itself |
+| `-a, --app-path` | `APP_ROOT` (absolute path) |
+| `--implementation-id` | `IMPLEMENTATION_ID` |
+| `--module <name>` | *(diff, summarize-diff only)* narrow output to requirements matching this module |
+
+**Subcommand reference:**
+
+| Command | Purpose | Reads | Writes | Stdout / exit |
+|---|---|---|---|---|
+| `bootstrap` | Create `.aidev` scaffold in APP_ROOT if missing. Never overwrites existing. | — | `APP_ROOT/.aidev/requirements/requirements-state.yaml` | Silent on success; exit 0 |
+| `promote` | Move pending→current, bump `requirements_version` in `control.yaml`, regenerate merged, sync tech mirrors. | `PENDING/**` | `CURRENT/**`, `control.yaml`, merged | Promoted item count or `"No pending items"` (not an error — exit 0) |
+| `diff` | Compare `CURRENT/merged/merged_requirements.yaml` vs APP manifest baseline → structured diff for planning. | `CURRENT/merged/`, APP manifest | `IMPL_ROOT/01-delta-current/structured-diff.yaml` | Silent on success; exit 0 |
+| `summarize-diff` | Print plain-text summary of an **existing** `structured-diff.yaml`. Does NOT regenerate. | `IMPL_ROOT/01-delta-current/structured-diff.yaml` | — | `=== Diff Summary ===` block with created/updated/removed counts + IDs; exit 0 |
+| `delta` | Generate delta document that `apply` reads. Distinct from `diff` — different output path. | `CURRENT/merged/`, APP manifest | `IMPL_ROOT/02-delta-history/01-delta-current.yaml` (every entry has `implementation_verified: false`) | Silent on success; exit 0 |
+| `apply` | Promote entries where `implementation_verified: true` from delta into manifest. | `IMPL_ROOT/02-delta-history/01-delta-current.yaml` | `APP_ROOT/.aidev/requirements/requirements-state.yaml` | Silently skips unverified entries; exit 0 even if nothing applied — always verify manifest after |
+| `merge` | Rebuild `CURRENT/merged/merged_requirements.yaml` from split requirement files. | `CURRENT/**` requirement YAML | `CURRENT/merged/merged_requirements.yaml` | Count of merged items; exit 0 |
+
+**Critical path — `diff` vs `delta` vs `apply`:**
+- `diff` → writes `IMPL_ROOT/01-delta-current/structured-diff.yaml` (planning input — read by IM-02).
+- `delta` → writes `IMPL_ROOT/02-delta-history/01-delta-current.yaml` (manifest input — read by `apply`). Completely separate path.
+- `apply` reads `02-delta-history/01-delta-current.yaml`. Running `apply` without `delta` first → `FileNotFoundError`.
+- Set `implementation_verified: true` on each delta entry before calling `apply`; otherwise the manifest entry is silently skipped.
+
+### `setup-for-user-prompts.sh` — Blueprint Scaffold
+
+Located at `FRAMEWORK_ROOT/setup/setup-for-user-prompts.sh`. Purpose: create `<APP_SLUG>-ai-blueprint/` (blueprint) and `<APP_SLUG>-<IMPL_SUFFIX>/` (app repo) under `OUTPUT_DIR`.
+
+**Required flags:**
+
+| Flag | Description |
+|---|---|
+| `--output-dir` | Absolute path to an existing directory (workspace root) |
+| `--app-slug` | Kebab-case slug (e.g. `hello-world`) — becomes `requirement_set_id` |
+| `--impl-suffix` | Suffix appended to slug to form the implementation ID (e.g. `go` → `hello-world-go`) |
+
+**Common optional flags:**
+
+| Flag | Default | Notes |
+|---|---|---|
+| `--core-stack <stack>` | — | Preset stack config (e.g. `go`, `angular`, `java`); also sets default `--impl-suffix` if omitted |
+| `--user-prompts-dir` | Auto-detected | VS Code user prompts root |
+| `--workspace-root` | `OUTPUT_DIR` | Written into config cross-references |
+
+**Behavior:**
+- Pre-condition: `OUTPUT_DIR` must exist; both destination dirs (`<slug>-ai-blueprint`, `<slug>-<suffix>`) must **not** exist.
+- Non-interactive: if required args are missing and stdin is not a TTY, exits with `ERROR: Missing required value …`.
+- On success: full blueprint directory structure created, `.instructions/config.yaml` wired, tooling symlinked/copied; exit 0.
+
+---
+
 ## §WARMUP
 
 Load, cache, and **pre-compute** everything downstream stages need — so they never re-read the same files. **Subsumes all pre-flight checks** (blueprint root, app folder, .aidev bootstrap, tooling). No separate pre-flight stage exists.
