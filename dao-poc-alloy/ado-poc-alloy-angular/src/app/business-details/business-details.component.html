@@ -1,0 +1,20 @@
+<section class="card">
+	<h2>Business Details</h2>
+	<label>Legal Business Name<input name="legalName" [(ngModel)]="model.legalName" /></label>
+	<label>
+		Specific Entity Type
+		<select name="entityType" [(ngModel)]="model.entityType">
+			<option *ngFor="let type of entityTypes" [value]="type">{{ type }}</option>
+		</select>
+	</label>
+	<label>
+		Role
+		<select name="role" [(ngModel)]="model.role">
+			<option value="Managing Member">Managing Member</option>
+			<option value="Sole Owner">Sole Owner</option>
+			<option value="Director">Director</option>
+		</select>
+	</label>
+	<p class="hint">Sole Owner help text: choose this when one owner controls 100% of the business.</p>
+	<button type="button" (click)="submit()">Continue</button>
+</section>

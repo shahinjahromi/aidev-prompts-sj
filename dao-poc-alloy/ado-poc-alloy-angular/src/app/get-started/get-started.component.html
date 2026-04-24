@@ -1,0 +1,13 @@
+<section class="card">
+	<h2>Get Started</h2>
+	<label>First Name<input name="firstName" [(ngModel)]="model.firstName" /></label>
+	<label>Last Name<input name="lastName" [(ngModel)]="model.lastName" /></label>
+	<label>Email<input name="email" [(ngModel)]="model.email" /></label>
+	<label>Phone<input name="phone" [(ngModel)]="model.phone" /></label>
+	<label class="check">
+		<input type="checkbox" name="smsConsent" [(ngModel)]="model.smsConsent" />
+		I consent to SMS notifications.
+	</label>
+	<button type="button" [disabled]="isSaving" (click)="submit()">Submit</button>
+	<p *ngIf="statusMessage">{{ statusMessage }}</p>
+</section>

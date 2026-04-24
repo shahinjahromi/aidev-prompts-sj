@@ -1,0 +1,11 @@
+<section class="card">
+	<h2>Controlling Party</h2>
+	<button type="button" (click)="toggleFlag()">Toggle enableBOAuthorizedUser</button>
+
+	<label><input type="radio" name="role" value="Owner" [(ngModel)]="role" /> Owner</label>
+	<label><input type="radio" name="role" value="Managing Member" [(ngModel)]="role" /> Managing Member</label>
+	<label *ngIf="showOtherRole"><input type="radio" name="role" value="Other" [(ngModel)]="role" /> Other</label>
+
+	<label *ngIf="role === 'Other'">Other Role<input name="otherRole" [(ngModel)]="otherRole" /></label>
+	<button type="button" (click)="next()">Continue</button>
+</section>

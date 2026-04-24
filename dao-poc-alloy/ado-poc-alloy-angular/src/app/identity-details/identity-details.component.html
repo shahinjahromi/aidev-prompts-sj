@@ -1,0 +1,13 @@
+<section class="card">
+	<h2>Identity Details</h2>
+	<label>Date of Birth<input name="dob" [(ngModel)]="model.dob" /></label>
+	<label>SSN<input name="ssn" [(ngModel)]="model.ssn" /></label>
+	<label>Home Address<input name="homeAddress" [(ngModel)]="model.homeAddress" /></label>
+	<label>
+		Residency
+		<select name="residency" [(ngModel)]="model.residency">
+			<option *ngFor="let residency of residencies" [value]="residency">{{ residency }}</option>
+		</select>
+	</label>
+	<button type="button" (click)="submit()">Continue</button>
+</section>

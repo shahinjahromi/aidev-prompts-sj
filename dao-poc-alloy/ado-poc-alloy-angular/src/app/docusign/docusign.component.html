@@ -1,0 +1,9 @@
+<section class="card">
+	<h2>DocuSign Consent and Liveness</h2>
+	<label class="check">
+		<input type="checkbox" [(ngModel)]="consent" name="consent" />
+		I agree to E-sign consent.
+	</label>
+	<button type="button" (click)="submit()">Continue to Liveness</button>
+	<p *ngIf="message">{{ message }}</p>
+</section>

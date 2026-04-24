@@ -1,0 +1,15 @@
+<section class="card">
+	<h2>Complete Profile</h2>
+	<p>Additional Services section is intentionally removed.</p>
+	<label>Website<input name="website" [(ngModel)]="model.website" /></label>
+	<label>Annual Transactions<input name="annualTransactions" [(ngModel)]="model.annualTransactions" /></label>
+	<label>Notes<textarea name="notes" [(ngModel)]="model.notes"></textarea></label>
+
+	<label *ngIf="featureFlags.flags.enabledAuthorizedUsers">
+		Authorized Signers
+		<input type="number" name="authorizedSigners" [(ngModel)]="model.authorizedSigners" />
+	</label>
+
+	<button type="button" (click)="submit()">Submit Profile</button>
+	<p *ngIf="message">{{ message }}</p>
+</section>

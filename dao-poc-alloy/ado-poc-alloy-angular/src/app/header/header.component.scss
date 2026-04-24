@@ -1,0 +1,82 @@
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.zifi-logo {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  height: 24px;
+}
+
+.logo-bar {
+  width: 3px;
+  height: 100%;
+  border-radius: 1px;
+}
+
+.logo-bar.red {
+  background: #ef4444;
+}
+
+.logo-bar.purple {
+  background: #9b7eb8;
+}
+
+.logo-bar.blue {
+  background: #3b82f6;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 20px;
+  color: #001f3f;
+  letter-spacing: -0.5px;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.greeting {
+  margin-right: 16px;
+  color: #1a1a1a;
+  font-size: 14px;
+}
+
+button {
+  border: 0;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 4px;
+  background: transparent;
+  color: #001f3f;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+button:hover {
+  background: #f0f0f0;
+}
+
+.ghost-btn {
+  background: transparent;
+  color: #163a70;
+}
+
+.danger-btn {
+  background: #ffdfdf;
+  color: #792020;
+}

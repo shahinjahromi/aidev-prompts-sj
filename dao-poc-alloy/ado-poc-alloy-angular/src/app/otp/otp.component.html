@@ -1,0 +1,9 @@
+<section class="card">
+	<h2>OTP Verification</h2>
+	<p *ngIf="showTestOtp" class="test-code" data-testid="test-otp-code">
+		Test mode code: <strong>{{ testOtpCode }}</strong>
+	</p>
+	<label>One-Time Passcode<input name="otp" [(ngModel)]="otp" /></label>
+	<button type="button" (click)="verify()">Verify OTP</button>
+	<p *ngIf="feedback">{{ feedback }}</p>
+</section>

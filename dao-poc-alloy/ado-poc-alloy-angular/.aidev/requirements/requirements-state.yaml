@@ -1,0 +1,40 @@
+manifest_version: '1.0'
+requirement_set_id: ado-poc-alloy
+app_identifier: ado-poc-alloy
+implementation_id: ado-poc-alloy-angular
+iteration_id: 1
+requirements_version_target: 1.0.3
+requirements_version_implemented: 1.0.3
+requirement_baseline:
+- requirement_id: FR-0000001-header-integration
+  pinned_version: 1.0.1
+- requirement_id: FR-0000002-master-footer
+  pinned_version: 1.0.1
+- requirement_id: FR-0000003-support-hub
+  pinned_version: 1.0.1
+- requirement_id: FR-0000004-welcome-get-started
+  pinned_version: 1.0.1
+- requirement_id: FR-0000005-otp
+  pinned_version: 1.0.1
+- requirement_id: FR-0000006-identity-details
+  pinned_version: 1.0.1
+- requirement_id: FR-0000007-business-details
+  pinned_version: 1.0.1
+- requirement_id: FR-0000008-additional-biz-details
+  pinned_version: 1.0.1
+- requirement_id: FR-0000009-beneficial-owners
+  pinned_version: 1.0.1
+- requirement_id: FR-0000010-controlling-party
+  pinned_version: 1.0.1
+- requirement_id: FR-0000011-complete-profile
+  pinned_version: 1.0.1
+- requirement_id: FR-0000012-transmit-eoj
+  pinned_version: 1.0.1
+- requirement_id: FR-0000013-docusign
+  pinned_version: 1.0.1
+- requirement_id: FR-0000014-sfmc-automation
+  pinned_version: 1.0.1
+- requirement_id: FR-0000015-website-maintenance
+  pinned_version: 1.0.1
+- requirement_id: FR-0000016-otp-test-mode-verification
+  pinned_version: 1.0.3

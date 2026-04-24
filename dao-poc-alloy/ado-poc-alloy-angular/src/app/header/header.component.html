@@ -1,0 +1,13 @@
+<header class="top-nav">
+  <div class="brand">DAO POC Alloy</div>
+  <span class="spacer"></span>
+  <span class="greeting">Hello, {{ userName }}</span>
+  <button type="button" class="ghost-btn" (click)="openSupport()">
+    Support Hub
+  </button>
+  <button type="button" class="danger-btn" (click)="logout()">
+    Logout
+  </button>
+</header>
+
+<app-support-modal [open]="isSupportOpen" (closeRequested)="closeSupport()"></app-support-modal>

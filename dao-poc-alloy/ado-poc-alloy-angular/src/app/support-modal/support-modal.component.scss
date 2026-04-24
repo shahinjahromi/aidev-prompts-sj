@@ -1,0 +1,50 @@
+.overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.4);
+	display: grid;
+	place-items: center;
+	z-index: 1000;
+}
+
+.dialog {
+	width: min(92vw, 420px);
+	background: #ffffff;
+	border-radius: 8px;
+	padding: 24px;
+	box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.dialog h2 {
+	color: #001f3f;
+	font-size: 20px;
+	margin-bottom: 12px;
+	font-weight: 600;
+}
+
+.dialog p {
+	color: #666666;
+	font-size: 14px;
+	line-height: 1.5;
+	margin-bottom: 16px;
+}
+
+button {
+	background: #9b7eb8;
+	color: #ffffff;
+	border: 0;
+	padding: 10px 16px;
+	border-radius: 4px;
+	cursor: pointer;
+	font-weight: 500;
+	font-size: 14px;
+	transition: all 0.2s;
+}
+
+button:hover {
+	background: #8a6fa3;
+}
+
+button:active {
+	transform: translateY(1px);
+}

@@ -1,0 +1,8 @@
+<section class="card">
+	<h2>Additional Business Details</h2>
+	<label>Industry<input name="industry" [(ngModel)]="model.industry" /></label>
+	<label>NAICS<input name="naics" [(ngModel)]="model.naics" /></label>
+	<label>Annual Revenue<input name="annualRevenue" [(ngModel)]="model.annualRevenue" /></label>
+	<label>Business Story<textarea name="businessStory" [(ngModel)]="model.businessStory"></textarea></label>
+	<button type="button" (click)="submit()">Continue</button>
+</section>

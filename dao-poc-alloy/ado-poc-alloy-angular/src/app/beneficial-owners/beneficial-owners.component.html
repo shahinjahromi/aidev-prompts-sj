@@ -1,0 +1,20 @@
+<section class="card">
+	<h2>Beneficial Owners</h2>
+	<p>Max owners: 5</p>
+	<button type="button" (click)="toggleFlag()">Toggle enableBODebitCard</button>
+
+	<label>Full Name<input name="fullName" [(ngModel)]="owner.fullName" /></label>
+	<label>Ownership %<input type="number" name="ownershipPercent" [(ngModel)]="owner.ownershipPercent" /></label>
+	<label *ngIf="showDebitCardToggle" class="check">
+		<input type="checkbox" name="wantsDebitCard" [(ngModel)]="owner.wantsDebitCard" />
+		Request Debit Card
+	</label>
+
+	<button type="button" (click)="addOwner()">Add Owner</button>
+
+	<ul>
+		<li *ngFor="let item of session.cache.owners">{{ item.fullName }} - {{ item.ownershipPercent }}%</li>
+	</ul>
+
+	<button type="button" (click)="next()">Continue</button>
+</section>
